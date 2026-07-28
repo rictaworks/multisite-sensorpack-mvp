@@ -165,5 +165,97 @@
       "signInFailed": "Échec de la connexion. Veuillez réessayer.",
       "recaptchaRequired": "Veuillez valider le reCAPTCHA."
     }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "Aperçu des sites",
+      "statSites": "Sites",
+      "statDevices": "Appareils",
+      "statOnline": "En ligne",
+      "statOpenAlerts": "Alertes en cours",
+      "unitSites": "sites",
+      "unitDevices": "appareils",
+      "unitAlerts": "alertes",
+      "siteMeta": "{deviceCount} appareil(s)",
+      "badgeAllOnline": "Tous en ligne",
+      "badgeSomeOffline": "Certains hors ligne",
+      "currentTemperature": "Température actuelle",
+      "currentHumidity": "Humidité actuelle",
+      "noReading": "Aucune donnée",
+      "deviceLabel": "Appareil n° {id}",
+      "emptySites": "Aucun site à afficher pour le moment."
+    },
+    "device": {
+      "statusOnline": "Connecté",
+      "statusOffline": "Non connecté",
+      "statusProvisioning": "En cours de configuration",
+      "backToOverview": "Retour à la liste des sites",
+      "lastSeen": "Dernière réception {time}",
+      "intervalSeconds": "Envoi toutes les {seconds}s",
+      "notFound": "Cet appareil est introuvable.",
+      "range24h": "24 heures",
+      "range7d": "7 jours",
+      "chartTitle": "Évolution de la température et de l'humidité",
+      "legendTemperature": "Température",
+      "legendHumidity": "Humidité (axe droit, 0-100%)",
+      "legendUpperThreshold": "Limite supérieure de température",
+      "legendLowerThreshold": "Limite inférieure de température",
+      "axisTemperatureUnit": "°C",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "Température la plus haute",
+      "summaryMinTemp": "Température la plus basse",
+      "summaryAvgTemp": "Température moyenne",
+      "summaryOverThreshold": "Temps au-dessus de la limite",
+      "summaryAvgHumidity": "Humidité moyenne",
+      "minutesUnit": "{minutes} min",
+      "hoursUnit": "{hours} h",
+      "offlineWarning": "Cet appareil est actuellement hors ligne. Les données affichées datent de sa dernière connexion.",
+      "commandsTitle": "Historique des commandes",
+      "noCommands": "Aucune commande envoyée pour le moment.",
+      "alertsTitle": "Alertes de cet appareil",
+      "noAlerts": "Aucune alerte."
+    },
+    "commandType": {
+      "LED_ON": "Allumer la lumière",
+      "LED_OFF": "Éteindre la lumière",
+      "FAN_ON": "Allumer le ventilateur",
+      "FAN_OFF": "Éteindre le ventilateur"
+    },
+    "commandOrigin": {
+      "manual": "Manuel",
+      "auto": "Automatique"
+    },
+    "commandStatus": {
+      "pending": "En attente",
+      "delivered": "Reçue",
+      "done": "Exécutée",
+      "expired": "Non délivrée"
+    },
+    "alertType": {
+      "upper_breach": "Dépassement du seuil supérieur",
+      "lower_breach": "Passage sous le seuil inférieur",
+      "offline": "Appareil hors ligne"
+    },
+    "alertSeverity": {
+      "info": "Info",
+      "warning": "Avertissement",
+      "critical": "Critique"
+    },
+    "alertStatus": {
+      "open": "Non traitée",
+      "acknowledged": "Prise en compte",
+      "closed": "Résolue"
+    },
+    "relativeTime": {
+      "justNow": "À l'instant",
+      "minutes": "il y a {value} min",
+      "hours": "il y a {value} h",
+      "days": "il y a {value} j"
+    },
+    "polling": {
+      "label": "Actualisation automatique toutes les {seconds}s",
+      "lastUpdated": "Dernière mise à jour {time}"
+    }
   }
 }

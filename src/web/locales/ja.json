@@ -165,5 +165,97 @@
       "signInFailed": "ログインに失敗しました。もう一度お試しください。",
       "recaptchaRequired": "reCAPTCHAを完了してください。"
     }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "拠点のようす",
+      "statSites": "拠点数",
+      "statDevices": "デバイス数",
+      "statOnline": "オンライン",
+      "statOpenAlerts": "未対応アラート",
+      "unitSites": "拠点",
+      "unitDevices": "台",
+      "unitAlerts": "件",
+      "siteMeta": "{deviceCount}台のデバイス",
+      "badgeAllOnline": "オンライン中",
+      "badgeSomeOffline": "オフラインあり",
+      "currentTemperature": "いまの温度",
+      "currentHumidity": "いまの湿度",
+      "noReading": "データなし",
+      "deviceLabel": "デバイス #{id}",
+      "emptySites": "表示できる拠点がありません。"
+    },
+    "device": {
+      "statusOnline": "つながっています",
+      "statusOffline": "つながっていません",
+      "statusProvisioning": "準備中",
+      "backToOverview": "拠点一覧にもどる",
+      "lastSeen": "最終受信 {time}",
+      "intervalSeconds": "送信間隔 {seconds}秒",
+      "notFound": "指定されたデバイスが見つかりません。",
+      "range24h": "24時間",
+      "range7d": "7日間",
+      "chartTitle": "温度・湿度のうごき",
+      "legendTemperature": "温度",
+      "legendHumidity": "湿度（右めもり 0〜100%）",
+      "legendUpperThreshold": "温度の上限ライン",
+      "legendLowerThreshold": "温度の下限ライン",
+      "axisTemperatureUnit": "℃",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "いちばん高かった温度",
+      "summaryMinTemp": "いちばん低かった温度",
+      "summaryAvgTemp": "平均の温度",
+      "summaryOverThreshold": "上限をこえていた時間",
+      "summaryAvgHumidity": "平均の湿度",
+      "minutesUnit": "{minutes}分",
+      "hoursUnit": "{hours}時間",
+      "offlineWarning": "いまオフラインです。表示中のデータは最後に受信した内容です。",
+      "commandsTitle": "操作の履歴",
+      "noCommands": "まだ操作していません。",
+      "alertsTitle": "この機器のお知らせ",
+      "noAlerts": "お知らせはありません。"
+    },
+    "commandType": {
+      "LED_ON": "ライトをつける",
+      "LED_OFF": "ライトを消す",
+      "FAN_ON": "ファンを回す",
+      "FAN_OFF": "ファンを止める"
+    },
+    "commandOrigin": {
+      "manual": "手動",
+      "auto": "自動"
+    },
+    "commandStatus": {
+      "pending": "送信待ち",
+      "delivered": "届きました",
+      "done": "実行ずみ",
+      "expired": "届きませんでした"
+    },
+    "alertType": {
+      "upper_breach": "上限超過",
+      "lower_breach": "下限超過",
+      "offline": "オフライン"
+    },
+    "alertSeverity": {
+      "info": "お知らせ",
+      "warning": "注意",
+      "critical": "重要"
+    },
+    "alertStatus": {
+      "open": "未対応",
+      "acknowledged": "確認ずみ",
+      "closed": "解決ずみ"
+    },
+    "relativeTime": {
+      "justNow": "たった今",
+      "minutes": "{value}分前",
+      "hours": "{value}時間前",
+      "days": "{value}日前"
+    },
+    "polling": {
+      "label": "{seconds}秒ごとに自動更新",
+      "lastUpdated": "最終更新 {time}"
+    }
   }
 }
