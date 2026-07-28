@@ -9,6 +9,47 @@
     "dashboard": "Panel",
     "alerts": "Alertas"
   },
+  "deviceClaim": {
+    "eyebrow": "Añadir dispositivo",
+    "backToHome": "← Volver al inicio",
+    "title": "Añadir un Sensor Pack",
+    "steps": {
+      "selectSite": "Elige una sede",
+      "issueCode": "Generar un código",
+      "connect": "Conectar"
+    },
+    "form": {
+      "siteLabel": "¿En qué sede se instalará este dispositivo?",
+      "siteEmpty": "Aún no hay sedes registradas. Primero crea una sede.",
+      "sitesLoadError": "No se pudieron cargar tus sedes. Vuelve a cargar la página.",
+      "nameLabel": "Un nombre para este dispositivo",
+      "namePlaceholder": "p. ej.: Almacén A, estantería del fondo",
+      "nameHint": "No introduzcas una dirección. Basta con un nombre que puedas reconocer.",
+      "recaptchaHint": "reCAPTCHA · Privacidad · Términos del servicio",
+      "recaptchaUnconfigured": "reCAPTCHA no está configurado, por lo que no se puede generar un código. Ponte en contacto con un administrador.",
+      "submit": "Generar código de conexión",
+      "submitting": "Generando…"
+    },
+    "errors": {
+      "siteRequired": "Por favor, elige una sede.",
+      "nameRequired": "Por favor, introduce un nombre para este dispositivo.",
+      "recaptchaRequired": "Por favor, completa la verificación reCAPTCHA.",
+      "validation": "Por favor, revisa los datos introducidos.",
+      "unauthorized": "Inicia sesión e inténtalo de nuevo.",
+      "forbidden": "No tienes permiso para realizar esta acción.",
+      "rateLimited": "Espera un momento e inténtalo de nuevo.",
+      "network": "Se produjo un error de red. Inténtalo de nuevo."
+    },
+    "issued": {
+      "instructions": "Enciende el Sensor Pack, conéctalo al Wi-Fi desde tu teléfono e introduce el código que aparece abajo.",
+      "codeLabel": "Código de conexión",
+      "expiresIn": "Este código caduca en {time}",
+      "waiting": "Esperando la conexión del Sensor Pack…",
+      "attemptsNote": "Tras 5 intentos incorrectos, este código dejará de funcionar. Deberás generar uno nuevo.",
+      "expired": "Este código ha caducado. Genera uno nuevo.",
+      "reissue": "Generar un nuevo código"
+    }
+  },
   "control": {
     "eyebrow": "Herramientas operativas",
     "title": "Herramientas operativas",

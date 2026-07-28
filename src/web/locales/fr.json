@@ -9,6 +9,47 @@
     "dashboard": "Tableau de bord",
     "alerts": "Alertes"
   },
+  "deviceClaim": {
+    "eyebrow": "Ajouter un appareil",
+    "backToHome": "← Retour à l'accueil",
+    "title": "Ajouter un Sensor Pack",
+    "steps": {
+      "selectSite": "Choisir un site",
+      "issueCode": "Générer un code",
+      "connect": "Connexion"
+    },
+    "form": {
+      "siteLabel": "Sur quel site cet appareil sera-t-il installé ?",
+      "siteEmpty": "Aucun site pour le moment. Veuillez d'abord créer un site.",
+      "sitesLoadError": "Impossible de charger vos sites. Veuillez recharger la page.",
+      "nameLabel": "Un nom pour cet appareil",
+      "namePlaceholder": "ex. Entrepôt A, étagère du fond",
+      "nameHint": "Merci de ne pas saisir d'adresse. Un nom qui vous permettra de le reconnaître suffit.",
+      "recaptchaHint": "reCAPTCHA · Confidentialité · Conditions d'utilisation",
+      "recaptchaUnconfigured": "reCAPTCHA n'est pas configuré, un code ne peut donc pas être généré. Merci de contacter un administrateur.",
+      "submit": "Générer le code de connexion",
+      "submitting": "Génération en cours…"
+    },
+    "errors": {
+      "siteRequired": "Veuillez choisir un site.",
+      "nameRequired": "Veuillez saisir un nom pour cet appareil.",
+      "recaptchaRequired": "Veuillez valider le reCAPTCHA.",
+      "validation": "Veuillez vérifier les informations saisies.",
+      "unauthorized": "Veuillez vous connecter et réessayer.",
+      "forbidden": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+      "rateLimited": "Veuillez patienter un instant avant de réessayer.",
+      "network": "Une erreur réseau s'est produite. Veuillez réessayer."
+    },
+    "issued": {
+      "instructions": "Mettez le Sensor Pack sous tension, connectez-le au Wi-Fi depuis votre téléphone, puis saisissez le code ci-dessous.",
+      "codeLabel": "Code de connexion",
+      "expiresIn": "Ce code expire dans {time}",
+      "waiting": "En attente de la connexion du Sensor Pack…",
+      "attemptsNote": "Après 5 tentatives incorrectes, ce code ne fonctionnera plus. Vous devrez en générer un nouveau.",
+      "expired": "Ce code a expiré. Veuillez en générer un nouveau.",
+      "reissue": "Générer un nouveau code"
+    }
+  },
   "control": {
     "eyebrow": "Outils d'exploitation",
     "title": "Outils d'exploitation",

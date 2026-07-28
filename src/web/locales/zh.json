@@ -9,6 +9,47 @@
     "dashboard": "仪表盘",
     "alerts": "告警"
   },
+  "deviceClaim": {
+    "eyebrow": "添加设备",
+    "backToHome": "← 返回首页",
+    "title": "添加传感器包",
+    "steps": {
+      "selectSite": "选择站点",
+      "issueCode": "生成配对码",
+      "connect": "连接"
+    },
+    "form": {
+      "siteLabel": "该设备将安装在哪个站点？",
+      "siteEmpty": "尚未创建任何站点，请先创建一个站点。",
+      "sitesLoadError": "站点列表加载失败，请刷新页面重试。",
+      "nameLabel": "为该设备设置一个名称",
+      "namePlaceholder": "例如：A仓库 里侧货架",
+      "nameHint": "请勿输入地址，填写一个便于识别的名称即可。",
+      "recaptchaHint": "reCAPTCHA · 隐私政策 · 服务条款",
+      "recaptchaUnconfigured": "尚未配置reCAPTCHA，无法生成配对码，请联系管理员。",
+      "submit": "生成配对码",
+      "submitting": "正在生成…"
+    },
+    "errors": {
+      "siteRequired": "请选择一个站点。",
+      "nameRequired": "请填写该设备的名称。",
+      "recaptchaRequired": "请完成reCAPTCHA验证。",
+      "validation": "请检查填写内容。",
+      "unauthorized": "请先登录后再试。",
+      "forbidden": "您没有执行此操作的权限。",
+      "rateLimited": "请稍候片刻后重试。",
+      "network": "发生网络错误，请重试。"
+    },
+    "issued": {
+      "instructions": "请为传感器包通电，用手机将其连接到Wi-Fi，然后输入下方的配对码。",
+      "codeLabel": "配对码",
+      "expiresIn": "该配对码将在 {time} 后失效",
+      "waiting": "正在等待传感器包连接…",
+      "attemptsNote": "配对码连续输错5次后将失效，需重新生成。",
+      "expired": "该配对码已过期，请重新生成。",
+      "reissue": "重新生成配对码"
+    }
+  },
   "control": {
     "eyebrow": "运维工具",
     "title": "运维工具",

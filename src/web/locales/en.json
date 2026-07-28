@@ -9,6 +9,47 @@
     "dashboard": "Dashboard",
     "alerts": "Alerts"
   },
+  "deviceClaim": {
+    "eyebrow": "Add Device",
+    "backToHome": "← Back to home",
+    "title": "Add a sensor pack",
+    "steps": {
+      "selectSite": "Choose a site",
+      "issueCode": "Issue a code",
+      "connect": "Connect"
+    },
+    "form": {
+      "siteLabel": "Which site will this be placed at?",
+      "siteEmpty": "No sites yet. Please create a site first.",
+      "sitesLoadError": "Failed to load your sites. Please reload the page.",
+      "nameLabel": "A name for this device",
+      "namePlaceholder": "e.g. Warehouse A, back shelf",
+      "nameHint": "Please do not enter an address. Any name you'll recognize is fine.",
+      "recaptchaHint": "reCAPTCHA · Privacy · Terms of Service",
+      "recaptchaUnconfigured": "reCAPTCHA is not configured, so a code cannot be issued. Please contact an administrator.",
+      "submit": "Issue connection code",
+      "submitting": "Issuing…"
+    },
+    "errors": {
+      "siteRequired": "Please choose a site.",
+      "nameRequired": "Please enter a name for this device.",
+      "recaptchaRequired": "Please complete the reCAPTCHA challenge.",
+      "validation": "Please check your input.",
+      "unauthorized": "Please sign in and try again.",
+      "forbidden": "You do not have permission to perform this action.",
+      "rateLimited": "Please wait a moment and try again.",
+      "network": "A network error occurred. Please try again."
+    },
+    "issued": {
+      "instructions": "Power on the sensor pack, connect it to Wi-Fi from your phone, and enter the code below.",
+      "codeLabel": "Claim Code",
+      "expiresIn": "{time} remaining before this code expires",
+      "waiting": "Waiting for the sensor pack to connect…",
+      "attemptsNote": "After 5 incorrect attempts this code will stop working. You will need to issue a new one.",
+      "expired": "This code has expired. Please issue a new one.",
+      "reissue": "Issue a new code"
+    }
+  },
   "control": {
     "eyebrow": "Operation Tools",
     "title": "Operation Tools",
