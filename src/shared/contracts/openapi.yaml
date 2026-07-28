@@ -1,0 +1,1469 @@
+openapi: 3.1.0
+info:
+  title: multisite-sensorpack-mvp API契約
+  version: "1.0.0"
+  description: |
+    Web(Next.js) ⇔ Rails API ⇔ FastAPI(AIサマリー) ⇔ ESP32ファームウェア間の
+    single source of truth となるAPI契約。
+
+    本ファイルは `requirements.md` の 1.6節（関数ロジック v3・最終版）を正とし、
+    その内容をOpenAPI 3.1形式のリクエスト/レスポンス形状として定義したもの。
+    仕様の変更は必ず `requirements.md` を先に更新し、本ファイルへ反映すること。
+
+    ## 対象サービスと利用者
+    - `tags` に `x-service` 拡張を付与し、どのランタイムが実装するAPIかを明示する。
+      - `rails-api`: Ruby on Rails（APIモード）が実装し、Next.js（Web）およびESP32が呼び出す公開API。
+      - `fastapi-ai`: Python FastAPIが実装する内部AIサマリー生成API。RailsからのみServer-to-Serverで呼び出され、
+        Next.js/ESP32/ブラウザから直接到達できないネットワーク配置とする（`.claude/rules/deploy.md` バックエンドドメイン隠蔽方針に準拠）。
+
+    ## 個人情報の取り扱い（requirements.md 1.4節）
+    - Googleログインの **opaqueな内部ユーザーID** のみを返却する。Google `sub` 値そのもの・メールアドレス・
+      表示名・氏名・住所・電話番号・生年月日はいかなるレスポンススキーマにも含めない。
+    - 拠点名（`Site.name`）は自由入力ラベルであり、住所を意味するフィールド・バリデーションは設けない。
+
+servers:
+  - url: https://sensorpack.rictaworks.jp/api/v1
+    description: Rails API（本番・Next.js経由のプロキシ配下 / requirements.md 8節・deploy.mdのバックエンドドメイン隠蔽方針）
+  - url: http://localhost:3000/api/v1
+    description: Rails API（開発環境）
+  - url: https://ai-internal.railway.internal/v1
+    description: >-
+      FastAPI AIサマリー内部サービス（本番）。Railwayのプライベートネットワーク内でのみ疎通し、
+      公開インターネットからは到達不可能な想定のプレースホルダURL。Next.js・ESP32・ブラウザは直接呼び出さない。
+  - url: http://localhost:8001/v1
+    description: FastAPI AIサマリー内部サービス（開発環境）
+
+tags:
+  - name: auth
+    description: Googleログインセッション（requirements.md 1.3/1.4節）
+    x-service: rails-api
+  - name: claim
+    description: F1 デバイス登録（クレームコード方式）
+    x-service: rails-api
+  - name: sites
+    description: 拠点管理（F6の前提となるCRUD）
+    x-service: rails-api
+  - name: devices
+    description: デバイス管理・詳細（F6）
+    x-service: rails-api
+  - name: telemetry
+    description: F2 テレメトリ受信 / F3 閾値判定（同期実行） / F5コマンドのピギーバック配信
+    x-service: rails-api
+  - name: thresholds
+    description: F3 閾値判定の設定値管理
+    x-service: rails-api
+  - name: commands
+    description: F5 遠隔制御（コマンド発行・履歴・自動ルール）
+    x-service: rails-api
+  - name: alerts
+    description: F8 アラート管理
+    x-service: rails-api
+  - name: dashboard
+    description: F6 ダッシュボード集計
+    x-service: rails-api
+  - name: ai-summary
+    description: F7 AI日次サマリー（ユーザー向け・クォータ制御はRailsが担う）
+    x-service: rails-api
+  - name: admin
+    description: F9 管理画面（BASIC認証・開発者用・日本語のみ）
+    x-service: rails-api
+  - name: internal-ai
+    description: F7 AI日次サマリー生成の内部委譲先（Rails→FastAPI、Server-to-Server限定）
+    x-service: fastapi-ai
+
+security:
+  - {}
+
+paths:
+  # ------------------------------------------------------------------
+  # auth
+  # ------------------------------------------------------------------
+  /auth/session:
+    post:
+      operationId: createSession
+      tags: [auth]
+      summary: Googleログインセッションを開始する
+      description: |
+        Next.js側でGoogle OAuth 2.0 / OpenID Connectを完了した後のIDトークンをRailsへ渡し、
+        検証成立時にhttpOnlyセッションCookieを発行する。ログイン導線にはreCAPTCHAを適用する
+        （requirements.md 1.3節・8節）。Google `sub` 値はDB照合にのみ使用し、レスポンスには含めない。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionCreateRequest"
+      responses:
+        "200":
+          description: セッション確立成功
+          headers:
+            Set-Cookie:
+              description: httpOnly・Secure・SameSite=Laxのセッションcookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionCreateResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Google IDトークンの検証に失敗した
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: reCAPTCHA検証失敗、またはログイン試行のレート制限超過
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: getSession
+      tags: [auth]
+      summary: 現在のログインユーザー情報を取得する
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: ログイン中
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionCreateResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      operationId: deleteSession
+      tags: [auth]
+      summary: ログアウトする（セッションcookieを失効させる）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "204":
+          description: ログアウト成功
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ------------------------------------------------------------------
+  # sites
+  # ------------------------------------------------------------------
+  /sites:
+    get:
+      operationId: listSites
+      tags: [sites]
+      summary: 自分が所有する拠点一覧を取得する（テナント分離必須・F6.1）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: 拠点一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sites]
+                properties:
+                  sites:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Site"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createSite
+      tags: [sites]
+      summary: 拠点を新規作成する
+      security:
+        - googleSessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteCreateRequest"
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /sites/{siteId}:
+    parameters:
+      - $ref: "#/components/parameters/SiteId"
+    delete:
+      operationId: deleteSite
+      tags: [sites]
+      summary: 拠点を論理削除する（配下デバイスも論理削除対象）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "204":
+          description: 削除成功
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # claim (F1)
+  # ------------------------------------------------------------------
+  /claim-codes:
+    post:
+      operationId: issueClaimCode
+      tags: [claim]
+      summary: クレームコードを発行する（F1 claim_device 手順1-2）
+      description: |
+        ユーザーがダッシュボードの「デバイス追加」からreCAPTCHAを通過して要求する。
+        8桁英数字コードを生成し、有効期限15分・対象拠点・発行ユーザー(sub)と共に保存する。
+      security:
+        - googleSessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimCodeCreateRequest"
+      responses:
+        "201":
+          description: 発行成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimCodeCreateResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: reCAPTCHA検証失敗、またはコード発行のレート制限超過
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /devices/claim:
+    post:
+      operationId: claimDevice
+      tags: [claim]
+      summary: ESP32がクレームコードを提出しデバイストークンを取得する（F1 claim_device 手順3-6）
+      description: |
+        ESP32がAPモード経由で取得したクレームコードを送信する。未使用・期限内・失敗回数5回未満の
+        コードと照合し、成立したらデバイスレコード(provisioning状態)を作成して長寿命のデバイストークンを返す。
+        照合失敗が同一コードで累計5回に達すると、そのコードは即時失効する（総当たり対策）。
+        IP単位のレート制限も併用する。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceClaimRequest"
+      responses:
+        "201":
+          description: クレーム成立・デバイストークン発行
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceClaimResponse"
+        "401":
+          description: コードが不正・期限切れ・使用済み、または失敗回数上限により失効済み
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: IP単位のクレーム試行レート制限超過
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ------------------------------------------------------------------
+  # devices
+  # ------------------------------------------------------------------
+  /devices:
+    get:
+      operationId: listDevices
+      tags: [devices]
+      summary: 自分の拠点配下の全デバイス一覧を取得する
+      security:
+        - googleSessionCookie: []
+      parameters:
+        - name: siteId
+          in: query
+          description: 指定した場合はその拠点配下のデバイスのみ返す
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: デバイス一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [devices]
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Device"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /devices/{deviceId}:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    get:
+      operationId: getDevice
+      tags: [devices]
+      summary: デバイス詳細を取得する（F6.3 デバイス詳細画面）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: デバイス詳細
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteDevice
+      tags: [devices]
+      summary: デバイスを論理削除する（再登録は新しいクレームコードで新デバイス扱い）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "204":
+          description: 削除成功
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /devices/{deviceId}/telemetry-series:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    get:
+      operationId: getDeviceTelemetrySeries
+      tags: [dashboard]
+      summary: デバイスの時系列グラフ用データを取得する（F6.3）
+      description: |
+        直近24hは生データ、7日を超える範囲は日次1時間粒度の集約データを返す
+        （生データは14日で削除・requirements.md 1.6 F6.5）。
+      security:
+        - googleSessionCookie: []
+      parameters:
+        - name: range
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["24h", "7d"]
+        - name: sensorType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/SensorTypeCode"
+      responses:
+        "200":
+          description: 時系列データ
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [points, thresholds]
+                properties:
+                  points:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TelemetrySeriesPoint"
+                  thresholds:
+                    type: array
+                    description: グラフ上に閾値ラインを描画するための現在設定値
+                    items:
+                      $ref: "#/components/schemas/Threshold"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # telemetry ingest (F2/F3/F5 piggyback) — ESP32 → Rails
+  # ------------------------------------------------------------------
+  /telemetry:
+    post:
+      operationId: ingestTelemetry
+      tags: [telemetry]
+      summary: ESP32からのテレメトリを受信し、閾値判定を同期実行し、未配信コマンドをピギーバック返却する
+      description: |
+        F2 ingest_telemetry / F3 evaluate_thresholds / F5 dispatch_command(配信) を1リクエストで処理する。
+
+        - デバイストークンを検証し、無効・論理削除済みなら401/410で拒否する。
+        - 記録時刻はサーバー受信時刻を採用する（`device_reported_at`は参考値として保持のみ）。
+        - 値域チェック（温度-40〜85℃、湿度0〜100%）を逸脱した値は不正データとして破棄し、
+          破棄件数をデバイス統計に記録する（レスポンス自体は200のまま、`accepted=false`で通知）。
+        - `device_id + seq` の組で重複排除する（再送による二重計上防止）。
+        - 保存後に`last_seen`を更新し、閾値判定（連続3回・ヒステリシス）を同期実行する。
+        - レスポンスに、当該デバイス宛の未配信コマンド（TTL内・issued_at昇順・最大5件）をピギーバック同梱する。
+        - リクエストに前回コマンドのACK（`command_acks`）が含まれる場合、該当コマンドを`done`にする。
+          同一冪等IDの重複ACKは無視する。
+      security:
+        - deviceBearerToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelemetryIngestRequest"
+      responses:
+        "200":
+          description: 受信成功（値域逸脱・重複seqの場合も`accepted`で判別可能な200を返す）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryIngestResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: デバイストークンが無効
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "410":
+          description: デバイスが論理削除済み（Gone）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ------------------------------------------------------------------
+  # thresholds (F3 configuration)
+  # ------------------------------------------------------------------
+  /devices/{deviceId}/thresholds:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    get:
+      operationId: getDeviceThresholds
+      tags: [thresholds]
+      summary: デバイスの閾値設定一覧を取得する
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: 閾値一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [thresholds]
+                properties:
+                  thresholds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Threshold"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateDeviceThresholds
+      tags: [thresholds]
+      summary: デバイスの閾値（発報値・デッドバンド）を設定する（UC6）
+      description: |
+        閾値が未設定のメトリクス・方向の組は判定をスキップする（requirements.md 1.6 F3.6）。
+        既定デッドバンドは温度1.0℃・湿度3%。
+      security:
+        - googleSessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThresholdUpdateRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [thresholds]
+                properties:
+                  thresholds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Threshold"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # commands (F5)
+  # ------------------------------------------------------------------
+  /devices/{deviceId}/commands:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    get:
+      operationId: listCommands
+      tags: [commands]
+      summary: デバイスのコマンド履歴を取得する（F6.3）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: コマンド履歴
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [commands]
+                properties:
+                  commands:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Command"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      operationId: createCommand
+      tags: [commands]
+      summary: LED/ファンの手動制御コマンドを発行する（F5 dispatch_command 手順1）
+      description: |
+        対象デバイスの所有者チェックを必ず行う。冪等ID付きでキューに積む（状態:pending, TTL10分）。
+        オフライン中のデバイスへの発行も許可するが、UIで「オフラインのため復帰後TTL内のみ実行」と警告表示する
+        （警告表示自体はNext.js側の責務。本APIは`device_status`をレスポンスに含めることで判断材料を提供する）。
+        手動コマンド発行後30分間は、同一アクチュエータへの自動ルール発行を抑止する（オーバーライドウィンドウ）。
+      security:
+        - googleSessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommandCreateRequest"
+      responses:
+        "201":
+          description: 発行成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Command"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /devices/{deviceId}/automation-rule:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    get:
+      operationId: getAutomationRule
+      tags: [commands]
+      summary: 自動制御ルール設定を取得する（UC9）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: 自動ルール設定
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutomationRule"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateAutomationRule
+      tags: [commands]
+      summary: 自動制御ルールを設定する（温度上限アラートでファンON/OFF・LEDは現地表示灯として自動制御）
+      security:
+        - googleSessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutomationRuleUpdateRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutomationRule"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # alerts (F8)
+  # ------------------------------------------------------------------
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: 自分の拠点配下の全アラートを一覧取得する（UC7）
+      security:
+        - googleSessionCookie: []
+      parameters:
+        - name: status
+          in: query
+          description: カンマ区切りで複数指定可（例：open,acknowledged）
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AlertStatus"
+          style: form
+          explode: false
+        - name: deviceId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: アラート一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [alerts]
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Alert"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /alerts/{alertId}/ack:
+    parameters:
+      - name: alertId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      operationId: acknowledgeAlert
+      tags: [alerts]
+      summary: アラートをacknowledgeする（closeは解除条件成立による自動のみ・手動close不可）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: ack成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: 既にclosed状態のアラートはack不可
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ------------------------------------------------------------------
+  # dashboard (F6)
+  # ------------------------------------------------------------------
+  /dashboard/sites-summary:
+    get:
+      operationId: getDashboardSitesSummary
+      tags: [dashboard]
+      summary: 拠点一覧サマリーを取得する（F6.2・30秒ポーリング想定）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: 拠点集計
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sites]
+                properties:
+                  sites:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Site"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ------------------------------------------------------------------
+  # ai-summary (F7 user-facing)
+  # ------------------------------------------------------------------
+  /ai-summaries/today:
+    get:
+      operationId: getTodaySummary
+      tags: [ai-summary]
+      summary: 当日中に生成済みのサマリーがあれば取得する（クォータ消費なし）
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: サマリーあり
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSummary"
+        "204":
+          description: 当日分は未生成
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /ai-summaries:
+    post:
+      operationId: generateDailySummary
+      tags: [ai-summary]
+      summary: AI日次サマリーを生成する（F7 generate_daily_summary）
+      description: |
+        クォータ日＝JSTの現在時刻から3時間引いた日付。同一クォータ日に既に生成済みなら429で拒否し、
+        既存の保存済みサマリーを併せて返す。過去24hテレメトリ統計とアラート履歴の**統計値のみ**
+        （個人情報なし）をFastAPI(internal-ai)経由でLLMに渡す。データが存在しない場合はLLMを呼ばず
+        「データ不足」の定型文を返し、クォータは消費しない。
+      security:
+        - googleSessionCookie: []
+      responses:
+        "201":
+          description: 新規生成成功（データ不足の定型文の場合も201・`dataSufficient=false`）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          description: 当該クォータ日は既に生成済み（1日1回・JST03:00リセット相当）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSummaryQuotaExceeded"
+
+  # ------------------------------------------------------------------
+  # admin (F9) — BASIC認証・開発者用・日本語のみ
+  # ------------------------------------------------------------------
+  /admin/devices:
+    get:
+      operationId: adminListDevices
+      tags: [admin]
+      summary: 全ユーザー横断のデバイス一覧を参照する（開発者用管理画面）
+      security:
+        - adminBasicAuth: []
+      responses:
+        "200":
+          description: デバイス一覧（テナント分離の対象外・管理者のみ）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [devices]
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Device"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /admin/users/{userId}/ai-quota-reset:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: adminResetAiQuota
+      tags: [admin]
+      summary: 指定ユーザーのAIクォータを手動リセットする（F7.5）
+      security:
+        - adminBasicAuth: []
+      responses:
+        "204":
+          description: リセット成功
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ------------------------------------------------------------------
+  # internal-ai — Rails → FastAPI（Server-to-Server限定）
+  # ------------------------------------------------------------------
+  /internal/ai/summaries:
+    post:
+      operationId: internalGenerateSummary
+      tags: [internal-ai]
+      summary: 統計値からAI日次サマリーの本文を生成する（Rails内部呼び出し専用）
+      description: |
+        Rails APIがgenerateDailySummary処理の一環として呼び出す内部エンドポイント。
+        個人情報（ユーザーID・拠点名・デバイス識別子等）は一切含めず、統計値のみを送信する。
+        LangChain経由でLLMへ渡し、日本語の自然言語サマリーを生成して返す。
+      security:
+        - internalServiceKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalAiSummaryRequest"
+      responses:
+        "200":
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalAiSummaryResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: 内部サービスキーが不正
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    SiteId:
+      name: siteId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  responses:
+    Unauthorized:
+      description: 未認証、またはセッション/トークンが無効
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: 認証は成功しているが、他ユーザーのリソースへのアクセス（テナント分離違反）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: リソースが存在しない、または論理削除済み
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationError:
+      description: リクエスト形式・値域の検証エラー
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  securitySchemes:
+    googleSessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: >-
+        Googleログイン成立後にRailsが発行するhttpOnly・Secureセッションcookie。
+        一般消費者が実際に使える唯一のログイン手段（開発者向け近道は本番UIに露出しない・environment.md準拠）。
+    deviceBearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: device-token
+      description: >-
+        ESP32デバイス登録時にclaimDeviceで発行される長寿命トークン。`Authorization: Bearer <token>`で送信する。
+    internalServiceKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Api-Key
+      description: Rails→FastAPIのServer-to-Server呼び出し専用の内部サービスキー。外部非公開。
+    adminBasicAuth:
+      type: http
+      scheme: basic
+      description: >-
+        F9開発者用管理画面のBASIC認証。一般消費者向けGoogleログインとは別物であり混同しない
+        （environment.md準拠）。
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: 機械可読なエラーコード（例：invalid_device_token, device_deleted, quota_exceeded, validation_error, forbidden, not_found）
+            message:
+              type: string
+              description: 人間可読なエラーメッセージ（i18nキーはNext.js側で別途解決する場合はcodeを利用する）
+            details:
+              type: [object, "null"]
+              additionalProperties: true
+
+    User:
+      type: object
+      description: Googleログインの内部表現。opaqueな内部IDのみを保持し、sub値・メール・氏名は一切含めない（requirements.md 1.4節）。
+      required: [id, createdAt]
+      properties:
+        id:
+          type: string
+          description: 内部の不透明なユーザーID（Google subそのものではない）
+        createdAt:
+          type: string
+          format: date-time
+
+    SessionCreateRequest:
+      type: object
+      required: [idToken, recaptchaToken]
+      properties:
+        idToken:
+          type: string
+          description: Next.js側のGoogle OAuth 2.0 / OpenID Connectフローで取得したGoogle IDトークン(JWT)
+        recaptchaToken:
+          type: string
+          description: ログイン導線に適用されるreCAPTCHAトークン
+
+    SessionCreateResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+
+    Site:
+      type: object
+      required:
+        - id
+        - name
+        - deviceCount
+        - onlineDeviceCount
+        - openAlertCount
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          description: 自由入力の拠点ラベル（住所ではない。例：「倉庫A」）
+          maxLength: 100
+        deviceCount:
+          type: integer
+        onlineDeviceCount:
+          type: integer
+        openAlertCount:
+          type: integer
+        latestTemperatureC:
+          type: [number, "null"]
+        latestHumidityPct:
+          type: [number, "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    SiteCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          description: プレースホルダは「倉庫A」等の例示に留め、住所入力を促すバリデーションは行わない
+
+    DeviceStatus:
+      type: string
+      enum: [provisioning, online, offline]
+
+    Device:
+      type: object
+      required:
+        - id
+        - siteId
+        - status
+        - expectedIntervalSec
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        siteId:
+          type: integer
+          format: int64
+        status:
+          $ref: "#/components/schemas/DeviceStatus"
+        expectedIntervalSec:
+          type: integer
+          description: テレメトリ送信間隔（既定60秒）
+          default: 60
+        lastSeenAt:
+          type: [string, "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    DeviceDetail:
+      allOf:
+        - $ref: "#/components/schemas/Device"
+        - type: object
+          required: [thresholds]
+          properties:
+            thresholds:
+              type: array
+              items:
+                $ref: "#/components/schemas/Threshold"
+            automationRule:
+              oneOf:
+                - $ref: "#/components/schemas/AutomationRule"
+                - type: "null"
+
+    ClaimCodeCreateRequest:
+      type: object
+      required: [siteId, recaptchaToken]
+      properties:
+        siteId:
+          type: integer
+          format: int64
+        recaptchaToken:
+          type: string
+
+    ClaimCodeCreateResponse:
+      type: object
+      required: [code, expiresAt]
+      properties:
+        code:
+          type: string
+          pattern: "^[A-Z0-9]{8}$"
+          description: 8桁英数字のクレームコード
+        expiresAt:
+          type: string
+          format: date-time
+          description: 発行時刻+15分
+
+    DeviceClaimRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          pattern: "^[A-Z0-9]{8}$"
+
+    DeviceClaimResponse:
+      type: object
+      required: [deviceId, deviceToken]
+      properties:
+        deviceId:
+          type: integer
+          format: int64
+        deviceToken:
+          type: string
+          description: 長寿命のデバイストークン（ESP32が以後の全リクエストで使用）
+
+    SensorTypeCode:
+      type: string
+      enum: [temperature, humidity]
+
+    ThresholdDirection:
+      type: string
+      enum: [upper, lower]
+
+    BreachState:
+      type: string
+      enum: [NORMAL, BREACHED]
+
+    Threshold:
+      type: object
+      required: [sensorType, direction, triggerValue, deadband, breachState]
+      properties:
+        sensorType:
+          $ref: "#/components/schemas/SensorTypeCode"
+        direction:
+          $ref: "#/components/schemas/ThresholdDirection"
+        triggerValue:
+          type: number
+          description: 発報閾値
+        deadband:
+          type: number
+          description: 解除までの不感帯（既定：温度1.0℃、湿度3%）
+        breachState:
+          $ref: "#/components/schemas/BreachState"
+
+    ThresholdUpdateRequest:
+      type: object
+      required: [thresholds]
+      properties:
+        thresholds:
+          type: array
+          items:
+            type: object
+            required: [sensorType, direction, triggerValue, deadband]
+            properties:
+              sensorType:
+                $ref: "#/components/schemas/SensorTypeCode"
+              direction:
+                $ref: "#/components/schemas/ThresholdDirection"
+              triggerValue:
+                type: number
+              deadband:
+                type: number
+
+    TelemetryIngestRequest:
+      type: object
+      required: [seq, temperatureC, humidityPct]
+      properties:
+        seq:
+          type: integer
+          minimum: 0
+          description: device_idとの組で重複排除する連番
+        temperatureC:
+          type: number
+          minimum: -40
+          maximum: 85
+        humidityPct:
+          type: number
+          minimum: 0
+          maximum: 100
+        deviceReportedAt:
+          type: [string, "null"]
+          format: date-time
+          description: 端末申告時刻（参考値。記録時刻はサーバー受信時刻を採用する）
+        commandAcks:
+          type: array
+          description: 前回配信されたコマンドの実行結果ACK（冪等ID）。同一冪等IDの重複ACKは無視される。
+          items:
+            type: object
+            required: [idempotencyKey]
+            properties:
+              idempotencyKey:
+                type: string
+                format: uuid
+
+    CommandDelivery:
+      type: object
+      required: [idempotencyKey, commandType, issuedAt]
+      properties:
+        idempotencyKey:
+          type: string
+          format: uuid
+        commandType:
+          $ref: "#/components/schemas/CommandTypeCode"
+        issuedAt:
+          type: string
+          format: date-time
+
+    TelemetryIngestResponse:
+      type: object
+      required: [accepted, serverTime, commands]
+      properties:
+        accepted:
+          type: boolean
+          description: 値域チェックに合格し保存されたか（falseの場合は不正データとして破棄・統計にのみ記録）
+        duplicate:
+          type: boolean
+          description: device_id+seqの重複により保存をスキップした場合true
+        serverTime:
+          type: string
+          format: date-time
+        commands:
+          type: array
+          description: 未配信コマンド（TTL内・issued_at昇順・最大5件）
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/CommandDelivery"
+
+    CommandTypeCode:
+      type: string
+      enum: [LED_ON, LED_OFF, FAN_ON, FAN_OFF]
+
+    CommandOrigin:
+      type: string
+      enum: [manual, auto]
+
+    CommandStatus:
+      type: string
+      enum: [pending, delivered, done, expired]
+
+    CommandCreateRequest:
+      type: object
+      required: [commandType]
+      properties:
+        commandType:
+          $ref: "#/components/schemas/CommandTypeCode"
+
+    Command:
+      type: object
+      required:
+        - id
+        - deviceId
+        - commandType
+        - idempotencyKey
+        - origin
+        - status
+        - issuedAt
+        - expiresAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        deviceId:
+          type: integer
+          format: int64
+        commandType:
+          $ref: "#/components/schemas/CommandTypeCode"
+        idempotencyKey:
+          type: string
+          format: uuid
+        origin:
+          $ref: "#/components/schemas/CommandOrigin"
+        status:
+          $ref: "#/components/schemas/CommandStatus"
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          description: issuedAt + 10分
+
+    AutomationRule:
+      type: object
+      required: [fanOnTempAlert, ledOnAlert]
+      properties:
+        fanOnTempAlert:
+          type: boolean
+          description: 温度上限アラートopenでFAN_ON、closeでFAN_OFFを自動発行する
+        ledOnAlert:
+          type: boolean
+          description: アラートopen中の現地表示灯としてLEDを自動制御する
+        manualOverrideUntil:
+          type: [string, "null"]
+          format: date-time
+          description: 手動コマンド発行後30分間、同一アクチュエータへの自動ルール発行を抑止する期限
+
+    AutomationRuleUpdateRequest:
+      type: object
+      properties:
+        fanOnTempAlert:
+          type: boolean
+        ledOnAlert:
+          type: boolean
+
+    AlertTypeCode:
+      type: string
+      enum: [upper_breach, lower_breach, offline]
+
+    AlertSeverity:
+      type: string
+      enum: [info, warning, critical]
+
+    AlertStatus:
+      type: string
+      enum: [open, acknowledged, closed]
+
+    Alert:
+      type: object
+      required:
+        - id
+        - deviceId
+        - alertType
+        - severity
+        - status
+        - openedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        deviceId:
+          type: integer
+          format: int64
+        alertType:
+          $ref: "#/components/schemas/AlertTypeCode"
+        severity:
+          $ref: "#/components/schemas/AlertSeverity"
+        status:
+          $ref: "#/components/schemas/AlertStatus"
+        openedAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: [string, "null"]
+          format: date-time
+        closedAt:
+          type: [string, "null"]
+          format: date-time
+
+    TelemetrySeriesPoint:
+      type: object
+      required: [timestamp, isAggregated]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: 生データの場合はrecorded_at、集約データの場合はhour_bucket
+        temperatureC:
+          type: [number, "null"]
+        humidityPct:
+          type: [number, "null"]
+        isAggregated:
+          type: boolean
+          description: 7日を超えるデータは日次1時間粒度に集約済み（min/max/avgのavgのみ本フィールドで代表表示、詳細は将来拡張）
+
+    AiSummary:
+      type: object
+      required: [quotaDate, summaryText, generatedAt, dataSufficient]
+      properties:
+        quotaDate:
+          type: string
+          format: date
+          description: JSTの現在時刻から3時間引いた日付（JST03:00リセットと等価）
+        summaryText:
+          type: string
+          description: 日本語の自然言語サマリー。データ不足の場合は定型文。
+        generatedAt:
+          type: string
+          format: date-time
+        dataSufficient:
+          type: boolean
+          description: falseの場合「データ不足」の定型文であり、LLM呼び出し・クォータ消費は発生していない
+
+    AiSummaryQuotaExceeded:
+      type: object
+      required: [error, existingSummary]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [quota_exceeded]
+            message:
+              type: string
+        existingSummary:
+          $ref: "#/components/schemas/AiSummary"
+
+    InternalAiStats:
+      type: object
+      required: [temperature, humidity]
+      properties:
+        temperature:
+          $ref: "#/components/schemas/InternalAiMetricStats"
+        humidity:
+          $ref: "#/components/schemas/InternalAiMetricStats"
+
+    InternalAiMetricStats:
+      type: object
+      required: [min, max, avg, thresholdBreachMinutes]
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+        avg:
+          type: number
+        thresholdBreachMinutes:
+          type: object
+          properties:
+            upper:
+              type: number
+            lower:
+              type: number
+
+    InternalAiAlertSummary:
+      type: object
+      required: [alertType, severity, openedAt]
+      properties:
+        alertType:
+          $ref: "#/components/schemas/AlertTypeCode"
+        severity:
+          $ref: "#/components/schemas/AlertSeverity"
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: [string, "null"]
+          format: date-time
+
+    InternalAiSummaryRequest:
+      type: object
+      description: 個人情報（ユーザーID・拠点名・デバイス識別子）を一切含まない統計値のみのペイロード
+      required: [stats, alerts]
+      properties:
+        stats:
+          $ref: "#/components/schemas/InternalAiStats"
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/InternalAiAlertSummary"
+
+    InternalAiSummaryResponse:
+      type: object
+      required: [summaryText]
+      properties:
+        summaryText:
+          type: string
+          description: 日本語の自然言語サマリー本文
