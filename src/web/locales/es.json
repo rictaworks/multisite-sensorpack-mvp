@@ -8,5 +8,20 @@
     "home": "Inicio",
     "dashboard": "Panel",
     "alerts": "Alertas"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "El resumen de hoy",
+    "cardTitle": "Resumen de las últimas 24 horas",
+    "quotaNoteUnused": "Todavía no se ha creado hoy (máximo una vez al día)",
+    "quotaNoteUsed": "El resumen de hoy ya se ha creado (se restablece mañana a las 3:00)",
+    "generateButton": "Crear resumen",
+    "rereadButton": "Leer de nuevo",
+    "loadingText": "Creando el resumen…",
+    "cachedNotice": "El resumen de hoy ya se ha creado. Podrás crear uno nuevo mañana después de las 3:00.",
+    "insufficientDataNotice": "Todavía no se han recopilado suficientes datos hoy.",
+    "idleDescriptionLine1": "Al pulsar el botón, la evolución de la temperatura y la humedad desde ayer, junto con los avisos, se convertirán en un breve resumen escrito.",
+    "privacyNotice": "Para el resumen solo se usan valores numéricos: no se envían nombres ni direcciones de correo electrónico.",
+    "errorNotice": "No se pudo obtener el resumen. Inténtalo de nuevo en unos instantes."
   }
 }
