@@ -52,5 +52,20 @@
       "empty": "尚未进行任何操作。",
       "commandLabel": "{actuator} — {state}"
     }
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "今日小结",
+    "cardTitle": "最近24小时小结",
+    "quotaNoteUnused": "今天还没有生成过（每天最多一次）",
+    "quotaNoteUsed": "今天的小结已经生成（明天凌晨3点重置）",
+    "generateButton": "生成小结",
+    "rereadButton": "再次查看",
+    "loadingText": "正在生成小结…",
+    "cachedNotice": "今天的小结已经生成。明天凌晨3点后可以再次生成。",
+    "insufficientDataNotice": "今天收集到的数据还不够。",
+    "idleDescriptionLine1": "点击按钮后，会将昨天以来的温湿度变化和通知内容整理成一段文字小结。",
+    "privacyNotice": "小结只使用数值数据，不会发送姓名或电子邮件地址。",
+    "errorNotice": "获取小结失败，请稍后再试。"
   }
 }
