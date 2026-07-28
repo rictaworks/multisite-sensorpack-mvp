@@ -1,0 +1,40 @@
+name: API CI (RSpec)
+
+on:
+  pull_request:
+    paths:
+      - "src/api/**"
+      - ".github/workflows/api-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/api/**"
+      - ".github/workflows/api-ci.yml"
+
+defaults:
+  run:
+    working-directory: src/api
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version-file: src/api/.ruby-version
+          bundler-cache: true
+          working-directory: src/api
+
+      - name: Set up database
+        run: bin/rails db:prepare
+
+      - name: Run RSpec
+        run: bundle exec rspec
