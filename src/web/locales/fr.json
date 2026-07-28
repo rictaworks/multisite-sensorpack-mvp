@@ -50,7 +50,51 @@
       "reissue": "Générer un nouveau code"
     }
   },
-"alerts": {
+  "control": {
+    "eyebrow": "Outils d'exploitation",
+    "title": "Outils d'exploitation",
+    "noDevices": "Aucun appareil n'est encore enregistré.",
+    "offlineWarning": "Cet appareil est hors ligne. La commande sera acceptée, mais elle ne s'exécutera que si l'appareil se reconnecte dans les 10 minutes.",
+    "deviceStatus": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "provisioning": "Préparation"
+    },
+    "actuator": {
+      "led": "Voyant (LED)",
+      "fan": "Ventilateur"
+    },
+    "actuatorStateOn": "Activé",
+    "actuatorStateOff": "Désactivé",
+    "actuatorToggleAriaLabel": "Basculer {actuator}",
+    "confirm": {
+      "turnOnTitle": "Activer {actuator} ?",
+      "turnOffTitle": "Désactiver {actuator} ?",
+      "body": "Ceci envoie une commande manuelle à l'appareil.",
+      "confirmButton": "Envoyer",
+      "cancelButton": "Annuler"
+    },
+    "automation": {
+      "title": "Règles automatiques",
+      "fanOnTempAlert": "Ventilateur automatique",
+      "fanOnTempAlertDesc": "Active automatiquement le ventilateur tant qu'une alerte de température élevée est ouverte, et le désactive une fois résolue.",
+      "ledOnAlert": "Voyant LED automatique",
+      "ledOnAlertDesc": "Active automatiquement le voyant LED sur site tant qu'une alerte est ouverte.",
+      "overrideNotice": "Une commande manuelle a été envoyée : l'automatisation de cet appareil est suspendue pendant encore {minutes} minute(s)."
+    },
+    "commandStatus": {
+      "pending": "En attente d'envoi",
+      "delivered": "Reçue",
+      "done": "Exécutée",
+      "expired": "Non délivrée"
+    },
+    "history": {
+      "title": "Historique des commandes",
+      "empty": "Aucune commande envoyée pour l'instant.",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
+  "alerts": {
     "kicker": "Alerts",
     "title": "Alertes",
     "tabs": {
