@@ -9,10 +9,10 @@ RSpec.describe TelemetryIngestService do
   let(:site) { Site.create!(user: user, name: "倉庫A") }
   let(:device) { Device.create!(site: site, device_token_digest: "telemetry-ingest-digest") }
 
-  def call(seq:, temperature_c:, humidity_pct:, device_reported_at: nil)
+  def call(seq:, temperature_c:, humidity_pct:, device_reported_at: nil, command_acks: [])
     described_class.new(
       device: device, seq: seq, temperature_c: temperature_c, humidity_pct: humidity_pct,
-      device_reported_at: device_reported_at
+      device_reported_at: device_reported_at, command_acks: command_acks
     ).call
   end
 
@@ -111,6 +111,56 @@ RSpec.describe TelemetryIngestService do
     it "非数値のtemperatureCはValidationErrorを送出する(不正入力の安全な拒否)" do
       expect { call(seq: 1, temperature_c: "not-a-number", humidity_pct: 50) }
         .to raise_error(TelemetryIngestService::ValidationError)
+    end
+  end
+
+  # requirements.md 1.6 F5 dispatch_command(ピギーバック配信・ACK処理)。Issue #11。
+  # 個々の配信/ACK/TTL失効/自動ルール発火ロジックの網羅はspec/services/command_dispatch_service_spec.rbを参照。
+  # ここではTelemetryIngestServiceがCommandDispatchServiceへ正しく配線されていることのみを検証する。
+  describe "コマンドピギーバック配信・ACK処理(F5, Issue #11)" do
+    it "デバイス宛のpendingコマンドをResult#commandsとしてピギーバック同梱し、deliveredにする" do
+      command_type = CommandType.find_by!(code: "FAN_ON")
+      command = Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "pending", issued_at: Time.current, expires_at: 10.minutes.from_now
+      )
+
+      result = call(seq: 1, temperature_c: 25, humidity_pct: 50)
+
+      expect(result.commands.map(&:id)).to eq([ command.id ])
+      expect(command.reload.status).to eq("delivered")
+    end
+
+    it "リクエストのcommand_acksに含まれる冪等IDのコマンドをdoneにする" do
+      command_type = CommandType.find_by!(code: "FAN_ON")
+      command = Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "delivered", issued_at: Time.current, expires_at: 10.minutes.from_now
+      )
+
+      call(seq: 1, temperature_c: 25, humidity_pct: 50, command_acks: [ command.idempotency_key ])
+
+      expect(command.reload.status).to eq("done")
+    end
+
+    it "保存対象外(重複seq)の場合もコマンドのピギーバック配信は行う" do
+      command_type = CommandType.find_by!(code: "FAN_ON")
+      call(seq: 1, temperature_c: 25, humidity_pct: 50)
+      command = Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "pending", issued_at: Time.current, expires_at: 10.minutes.from_now
+      )
+
+      result = call(seq: 1, temperature_c: 26, humidity_pct: 55)
+
+      expect(result.duplicate).to be(true)
+      expect(result.commands.map(&:id)).to eq([ command.id ])
+    end
+
+    it "保留中コマンドがなければResult#commandsは空配列になる" do
+      result = call(seq: 1, temperature_c: 25, humidity_pct: 50)
+
+      expect(result.commands).to eq([])
     end
   end
 end

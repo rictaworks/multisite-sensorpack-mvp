@@ -6,23 +6,25 @@
 # (Api::TelemetryController + DeviceAuthenticatable concern)の責務であり、
 # 本サービスは認証済みのDeviceを受け取る前提で動作する。
 #
-# コマンドのピギーバック同梱・ACK処理はIssue #11(F5 dispatch_command)の担当範囲であり、
-# 本サービスの戻り値(Result)には含まない(Issue #11のEdit scopeが本ファイルの
-# 追加編集として明記されている: "telemetry_ingest_service.rb (edit - コマンドピギーバック
-# 同梱・ACK処理を追加)")。
+# F5 dispatch_command(コマンドのピギーバック同梱・ACK処理、Issue #11)もあわせて配線する。
+# ESP32はコマンド専用のポーリングエンドポイントを持たず、テレメトリ応答のたびにCommandDispatchService
+# を呼び出すことで、前回配信分のACK処理・TTL失効・自動ルール発火・新規配信をまとめて行う
+# (requirements.md F5 手順2-5、ピギーバック方式)。テレメトリ自体が重複/値域外で破棄される場合でも、
+# 認証済みデバイスからの正当なチェックインである以上、コマンド配信自体は継続する。
 class TelemetryIngestService
   # 必須フィールド欠損・型不正など、リクエスト自体が不正な場合に送出する
   # (コントローラ側で400 validation_errorにマッピングする)。
   class ValidationError < StandardError; end
 
-  Result = Struct.new(:accepted, :duplicate, :server_time, :reading, keyword_init: true)
+  Result = Struct.new(:accepted, :duplicate, :server_time, :reading, :commands, keyword_init: true)
 
-  def initialize(device:, seq:, temperature_c:, humidity_pct:, device_reported_at: nil)
+  def initialize(device:, seq:, temperature_c:, humidity_pct:, device_reported_at: nil, command_acks: [])
     @device = device
     @seq = seq
     @temperature_c = temperature_c
     @humidity_pct = humidity_pct
     @device_reported_at = device_reported_at
+    @command_acks = command_acks
   end
 
   def call
@@ -35,7 +37,7 @@ class TelemetryIngestService
       Rails.logger.info(
         "[TelemetryIngestService] device_id=#{@device.id} seq=#{seq} は重複のため保存をスキップします"
       )
-      return Result.new(accepted: false, duplicate: true, server_time: server_time, reading: nil)
+      return Result.new(accepted: false, duplicate: true, server_time: server_time, reading: nil, commands: dispatch_commands!)
     end
 
     unless TelemetryReading.within_range?(temperature_c: temperature_c, humidity_pct: humidity_pct)
@@ -44,11 +46,11 @@ class TelemetryIngestService
         "(temperature_c=#{temperature_c}, humidity_pct=#{humidity_pct})"
       )
       @device.record_discarded_reading!
-      return Result.new(accepted: false, duplicate: false, server_time: server_time, reading: nil)
+      return Result.new(accepted: false, duplicate: false, server_time: server_time, reading: nil, commands: dispatch_commands!)
     end
 
     reading = persist_and_evaluate!(seq: seq, temperature_c: temperature_c, humidity_pct: humidity_pct, server_time: server_time)
-    Result.new(accepted: true, duplicate: false, server_time: server_time, reading: reading)
+    Result.new(accepted: true, duplicate: false, server_time: server_time, reading: reading, commands: dispatch_commands!)
   rescue ActiveRecord::RecordNotUnique
     # requirements.md 1.9 Fカテゴリ相当の競合対策: duplicate_seq?判定後、create!までの間に
     # 別リクエストが同じseqを先に保存した場合(再送の同時到達)もDB一意制約でここに落ちる。
@@ -56,10 +58,17 @@ class TelemetryIngestService
     Rails.logger.info(
       "[TelemetryIngestService] device_id=#{@device.id} seq=#{seq} 保存直前の競合により重複と判定しました"
     )
-    Result.new(accepted: false, duplicate: true, server_time: server_time, reading: nil)
+    Result.new(accepted: false, duplicate: true, server_time: server_time, reading: nil, commands: dispatch_commands!)
   end
 
   private
+
+  # requirements.md F5: ACK処理・TTL失効・自動ルール発火・新規ピギーバック配信をまとめて行う。
+  # persist_and_evaluate!(閾値判定によるアラートopen/close確定)の後に呼ぶことで、
+  # 自動ルールが最新のアラート状態を参照できるようにする。
+  def dispatch_commands!
+    CommandDispatchService.new(device: @device).piggyback!(command_acks: @command_acks)
+  end
 
   def duplicate_seq?(seq)
     @device.telemetry_readings.exists?(seq: seq)

@@ -42,6 +42,10 @@ Rails.application.routes.draw do
     # F2+F3 テレメトリ受信・閾値判定(ヒステリシス)。認証はセッションcookieではなく
     # デバイストークン(Authorization: Bearer)、Api::TelemetryController内のDeviceAuthenticatable参照(Issue #9)。
     post "telemetry" => "telemetry#create"
+
+    # F5 遠隔手動制御(LED/ファンコマンド発行)。src/shared/contracts/openapi.yamlのcreateCommandに
+    # 対応する(Issue #11)。ユーザー側APIのためGoogleセッションcookie認証(Authenticatable/TenantScoped)。
+    post "devices/:deviceId/commands" => "commands#create"
   end
 
   # Defines the root path route ("/")
