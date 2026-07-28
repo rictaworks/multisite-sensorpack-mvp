@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# `tests/` から `app` パッケージを解決できるようにする（CI・ローカル共通）。
+pythonpath = ["."]
+testpaths = ["tests"]
