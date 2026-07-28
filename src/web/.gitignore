@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+build/
+
+# testing
+coverage/
+
+# env files (secrets must never be committed; use platform env vars in deploy)
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# misc
+.DS_Store
+*.log

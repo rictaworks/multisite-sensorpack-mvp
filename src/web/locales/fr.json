@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "Sensor Pack multi-sites",
+    "description": "Surveillez l'environnement de tous vos sites en un seul endroit."
+  },
+  "nav": {
+    "ariaLabel": "Navigation principale",
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "alerts": "Alertes"
+  }
+}
