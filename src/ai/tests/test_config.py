@@ -6,6 +6,8 @@
 を検証する。
 """
 
+import pytest
+
 from app.config import Environment, Settings
 
 
@@ -21,6 +23,13 @@ def test_unknown_environment_value_fails_closed_to_production() -> None:
     assert Settings(app_env="").environment is Environment.PRODUCTION
 
 
-def test_default_environment_is_production() -> None:
-    """APP_ENV未設定時のデフォルトは本番扱い（fail closed）。"""
+def test_default_environment_is_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    """APP_ENV未設定時のデフォルトは本番扱い（fail closed）。
+
+    CI・ローカルの実行環境自体に `APP_ENV` が設定されていても
+    このテストの意図（未設定時の挙動）がぶれないよう、
+    monkeypatchで明示的に環境変数を除去したうえで検証する。
+    """
+    monkeypatch.delenv("APP_ENV", raising=False)
+
     assert Settings().environment is Environment.PRODUCTION
