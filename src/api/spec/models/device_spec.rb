@@ -109,4 +109,24 @@ RSpec.describe Device, type: :model do
       expect(device.alerts.where(alert_type_code: "offline", status: "closed").count).to eq(1)
     end
   end
+
+  describe ".provision_for_site!(requirements.md F1手順4)" do
+    it "provisioning状態のdeviceを作成し、生トークンとダイジェストが一致しないハッシュ値で保存する" do
+      device, raw_token = described_class.provision_for_site!(site)
+
+      expect(device).to be_persisted
+      expect(device.site).to eq(site)
+      expect(device.device_status.code).to eq("provisioning")
+      expect(raw_token).to be_present
+      expect(device.device_token_digest).to eq(described_class.digest_for_token(raw_token))
+      expect(device.device_token_digest).not_to eq(raw_token)
+    end
+
+    it "呼び出すたびに異なるトークン・deviceを発行する(claim_code再発行での新規デバイス扱い)" do
+      _device1, token1 = described_class.provision_for_site!(site)
+      _device2, token2 = described_class.provision_for_site!(site)
+
+      expect(token1).not_to eq(token2)
+    end
+  end
 end

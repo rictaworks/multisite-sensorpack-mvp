@@ -12,6 +12,10 @@ class Device < ApplicationRecord
   OFFLINE_ALERT_TYPE_CODE = "offline".freeze
   OFFLINE_ALERT_SEVERITY_CODE = "warning".freeze
 
+  # requirements.md F1手順4: クレーム成立時に長寿命のデバイストークンを発行する。
+  # 生トークンはESP32にのみ返し、DBにはSHA-256ダイジェストのみを保存する(トークン漏洩時の被害限定)。
+  TOKEN_BYTES = 32
+
   belongs_to :site
   belongs_to :device_status, foreign_key: :status_code, primary_key: :code, inverse_of: :devices
 
@@ -30,6 +34,19 @@ class Device < ApplicationRecord
   # 論理削除されていない・現在online状態のデバイスのみ。
   # provisioning(登録直後・テレメトリ未受信)は対象外(受け入れ条件どおり)。
   scope :online_candidates_for_offline_check, -> { where(deleted: false, status_code: STATUS_ONLINE) }
+
+  def self.digest_for_token(raw_token)
+    Digest::SHA256.hexdigest(raw_token)
+  end
+
+  # requirements.md F1手順4・6: クレーム成立ごとに常に新しいdeviceを作成する
+  # (削除済みデバイスの再登録は新デバイス扱いとし、旧データは論理削除のまま保持する)。
+  # 戻り値は[device, raw_token]。raw_tokenはこの呼び出し時のみ取得できる(以後はダイジェストのみ保持)。
+  def self.provision_for_site!(site)
+    raw_token = SecureRandom.hex(TOKEN_BYTES)
+    device = create!(site: site, device_token_digest: digest_for_token(raw_token))
+    [ device, raw_token ]
+  end
 
   # requirements.md F4 手順2: 現在時刻がこの時刻を超えたらオフライン。
   # テレメトリを一度も受信していない(last_seen_atがnil)デバイスは判定対象外のためnilを返す。
