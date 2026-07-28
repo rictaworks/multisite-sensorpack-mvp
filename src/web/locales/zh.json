@@ -154,5 +154,108 @@
     "idleDescriptionLine1": "点击按钮后，会将昨天以来的温湿度变化和通知内容整理成一段文字小结。",
     "privacyNotice": "小结只使用数值数据，不会发送姓名或电子邮件地址。",
     "errorNotice": "获取小结失败，请稍后再试。"
+  },
+  "login": {
+    "title": "需要登录",
+    "description": "使用您的Google账号登录，即可查看各站点的环境状态。",
+    "googleButton": "使用Google登录",
+    "signingIn": "正在登录…",
+    "devBypass": "仅限开发环境：跳过登录",
+    "errors": {
+      "signInFailed": "登录失败，请重试。",
+      "recaptchaRequired": "请先完成reCAPTCHA验证。"
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "站点概况",
+      "statSites": "站点数",
+      "statDevices": "设备数",
+      "statOnline": "在线",
+      "statOpenAlerts": "未处理告警",
+      "unitSites": "个站点",
+      "unitDevices": "台设备",
+      "unitAlerts": "条告警",
+      "siteMeta": "{deviceCount} 台设备",
+      "badgeAllOnline": "全部在线",
+      "badgeSomeOffline": "存在离线设备",
+      "currentTemperature": "当前温度",
+      "currentHumidity": "当前湿度",
+      "noReading": "暂无数据",
+      "deviceLabel": "设备 #{id}",
+      "emptySites": "暂时没有可显示的站点。"
+    },
+    "device": {
+      "statusOnline": "已连接",
+      "statusOffline": "未连接",
+      "statusProvisioning": "配置中",
+      "backToOverview": "返回站点列表",
+      "lastSeen": "最近接收 {time}",
+      "intervalSeconds": "每 {seconds} 秒上报一次",
+      "notFound": "未找到该设备。",
+      "range24h": "24小时",
+      "range7d": "7天",
+      "chartTitle": "温湿度变化趋势",
+      "legendTemperature": "温度",
+      "legendHumidity": "湿度（右轴，0-100%）",
+      "legendUpperThreshold": "温度上限线",
+      "legendLowerThreshold": "温度下限线",
+      "axisTemperatureUnit": "°C",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "最高温度",
+      "summaryMinTemp": "最低温度",
+      "summaryAvgTemp": "平均温度",
+      "summaryOverThreshold": "超过上限的时长",
+      "summaryAvgHumidity": "平均湿度",
+      "minutesUnit": "{minutes}分钟",
+      "hoursUnit": "{hours}小时",
+      "offlineWarning": "该设备目前处于离线状态，显示的是最近一次连接时的数据。",
+      "commandsTitle": "操作历史",
+      "noCommands": "尚未进行过操作。",
+      "alertsTitle": "该设备的告警",
+      "noAlerts": "暂无告警。"
+    },
+    "commandType": {
+      "LED_ON": "打开指示灯",
+      "LED_OFF": "关闭指示灯",
+      "FAN_ON": "打开风扇",
+      "FAN_OFF": "关闭风扇"
+    },
+    "commandOrigin": {
+      "manual": "手动",
+      "auto": "自动"
+    },
+    "commandStatus": {
+      "pending": "等待发送",
+      "delivered": "已送达",
+      "done": "已执行",
+      "expired": "未能送达"
+    },
+    "alertType": {
+      "upper_breach": "超过上限",
+      "lower_breach": "低于下限",
+      "offline": "设备离线"
+    },
+    "alertSeverity": {
+      "info": "提示",
+      "warning": "注意",
+      "critical": "重要"
+    },
+    "alertStatus": {
+      "open": "未处理",
+      "acknowledged": "已确认",
+      "closed": "已解决"
+    },
+    "relativeTime": {
+      "justNow": "刚刚",
+      "minutes": "{value}分钟前",
+      "hours": "{value}小时前",
+      "days": "{value}天前"
+    },
+    "polling": {
+      "label": "每{seconds}秒自动刷新",
+      "lastUpdated": "最近更新 {time}"
+    }
   }
 }

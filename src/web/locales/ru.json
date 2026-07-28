@@ -154,5 +154,108 @@
     "idleDescriptionLine1": "При нажатии кнопки изменения температуры и влажности со вчерашнего дня, а также уведомления будут собраны в короткий текст.",
     "privacyNotice": "Для сводки используются только числовые значения — имена и адреса электронной почты не передаются.",
     "errorNotice": "Не удалось получить сводку. Попробуйте ещё раз позже."
+  },
+  "login": {
+    "title": "Требуется вход",
+    "description": "Войдите через аккаунт Google, чтобы просматривать состояние окружающей среды на ваших объектах.",
+    "googleButton": "Войти через Google",
+    "signingIn": "Выполняется вход…",
+    "devBypass": "Только для разработки: пропустить вход",
+    "errors": {
+      "signInFailed": "Не удалось войти. Попробуйте ещё раз.",
+      "recaptchaRequired": "Пожалуйста, пройдите проверку reCAPTCHA."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "Обзор площадок",
+      "statSites": "Площадки",
+      "statDevices": "Устройства",
+      "statOnline": "В сети",
+      "statOpenAlerts": "Активные оповещения",
+      "unitSites": "площадок",
+      "unitDevices": "устройств",
+      "unitAlerts": "оповещений",
+      "siteMeta": "Устройств: {deviceCount}",
+      "badgeAllOnline": "Все в сети",
+      "badgeSomeOffline": "Есть отключённые",
+      "currentTemperature": "Текущая температура",
+      "currentHumidity": "Текущая влажность",
+      "noReading": "Нет данных",
+      "deviceLabel": "Устройство №{id}",
+      "emptySites": "Пока нет площадок для отображения."
+    },
+    "device": {
+      "statusOnline": "На связи",
+      "statusOffline": "Нет связи",
+      "statusProvisioning": "Настройка",
+      "backToOverview": "Назад к списку площадок",
+      "lastSeen": "Последние данные {time}",
+      "intervalSeconds": "Интервал отправки {seconds} с",
+      "notFound": "Устройство не найдено.",
+      "range24h": "24 часа",
+      "range7d": "7 дней",
+      "chartTitle": "Динамика температуры и влажности",
+      "legendTemperature": "Температура",
+      "legendHumidity": "Влажность (правая шкала, 0-100%)",
+      "legendUpperThreshold": "Верхний порог температуры",
+      "legendLowerThreshold": "Нижний порог температуры",
+      "axisTemperatureUnit": "°C",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "Самая высокая температура",
+      "summaryMinTemp": "Самая низкая температура",
+      "summaryAvgTemp": "Средняя температура",
+      "summaryOverThreshold": "Время выше верхнего порога",
+      "summaryAvgHumidity": "Средняя влажность",
+      "minutesUnit": "{minutes} мин",
+      "hoursUnit": "{hours} ч",
+      "offlineWarning": "Устройство сейчас не в сети. Показаны данные последнего сеанса связи.",
+      "commandsTitle": "История команд",
+      "noCommands": "Команды ещё не отправлялись.",
+      "alertsTitle": "Оповещения по устройству",
+      "noAlerts": "Оповещений нет."
+    },
+    "commandType": {
+      "LED_ON": "Включить подсветку",
+      "LED_OFF": "Выключить подсветку",
+      "FAN_ON": "Включить вентилятор",
+      "FAN_OFF": "Выключить вентилятор"
+    },
+    "commandOrigin": {
+      "manual": "Вручную",
+      "auto": "Автоматически"
+    },
+    "commandStatus": {
+      "pending": "Ожидает отправки",
+      "delivered": "Доставлена",
+      "done": "Выполнена",
+      "expired": "Не доставлена"
+    },
+    "alertType": {
+      "upper_breach": "Превышен верхний порог",
+      "lower_breach": "Ниже нижнего порога",
+      "offline": "Устройство не в сети"
+    },
+    "alertSeverity": {
+      "info": "Информация",
+      "warning": "Внимание",
+      "critical": "Критично"
+    },
+    "alertStatus": {
+      "open": "Не обработано",
+      "acknowledged": "Подтверждено",
+      "closed": "Решено"
+    },
+    "relativeTime": {
+      "justNow": "Только что",
+      "minutes": "{value} мин назад",
+      "hours": "{value} ч назад",
+      "days": "{value} дн назад"
+    },
+    "polling": {
+      "label": "Автообновление каждые {seconds} с",
+      "lastUpdated": "Обновлено {time}"
+    }
   }
 }

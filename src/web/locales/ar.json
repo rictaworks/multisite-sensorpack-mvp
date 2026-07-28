@@ -154,5 +154,108 @@
     "idleDescriptionLine1": "عند الضغط على الزر، سيتم تلخيص تغيرات درجة الحرارة والرطوبة منذ الأمس والتنبيهات في نص قصير.",
     "privacyNotice": "تُستخدم فقط القيم الرقمية لإنشاء الملخص، ولا يتم إرسال الأسماء أو عناوين البريد الإلكتروني.",
     "errorNotice": "تعذّر جلب الملخص. يرجى المحاولة مرة أخرى بعد قليل."
+  },
+  "login": {
+    "title": "تسجيل الدخول مطلوب",
+    "description": "سجّل الدخول باستخدام حساب Google للاطلاع على حالة البيئة في مواقعك.",
+    "googleButton": "تسجيل الدخول عبر Google",
+    "signingIn": "جارٍ تسجيل الدخول…",
+    "devBypass": "للتطوير فقط: تخطي تسجيل الدخول",
+    "errors": {
+      "signInFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+      "recaptchaRequired": "يرجى إكمال التحقق عبر reCAPTCHA."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "نظرة عامة على المواقع",
+      "statSites": "المواقع",
+      "statDevices": "الأجهزة",
+      "statOnline": "متصل",
+      "statOpenAlerts": "تنبيهات غير معالجة",
+      "unitSites": "مواقع",
+      "unitDevices": "أجهزة",
+      "unitAlerts": "تنبيهات",
+      "siteMeta": "{deviceCount} جهاز",
+      "badgeAllOnline": "الكل متصل",
+      "badgeSomeOffline": "يوجد جهاز غير متصل",
+      "currentTemperature": "درجة الحرارة الحالية",
+      "currentHumidity": "الرطوبة الحالية",
+      "noReading": "لا توجد بيانات",
+      "deviceLabel": "الجهاز رقم {id}",
+      "emptySites": "لا توجد مواقع لعرضها بعد."
+    },
+    "device": {
+      "statusOnline": "متصل",
+      "statusOffline": "غير متصل",
+      "statusProvisioning": "قيد الإعداد",
+      "backToOverview": "العودة إلى قائمة المواقع",
+      "lastSeen": "آخر استقبال {time}",
+      "intervalSeconds": "الإرسال كل {seconds} ثانية",
+      "notFound": "تعذر العثور على هذا الجهاز.",
+      "range24h": "24 ساعة",
+      "range7d": "7 أيام",
+      "chartTitle": "تطور درجة الحرارة والرطوبة",
+      "legendTemperature": "درجة الحرارة",
+      "legendHumidity": "الرطوبة (المحور الأيمن، 0-100%)",
+      "legendUpperThreshold": "الحد الأعلى لدرجة الحرارة",
+      "legendLowerThreshold": "الحد الأدنى لدرجة الحرارة",
+      "axisTemperatureUnit": "°م",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "أعلى درجة حرارة",
+      "summaryMinTemp": "أدنى درجة حرارة",
+      "summaryAvgTemp": "متوسط درجة الحرارة",
+      "summaryOverThreshold": "المدة فوق الحد الأعلى",
+      "summaryAvgHumidity": "متوسط الرطوبة",
+      "minutesUnit": "{minutes} دقيقة",
+      "hoursUnit": "{hours} ساعة",
+      "offlineWarning": "هذا الجهاز غير متصل حاليًا. البيانات المعروضة من آخر اتصال له.",
+      "commandsTitle": "سجل الأوامر",
+      "noCommands": "لم يتم إرسال أي أمر بعد.",
+      "alertsTitle": "تنبيهات هذا الجهاز",
+      "noAlerts": "لا توجد تنبيهات."
+    },
+    "commandType": {
+      "LED_ON": "تشغيل الإضاءة",
+      "LED_OFF": "إيقاف الإضاءة",
+      "FAN_ON": "تشغيل المروحة",
+      "FAN_OFF": "إيقاف المروحة"
+    },
+    "commandOrigin": {
+      "manual": "يدوي",
+      "auto": "تلقائي"
+    },
+    "commandStatus": {
+      "pending": "بانتظار الإرسال",
+      "delivered": "تم التسليم",
+      "done": "تم التنفيذ",
+      "expired": "لم يتم التسليم"
+    },
+    "alertType": {
+      "upper_breach": "تجاوز الحد الأعلى",
+      "lower_breach": "أقل من الحد الأدنى",
+      "offline": "الجهاز غير متصل"
+    },
+    "alertSeverity": {
+      "info": "معلومة",
+      "warning": "تنبيه",
+      "critical": "حرج"
+    },
+    "alertStatus": {
+      "open": "غير معالج",
+      "acknowledged": "تم الإطلاع",
+      "closed": "تم الحل"
+    },
+    "relativeTime": {
+      "justNow": "الآن",
+      "minutes": "قبل {value} دقيقة",
+      "hours": "قبل {value} ساعة",
+      "days": "قبل {value} يوم"
+    },
+    "polling": {
+      "label": "تحديث تلقائي كل {seconds} ثانية",
+      "lastUpdated": "آخر تحديث {time}"
+    }
   }
 }

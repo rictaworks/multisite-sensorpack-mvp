@@ -154,5 +154,108 @@
     "idleDescriptionLine1": "Al pulsar el botón, la evolución de la temperatura y la humedad desde ayer, junto con los avisos, se convertirán en un breve resumen escrito.",
     "privacyNotice": "Para el resumen solo se usan valores numéricos: no se envían nombres ni direcciones de correo electrónico.",
     "errorNotice": "No se pudo obtener el resumen. Inténtalo de nuevo en unos instantes."
+  },
+  "login": {
+    "title": "Inicio de sesión requerido",
+    "description": "Inicia sesión con tu cuenta de Google para ver el estado ambiental de tus sedes.",
+    "googleButton": "Iniciar sesión con Google",
+    "signingIn": "Iniciando sesión…",
+    "devBypass": "Solo desarrollo: omitir inicio de sesión",
+    "errors": {
+      "signInFailed": "Error al iniciar sesión. Inténtalo de nuevo.",
+      "recaptchaRequired": "Completa la verificación reCAPTCHA."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "Resumen de sedes",
+      "statSites": "Sedes",
+      "statDevices": "Dispositivos",
+      "statOnline": "En línea",
+      "statOpenAlerts": "Alertas pendientes",
+      "unitSites": "sedes",
+      "unitDevices": "dispositivos",
+      "unitAlerts": "alertas",
+      "siteMeta": "{deviceCount} dispositivo(s)",
+      "badgeAllOnline": "Todo en línea",
+      "badgeSomeOffline": "Alguno desconectado",
+      "currentTemperature": "Temperatura actual",
+      "currentHumidity": "Humedad actual",
+      "noReading": "Sin datos",
+      "deviceLabel": "Dispositivo n.º {id}",
+      "emptySites": "Todavía no hay sedes que mostrar."
+    },
+    "device": {
+      "statusOnline": "Conectado",
+      "statusOffline": "Sin conexión",
+      "statusProvisioning": "Configurando",
+      "backToOverview": "Volver al resumen de sedes",
+      "lastSeen": "Última recepción {time}",
+      "intervalSeconds": "Envía cada {seconds} s",
+      "notFound": "No se encontró este dispositivo.",
+      "range24h": "24 horas",
+      "range7d": "7 días",
+      "chartTitle": "Evolución de temperatura y humedad",
+      "legendTemperature": "Temperatura",
+      "legendHumidity": "Humedad (eje derecho, 0-100%)",
+      "legendUpperThreshold": "Límite superior de temperatura",
+      "legendLowerThreshold": "Límite inferior de temperatura",
+      "axisTemperatureUnit": "°C",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "Temperatura más alta",
+      "summaryMinTemp": "Temperatura más baja",
+      "summaryAvgTemp": "Temperatura media",
+      "summaryOverThreshold": "Tiempo por encima del límite",
+      "summaryAvgHumidity": "Humedad media",
+      "minutesUnit": "{minutes} min",
+      "hoursUnit": "{hours} h",
+      "offlineWarning": "Este dispositivo está sin conexión ahora mismo. Los datos mostrados son de su última conexión.",
+      "commandsTitle": "Historial de comandos",
+      "noCommands": "Todavía no se ha enviado ningún comando.",
+      "alertsTitle": "Alertas de este dispositivo",
+      "noAlerts": "No hay alertas."
+    },
+    "commandType": {
+      "LED_ON": "Encender la luz",
+      "LED_OFF": "Apagar la luz",
+      "FAN_ON": "Encender el ventilador",
+      "FAN_OFF": "Apagar el ventilador"
+    },
+    "commandOrigin": {
+      "manual": "Manual",
+      "auto": "Automático"
+    },
+    "commandStatus": {
+      "pending": "Pendiente de envío",
+      "delivered": "Entregado",
+      "done": "Ejecutado",
+      "expired": "No entregado"
+    },
+    "alertType": {
+      "upper_breach": "Superó el límite superior",
+      "lower_breach": "Por debajo del límite inferior",
+      "offline": "Dispositivo sin conexión"
+    },
+    "alertSeverity": {
+      "info": "Información",
+      "warning": "Atención",
+      "critical": "Crítico"
+    },
+    "alertStatus": {
+      "open": "Pendiente",
+      "acknowledged": "Reconocida",
+      "closed": "Resuelta"
+    },
+    "relativeTime": {
+      "justNow": "Justo ahora",
+      "minutes": "hace {value} min",
+      "hours": "hace {value} h",
+      "days": "hace {value} d"
+    },
+    "polling": {
+      "label": "Actualización automática cada {seconds} s",
+      "lastUpdated": "Última actualización {time}"
+    }
   }
 }

@@ -154,5 +154,108 @@
     "idleDescriptionLine1": "Pressing the button turns yesterday's temperature and humidity trends and any notifications into a short written summary.",
     "privacyNotice": "Only numeric values are used to create the summary — no names or email addresses are sent.",
     "errorNotice": "We couldn't retrieve the summary. Please try again in a moment."
+  },
+  "login": {
+    "title": "Sign-in required",
+    "description": "Sign in with your Google account to check the environment status of your sites.",
+    "googleButton": "Sign in with Google",
+    "signingIn": "Signing in…",
+    "devBypass": "Dev only: skip sign-in",
+    "errors": {
+      "signInFailed": "Sign-in failed. Please try again.",
+      "recaptchaRequired": "Please complete the reCAPTCHA check."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "eyebrow": "Overview",
+      "title": "Site overview",
+      "statSites": "Sites",
+      "statDevices": "Devices",
+      "statOnline": "Online",
+      "statOpenAlerts": "Open alerts",
+      "unitSites": "sites",
+      "unitDevices": "devices",
+      "unitAlerts": "alerts",
+      "siteMeta": "{deviceCount} device(s)",
+      "badgeAllOnline": "All online",
+      "badgeSomeOffline": "Some offline",
+      "currentTemperature": "Current temperature",
+      "currentHumidity": "Current humidity",
+      "noReading": "No data",
+      "deviceLabel": "Device #{id}",
+      "emptySites": "No sites to show yet."
+    },
+    "device": {
+      "statusOnline": "Connected",
+      "statusOffline": "Not connected",
+      "statusProvisioning": "Setting up",
+      "backToOverview": "Back to site overview",
+      "lastSeen": "Last seen {time}",
+      "intervalSeconds": "Reports every {seconds}s",
+      "notFound": "This device could not be found.",
+      "range24h": "24 hours",
+      "range7d": "7 days",
+      "chartTitle": "Temperature & humidity trend",
+      "legendTemperature": "Temperature",
+      "legendHumidity": "Humidity (right axis, 0-100%)",
+      "legendUpperThreshold": "Temperature upper limit",
+      "legendLowerThreshold": "Temperature lower limit",
+      "axisTemperatureUnit": "°C",
+      "axisHumidityUnit": "%",
+      "summaryMaxTemp": "Highest temperature",
+      "summaryMinTemp": "Lowest temperature",
+      "summaryAvgTemp": "Average temperature",
+      "summaryOverThreshold": "Time above upper limit",
+      "summaryAvgHumidity": "Average humidity",
+      "minutesUnit": "{minutes} min",
+      "hoursUnit": "{hours} h",
+      "offlineWarning": "This device is currently offline. The data shown is from its last connection.",
+      "commandsTitle": "Command history",
+      "noCommands": "No commands sent yet.",
+      "alertsTitle": "Alerts for this device",
+      "noAlerts": "No alerts."
+    },
+    "commandType": {
+      "LED_ON": "Turn light on",
+      "LED_OFF": "Turn light off",
+      "FAN_ON": "Turn fan on",
+      "FAN_OFF": "Turn fan off"
+    },
+    "commandOrigin": {
+      "manual": "Manual",
+      "auto": "Automatic"
+    },
+    "commandStatus": {
+      "pending": "Pending",
+      "delivered": "Delivered",
+      "done": "Completed",
+      "expired": "Not delivered"
+    },
+    "alertType": {
+      "upper_breach": "Upper limit exceeded",
+      "lower_breach": "Below lower limit",
+      "offline": "Device offline"
+    },
+    "alertSeverity": {
+      "info": "Info",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "alertStatus": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "closed": "Resolved"
+    },
+    "relativeTime": {
+      "justNow": "Just now",
+      "minutes": "{value} min ago",
+      "hours": "{value} h ago",
+      "days": "{value} d ago"
+    },
+    "polling": {
+      "label": "Auto-refreshing every {seconds}s",
+      "lastUpdated": "Last updated {time}"
+    }
   }
 }
