@@ -14,12 +14,25 @@ Rails.application.routes.draw do
   get "auth/session" => "sessions#show"
   delete "auth/session" => "sessions#destroy"
 
+  # 注記(Issue #8): src/web/components/claim/api.ts(Issue #19)が`/api/v1/claim-codes`を
+  # 直接fetchしている実績があるため、F1関連の2ルートのみ`/api/v1`配下に置く。
+  # Issue #15の`namespace :api`配下(`/api/alerts`)はopenapi.yamlのservers(`/api/v1`)と
+  # 厳密には食い違っており、`/api/v1`への統一は別issueでの整理が必要(WORK報告に記載)。
   namespace :api do
     # F8 アラート管理API(一覧・未対応件数・ack)。src/shared/contracts/openapi.yamlの
     # listAlerts/acknowledgeAlertに対応する(Issue #15)。
     get "alerts" => "alerts#index"
     get "alerts/unread_count" => "alerts#unread_count"
     post "alerts/:alertId/ack" => "alerts#ack", as: :ack_alert
+  end
+
+  # src/shared/contracts/openapi.yaml servers: /api/v1 を基準パスとする。
+  # コントローラは Api::* 名前空間(app/controllers/api/)に配置し、URLパスにはv1を含めるが
+  # コントローラのモジュール名には含めない(将来の/api/v2導入時にコントローラ側の破壊的変更を避ける)。
+  scope "api/v1", module: "api" do
+    # F1 デバイス登録(クレームコード方式)
+    post "claim-codes" => "claim_codes#create"
+    post "devices/claim" => "device_claims#create"
   end
 
   # Defines the root path route ("/")
