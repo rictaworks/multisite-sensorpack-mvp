@@ -13,3 +13,5 @@ es:
     claim_code_expired: "Este código de reclamo ha caducado."
     claim_code_used: "Este código de reclamo ya ha sido utilizado."
     claim_code_locked: "Este código de reclamo se bloqueó tras varios intentos fallidos."
+    invalid_device_token: "El token del dispositivo no es válido."
+    device_deleted: "Este dispositivo ha sido eliminado."

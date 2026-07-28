@@ -41,4 +41,22 @@ RSpec.describe TelemetryReading, type: :model do
       expect(reading).to be_valid
     end
   end
+
+  # requirements.md F2 手順4 / 1.9 Eカテゴリ: DHT22想定の値域外(温度-40〜85℃・湿度0〜100%)の判別。
+  describe ".within_range?" do
+    it "is true for boundary values(境界値ちょうどは正常)" do
+      expect(described_class.within_range?(temperature_c: -40, humidity_pct: 0)).to be(true)
+      expect(described_class.within_range?(temperature_c: 85, humidity_pct: 100)).to be(true)
+    end
+
+    it "is false for a temperature outside the DHT22 range" do
+      expect(described_class.within_range?(temperature_c: 85.1, humidity_pct: 50)).to be(false)
+      expect(described_class.within_range?(temperature_c: -40.1, humidity_pct: 50)).to be(false)
+    end
+
+    it "is false for a humidity outside the DHT22 range" do
+      expect(described_class.within_range?(temperature_c: 20, humidity_pct: 100.1)).to be(false)
+      expect(described_class.within_range?(temperature_c: 20, humidity_pct: -0.1)).to be(false)
+    end
+  end
 end

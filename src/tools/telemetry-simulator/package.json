@@ -1,0 +1,13 @@
+{
+  "name": "telemetry-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "requirements.md 1.8: 実機ESP32の代替として、開発・E2E用にPOST /api/v1/telemetryへ温湿度テレメトリを送信するシミュレータ(Issue #9)。",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node simulate.js"
+  }
+}

@@ -42,3 +42,5 @@ en:
     claim_code_expired: "This claim code has expired."
     claim_code_used: "This claim code has already been used."
     claim_code_locked: "This claim code was locked after repeated failed attempts."
+    invalid_device_token: "The device token is invalid."
+    device_deleted: "This device has been deleted."
