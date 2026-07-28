@@ -54,5 +54,20 @@
     "loading": "Chargement…",
     "loadError": "Échec du chargement des alertes.",
     "badgeAriaLabel": "{count} alertes non traitées"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "Le résumé du jour",
+    "cardTitle": "Résumé des dernières 24 heures",
+    "quotaNoteUnused": "Vous n'en avez pas encore créé aujourd'hui (une fois par jour maximum)",
+    "quotaNoteUsed": "Le résumé du jour a déjà été créé (réinitialisation demain à 3h)",
+    "generateButton": "Créer le résumé",
+    "rereadButton": "Relire",
+    "loadingText": "Création du résumé en cours…",
+    "cachedNotice": "Le résumé du jour a déjà été créé. Vous pourrez en créer un nouveau demain après 3h.",
+    "insufficientDataNotice": "Pas encore assez de données collectées aujourd'hui.",
+    "idleDescriptionLine1": "En appuyant sur le bouton, l'évolution de la température et de l'humidité depuis hier ainsi que les notifications seront résumées sous forme de texte.",
+    "privacyNotice": "Seules les valeurs numériques sont utilisées pour créer le résumé : aucun nom ni adresse e-mail n'est envoyé.",
+    "errorNotice": "Impossible de récupérer le résumé. Veuillez réessayer dans un instant."
   }
 }

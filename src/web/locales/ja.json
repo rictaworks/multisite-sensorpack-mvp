@@ -54,5 +54,20 @@
     "loading": "読み込み中…",
     "loadError": "お知らせの読み込みに失敗しました。",
     "badgeAriaLabel": "未対応のお知らせ {count} 件"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "きょうのまとめ",
+    "cardTitle": "直近24時間のまとめ",
+    "quotaNoteUnused": "きょうはまだ作っていません（1日1回まで）",
+    "quotaNoteUsed": "きょうのぶんは作成ずみです（あすの朝3時にリセット）",
+    "generateButton": "まとめを作る",
+    "rereadButton": "もう一度読む",
+    "loadingText": "まとめを作っています…",
+    "cachedNotice": "きょうのぶんは作成ずみです。あすの朝3時にまた作れます。",
+    "insufficientDataNotice": "きょうはまだ十分なデータが集まっていません。",
+    "idleDescriptionLine1": "ボタンを押すと、きのうからの温度・湿度のうごきとお知らせの内容を文章にまとめます。",
+    "privacyNotice": "まとめに使うのは数値だけで、名前やメールアドレスは送りません。",
+    "errorNotice": "まとめの取得に失敗しました。時間をおいてもう一度お試しください。"
   }
 }
