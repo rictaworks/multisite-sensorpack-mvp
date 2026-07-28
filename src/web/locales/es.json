@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "Sensor Pack multisitio",
+    "description": "Supervisa el estado ambiental de todas tus sedes en un solo lugar."
+  },
+  "nav": {
+    "ariaLabel": "Navegación principal",
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "alerts": "Alertas"
+  }
+}

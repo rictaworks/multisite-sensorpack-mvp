@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "Multisite Sensor Pack",
+    "description": "Monitor the environment across all your sites in one place."
+  },
+  "nav": {
+    "ariaLabel": "Main navigation",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "alerts": "Alerts"
+  }
+}
