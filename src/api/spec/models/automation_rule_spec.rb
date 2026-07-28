@@ -24,4 +24,56 @@ RSpec.describe AutomationRule, type: :model do
       expect(rule.led_on_alert).to be(false)
     end
   end
+
+  # requirements.md F5 受け入れ条件: 手動コマンド発行後30分間は同一アクチュエータへの
+  # 自動ルール発行を抑止する(手動優先のオーバーライドウィンドウ)。
+  describe "#manual_override_active?(Issue #11)" do
+    let(:rule) { described_class.create!(device: device) }
+    let(:fan_on) { CommandType.find_by!(code: "FAN_ON") }
+    let(:led_on) { CommandType.find_by!(code: "LED_ON") }
+
+    def create_manual_command!(command_type:, issued_at:)
+      Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "pending", issued_at: issued_at, expires_at: issued_at + 10.minutes
+      )
+    end
+
+    it "is true within 30 minutes of a manual command for the same actuator" do
+      create_manual_command!(command_type: fan_on, issued_at: 5.minutes.ago)
+
+      expect(rule.manual_override_active?("fan")).to be(true)
+    end
+
+    it "is false once 30 minutes have elapsed since the manual command" do
+      create_manual_command!(command_type: fan_on, issued_at: 31.minutes.ago)
+
+      expect(rule.manual_override_active?("fan")).to be(false)
+    end
+
+    it "does not suppress a different actuator(same-actuator scoping)" do
+      create_manual_command!(command_type: fan_on, issued_at: 5.minutes.ago)
+
+      expect(rule.manual_override_active?("led")).to be(false)
+    end
+
+    it "ignores auto-origin commands(only manual dispatch starts the override window)" do
+      Command.create!(
+        device: device, command_type: led_on, idempotency_key: SecureRandom.uuid,
+        origin: "auto", status: "pending", issued_at: 5.minutes.ago, expires_at: 5.minutes.from_now
+      )
+
+      expect(rule.manual_override_active?("led")).to be(false)
+    end
+  end
+
+  describe "#register_manual_override!(Issue #11)" do
+    it "sets manual_override_until 30 minutes from now" do
+      rule = described_class.create!(device: device)
+
+      rule.register_manual_override!
+
+      expect(rule.reload.manual_override_until).to be_within(2.seconds).of(30.minutes.from_now)
+    end
+  end
 end

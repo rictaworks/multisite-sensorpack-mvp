@@ -1,9 +1,5 @@
-# requirements.md 1.6 F2 ingest_telemetry / F3 evaluate_thresholds
+# requirements.md 1.6 F2 ingest_telemetry / F3 evaluate_thresholds / F5 dispatch_command(ピギーバック配信)
 # (src/shared/contracts/openapi.yaml POST /telemetry, operationId: ingestTelemetry)。
-#
-# コマンドのピギーバック同梱・ACK処理はIssue #11(F5)で追加される
-# (TelemetryIngestServiceのコメント参照)。本Issue(#9)時点ではcommandsは常に空配列を返す
-# (openapi.yaml TelemetryIngestResponseのcommandsは必須フィールドのため、契約上のキー自体は用意する)。
 module Api
   class TelemetryController < ApplicationController
     # requirements.md 1.9 Eカテゴリ「巨大ペイロード」対策: ESP32が送る本来のペイロードは
@@ -22,7 +18,8 @@ module Api
         seq: telemetry_params[:seq],
         temperature_c: telemetry_params[:temperatureC],
         humidity_pct: telemetry_params[:humidityPct],
-        device_reported_at: telemetry_params[:deviceReportedAt]
+        device_reported_at: telemetry_params[:deviceReportedAt],
+        command_acks: command_ack_keys
       ).call
 
       render json: serialize(result), status: :ok
@@ -35,7 +32,13 @@ module Api
     private
 
     def telemetry_params
-      params.permit(:seq, :temperatureC, :humidityPct, :deviceReportedAt)
+      params.permit(:seq, :temperatureC, :humidityPct, :deviceReportedAt, commandAcks: [ :idempotencyKey ])
+    end
+
+    # requirements.md F5 手順3: 前回配信されたコマンドの実行結果ACK(冪等ID)を取り出す。
+    # 未指定時は空配列(何もACKしない)として扱う。
+    def command_ack_keys
+      Array(telemetry_params[:commandAcks]).filter_map { |ack| ack[:idempotencyKey] }
     end
 
     def reject_oversized_payload!
@@ -53,7 +56,16 @@ module Api
         accepted: result.accepted,
         duplicate: result.duplicate,
         serverTime: result.server_time.iso8601,
-        commands: []
+        commands: result.commands.map { |command| serialize_command_delivery(command) }
+      }
+    end
+
+    # openapi.yaml CommandDelivery: {idempotencyKey, commandType, issuedAt}
+    def serialize_command_delivery(command)
+      {
+        idempotencyKey: command.idempotency_key,
+        commandType: command.command_type_code,
+        issuedAt: command.issued_at.iso8601
       }
     end
 

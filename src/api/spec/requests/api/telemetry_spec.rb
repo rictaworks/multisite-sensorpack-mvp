@@ -114,4 +114,45 @@ RSpec.describe "Api::Telemetry", type: :request do
       expect(response.parsed_body.dig("error", "code")).to eq("validation_error")
     end
   end
+
+  # requirements.md 1.6 F5 dispatch_command(ピギーバック配信・ACK処理)。Issue #11。
+  # HTTP境界(commandAcksの受け取り・commandsレスポンス形状)のみを検証する。
+  # 個々の配信/ACK/TTL失効/自動ルール発火ロジックの網羅は spec/services/command_dispatch_service_spec.rb を参照。
+  describe "コマンドピギーバック配信・ACK処理(F5, Issue #11)" do
+    it "保留中コマンドをcommands(CommandDelivery形状)としてピギーバック同梱する" do
+      device, token = provision_device
+      command_type = CommandType.find_by!(code: "FAN_ON")
+      command = Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "pending", issued_at: Time.current, expires_at: 10.minutes.from_now
+      )
+
+      post_telemetry(token: token, body: { seq: 1, temperatureC: 25, humidityPct: 50 })
+
+      expect(response).to have_http_status(:ok)
+      commands = response.parsed_body["commands"]
+      expect(commands.size).to eq(1)
+      expect(commands.first["idempotencyKey"]).to eq(command.idempotency_key)
+      expect(commands.first["commandType"]).to eq("FAN_ON")
+      expect(commands.first["issuedAt"]).to be_present
+      expect(command.reload.status).to eq("delivered")
+    end
+
+    it "リクエストのcommandAcksで指定した冪等IDのコマンドをdoneにする" do
+      device, token = provision_device
+      command_type = CommandType.find_by!(code: "FAN_ON")
+      command = Command.create!(
+        device: device, command_type: command_type, idempotency_key: SecureRandom.uuid,
+        origin: "manual", status: "delivered", issued_at: Time.current, expires_at: 10.minutes.from_now
+      )
+
+      post_telemetry(
+        token: token,
+        body: { seq: 1, temperatureC: 25, humidityPct: 50, commandAcks: [ { idempotencyKey: command.idempotency_key } ] }
+      )
+
+      expect(response).to have_http_status(:ok)
+      expect(command.reload.status).to eq("done")
+    end
+  end
 end
