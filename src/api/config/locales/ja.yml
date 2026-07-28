@@ -11,3 +11,5 @@ ja:
     claim_code_expired: "このクレームコードは有効期限が切れています。"
     claim_code_used: "このクレームコードは既に使用されています。"
     claim_code_locked: "失敗が続いたため、このクレームコードは失効しました。"
+    invalid_device_token: "デバイストークンが無効です。"
+    device_deleted: "このデバイスは削除済みです。"

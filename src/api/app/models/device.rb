@@ -84,6 +84,17 @@ class Device < ApplicationRecord
     Rails.logger.info("[Device##{id}] onlineへ復帰しました")
   end
 
+  # requirements.md F2 手順4: 値域外テレメトリを破棄した回数をデバイス統計として記録する。
+  # 生SQLの`+ 1`によるインクリメントで、同時リクエスト間の更新競合(カウント取りこぼし)を避ける
+  # (Ruby側でread-modify-writeするとレース条件になりうるため)。
+  def record_discarded_reading!
+    self.class.where(id: id).update_all("discarded_readings_count = discarded_readings_count + 1")
+    reload
+    Rails.logger.warn(
+      "[Device##{id}] 値域外テレメトリを破棄しました(discarded_readings_count=#{discarded_readings_count})"
+    )
+  end
+
   private
 
   def open_offline_alert_exists?

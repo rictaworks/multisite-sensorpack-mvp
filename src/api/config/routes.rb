@@ -33,6 +33,10 @@ Rails.application.routes.draw do
     # F1 デバイス登録(クレームコード方式)
     post "claim-codes" => "claim_codes#create"
     post "devices/claim" => "device_claims#create"
+
+    # F2+F3 テレメトリ受信・閾値判定(ヒステリシス)。認証はセッションcookieではなく
+    # デバイストークン(Authorization: Bearer)、Api::TelemetryController内のDeviceAuthenticatable参照(Issue #9)。
+    post "telemetry" => "telemetry#create"
   end
 
   # Defines the root path route ("/")

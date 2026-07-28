@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_28_215724) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_28_232029) do
   create_table "actuator_types", primary_key: "code", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -123,6 +123,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_28_215724) do
     t.datetime "created_at", null: false
     t.boolean "deleted", default: false, null: false
     t.string "device_token_digest", null: false
+    t.integer "discarded_readings_count", default: 0, null: false
     t.integer "expected_interval_sec", default: 60, null: false
     t.datetime "last_seen_at"
     t.integer "site_id", null: false

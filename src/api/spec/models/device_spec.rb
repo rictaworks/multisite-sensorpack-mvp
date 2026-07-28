@@ -110,6 +110,25 @@ RSpec.describe Device, type: :model do
     end
   end
 
+  # requirements.md F2 手順4: 値域外テレメトリの破棄件数をデバイス統計として記録する(Issue #9)。
+  describe "#record_discarded_reading!" do
+    it "increments discarded_readings_count starting from zero" do
+      device = described_class.create!(site: site, device_token_digest: "digest-discard-1")
+
+      device.record_discarded_reading!
+
+      expect(device.reload.discarded_readings_count).to eq(1)
+    end
+
+    it "accumulates across multiple discards" do
+      device = described_class.create!(site: site, device_token_digest: "digest-discard-2")
+
+      3.times { device.record_discarded_reading! }
+
+      expect(device.reload.discarded_readings_count).to eq(3)
+    end
+  end
+
   describe ".provision_for_site!(requirements.md F1手順4)" do
     it "provisioning状態のdeviceを作成し、生トークンとダイジェストが一致しないハッシュ値で保存する" do
       device, raw_token = described_class.provision_for_site!(site)

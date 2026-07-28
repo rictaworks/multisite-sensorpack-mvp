@@ -11,3 +11,5 @@ ar:
     claim_code_expired: "انتهت صلاحية رمز المطالبة هذا."
     claim_code_used: "تم استخدام رمز المطالبة هذا بالفعل."
     claim_code_locked: "تم قفل رمز المطالبة هذا بعد محاولات فاشلة متكررة."
+    invalid_device_token: "رمز الجهاز غير صالح."
+    device_deleted: "تم حذف هذا الجهاز."

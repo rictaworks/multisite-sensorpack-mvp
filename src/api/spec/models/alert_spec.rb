@@ -58,6 +58,21 @@ RSpec.describe Alert, type: :model do
     end
   end
 
+  # requirements.md F3 手順3-4: Threshold#direction(upper/lower)からアラート種別コードを解決する(Issue #9)。
+  describe ".alert_type_code_for_threshold_direction" do
+    it "maps upper to threshold_upper_breach" do
+      expect(described_class.alert_type_code_for_threshold_direction("upper")).to eq("threshold_upper_breach")
+    end
+
+    it "maps lower to threshold_lower_breach" do
+      expect(described_class.alert_type_code_for_threshold_direction("lower")).to eq("threshold_lower_breach")
+    end
+
+    it "raises for an unexpected direction" do
+      expect { described_class.alert_type_code_for_threshold_direction("diagonal") }.to raise_error(ArgumentError)
+    end
+  end
+
   describe ".open scope" do
     it "returns only alerts with status open" do
       open_alert = described_class.create!(

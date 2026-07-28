@@ -11,3 +11,5 @@ fr:
     claim_code_expired: "Ce code de revendication a expiré."
     claim_code_used: "Ce code de revendication a déjà été utilisé."
     claim_code_locked: "Ce code de revendication a été verrouillé après plusieurs échecs."
+    invalid_device_token: "Le jeton de l'appareil est invalide."
+    device_deleted: "Cet appareil a été supprimé."
