@@ -1,0 +1,19 @@
+# 環境変数・シークレット（CLAUDE.md: シークレットは.envで管理し、コミットしない）
+.env
+.env.*
+!.env.example
+config/master.key
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Node.js
+node_modules/
+
+# OS
+.DS_Store
