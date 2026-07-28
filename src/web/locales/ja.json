@@ -154,5 +154,16 @@
     "idleDescriptionLine1": "ボタンを押すと、きのうからの温度・湿度のうごきとお知らせの内容を文章にまとめます。",
     "privacyNotice": "まとめに使うのは数値だけで、名前やメールアドレスは送りません。",
     "errorNotice": "まとめの取得に失敗しました。時間をおいてもう一度お試しください。"
+  },
+  "login": {
+    "title": "ログインが必要です",
+    "description": "Googleアカウントでログインすると、拠点の環境状態を確認できます。",
+    "googleButton": "Googleでログイン",
+    "signingIn": "ログインしています…",
+    "devBypass": "開発用: ログインをスキップ",
+    "errors": {
+      "signInFailed": "ログインに失敗しました。もう一度お試しください。",
+      "recaptchaRequired": "reCAPTCHAを完了してください。"
+    }
   }
 }

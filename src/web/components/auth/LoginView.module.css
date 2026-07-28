@@ -1,0 +1,99 @@
+/*
+ * Visual language taken from app-ui/SensorPack Dashboard.dc.html (reference
+ * only, per .claude/rules/project-structure.md — never edited): dark navy
+ * page background, white rounded card, blue accent, the same admin-login
+ * card treatment (lines ~459-471 of the mock).
+ */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a1628;
+  color: #fff;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  color: #0a1628;
+  border-radius: 8px;
+  padding: 32px 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.description {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #6b82a0;
+}
+
+.recaptchaRow {
+  margin-top: 22px;
+}
+
+.googleButtonWrapper {
+  margin-top: 18px;
+  min-height: 40px;
+}
+
+.disabledGoogleButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #c8d6e8;
+  color: #6b82a0;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: #6b82a0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: #c62828;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.devBypassButton {
+  width: 100%;
+  margin-top: 22px;
+  border: 1px dashed #c8d6e8;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+  color: #6b82a0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
