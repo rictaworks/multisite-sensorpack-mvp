@@ -67,4 +67,11 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+
+  # マスタデータ(db/seeds.rb)をテストスイート開始前に一度だけ投入する。
+  # use_transactional_fixturesにより各テストはこの投入後の状態にロールバックされるため、
+  # 個々のテストで重複してマスタ行を作成する必要がない(Issue #6 受け入れ条件のマスタ17件を利用可能にする)。
+  config.before(:suite) do
+    Rails.application.load_seed
+  end
 end
