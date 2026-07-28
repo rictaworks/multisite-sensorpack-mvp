@@ -9,6 +9,11 @@ Rails.application.routes.draw do
   # CI・監視サービス・以降のバックエンド機能issueの疎通確認に使用する。
   get "health" => "health#show"
 
+  # Issue #7: Googleログインセッション(src/shared/contracts/openapi.yaml /auth/session)。
+  post "auth/session" => "sessions#create"
+  get "auth/session" => "sessions#show"
+  delete "auth/session" => "sessions#destroy"
+
   namespace :api do
     # F8 アラート管理API(一覧・未対応件数・ack)。src/shared/contracts/openapi.yamlの
     # listAlerts/acknowledgeAlertに対応する(Issue #15)。

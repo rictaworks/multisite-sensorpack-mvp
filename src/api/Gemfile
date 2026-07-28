@@ -40,6 +40,14 @@ gem "image_processing", "~> 1.2"
 # Load environment variables from .env (development/test only; production platform env vars take precedence)
 gem "dotenv-rails", groups: %i[development test]
 
+# Issue #7: Googleログインセッション確立。
+# Next.js側でGoogle OAuth 2.0/OpenID ConnectフローからIDトークン(JWT)を取得し、
+# RailsはそのIDトークンをGoogleの公開鍵(JWKS)で検証するのみ(サーバー主導のリダイレクトフローは行わない)。
+# omniauth-google-oauth2はリダイレクト起点のフロー向けで本構成に合わないため、
+# Google公式・実績のあるOSSである googleauth (Google::Auth::IDTokens.verify_oidc) を採用する
+# (architecture.md: 安全で実績のあるOSSを優先・車輪の再発明を避ける)。
+gem "googleauth", "~> 1.11"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
