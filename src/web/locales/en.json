@@ -154,5 +154,16 @@
     "idleDescriptionLine1": "Pressing the button turns yesterday's temperature and humidity trends and any notifications into a short written summary.",
     "privacyNotice": "Only numeric values are used to create the summary — no names or email addresses are sent.",
     "errorNotice": "We couldn't retrieve the summary. Please try again in a moment."
+  },
+  "login": {
+    "title": "Sign-in required",
+    "description": "Sign in with your Google account to check the environment status of your sites.",
+    "googleButton": "Sign in with Google",
+    "signingIn": "Signing in…",
+    "devBypass": "Dev only: skip sign-in",
+    "errors": {
+      "signInFailed": "Sign-in failed. Please try again.",
+      "recaptchaRequired": "Please complete the reCAPTCHA check."
+    }
   }
 }

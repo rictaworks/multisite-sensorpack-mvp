@@ -154,5 +154,16 @@
     "idleDescriptionLine1": "En appuyant sur le bouton, l'évolution de la température et de l'humidité depuis hier ainsi que les notifications seront résumées sous forme de texte.",
     "privacyNotice": "Seules les valeurs numériques sont utilisées pour créer le résumé : aucun nom ni adresse e-mail n'est envoyé.",
     "errorNotice": "Impossible de récupérer le résumé. Veuillez réessayer dans un instant."
+  },
+  "login": {
+    "title": "Connexion requise",
+    "description": "Connectez-vous avec votre compte Google pour consulter l'état environnemental de vos sites.",
+    "googleButton": "Se connecter avec Google",
+    "signingIn": "Connexion en cours…",
+    "devBypass": "Dev uniquement : ignorer la connexion",
+    "errors": {
+      "signInFailed": "Échec de la connexion. Veuillez réessayer.",
+      "recaptchaRequired": "Veuillez valider le reCAPTCHA."
+    }
   }
 }

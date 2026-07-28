@@ -154,5 +154,16 @@
     "idleDescriptionLine1": "Al pulsar el botón, la evolución de la temperatura y la humedad desde ayer, junto con los avisos, se convertirán en un breve resumen escrito.",
     "privacyNotice": "Para el resumen solo se usan valores numéricos: no se envían nombres ni direcciones de correo electrónico.",
     "errorNotice": "No se pudo obtener el resumen. Inténtalo de nuevo en unos instantes."
+  },
+  "login": {
+    "title": "Inicio de sesión requerido",
+    "description": "Inicia sesión con tu cuenta de Google para ver el estado ambiental de tus sedes.",
+    "googleButton": "Iniciar sesión con Google",
+    "signingIn": "Iniciando sesión…",
+    "devBypass": "Solo desarrollo: omitir inicio de sesión",
+    "errors": {
+      "signInFailed": "Error al iniciar sesión. Inténtalo de nuevo.",
+      "recaptchaRequired": "Completa la verificación reCAPTCHA."
+    }
   }
 }

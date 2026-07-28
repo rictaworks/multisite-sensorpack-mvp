@@ -154,5 +154,16 @@
     "idleDescriptionLine1": "点击按钮后，会将昨天以来的温湿度变化和通知内容整理成一段文字小结。",
     "privacyNotice": "小结只使用数值数据，不会发送姓名或电子邮件地址。",
     "errorNotice": "获取小结失败，请稍后再试。"
+  },
+  "login": {
+    "title": "需要登录",
+    "description": "使用您的Google账号登录，即可查看各站点的环境状态。",
+    "googleButton": "使用Google登录",
+    "signingIn": "正在登录…",
+    "devBypass": "仅限开发环境：跳过登录",
+    "errors": {
+      "signInFailed": "登录失败，请重试。",
+      "recaptchaRequired": "请先完成reCAPTCHA验证。"
+    }
   }
 }
