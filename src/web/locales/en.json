@@ -8,5 +8,110 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "alerts": "Alerts"
+  },
+  "control": {
+    "eyebrow": "Operation Tools",
+    "title": "Operation Tools",
+    "noDevices": "No devices are registered yet.",
+    "offlineWarning": "This device is offline. The command will be accepted, but it will only run if the device reconnects within 10 minutes.",
+    "deviceStatus": {
+      "online": "Online",
+      "offline": "Offline",
+      "provisioning": "Preparing"
+    },
+    "actuator": {
+      "led": "Light (LED)",
+      "fan": "Fan"
+    },
+    "actuatorStateOn": "On",
+    "actuatorStateOff": "Off",
+    "actuatorToggleAriaLabel": "Toggle {actuator}",
+    "confirm": {
+      "turnOnTitle": "Turn on {actuator}?",
+      "turnOffTitle": "Turn off {actuator}?",
+      "body": "This sends a manual command to the device.",
+      "confirmButton": "Send",
+      "cancelButton": "Cancel"
+    },
+    "automation": {
+      "title": "Automation rules",
+      "fanOnTempAlert": "Auto fan control",
+      "fanOnTempAlertDesc": "Turn the fan on automatically while a high-temperature alert is open, and off once it closes.",
+      "ledOnAlert": "Auto LED indicator",
+      "ledOnAlertDesc": "Turn the on-site LED indicator on automatically while an alert is open.",
+      "overrideNotice": "A manual command was sent, so automation is paused for this device for {minutes} more minute(s)."
+    },
+    "commandStatus": {
+      "pending": "Waiting to send",
+      "delivered": "Delivered",
+      "done": "Completed",
+      "expired": "Not delivered"
+    },
+    "history": {
+      "title": "Command history",
+      "empty": "No commands issued yet.",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "Alerts",
+    "tabs": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "closed": "Resolved"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Info",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "type": {
+      "upperBreach": "Upper threshold breach",
+      "lowerBreach": "Lower threshold breach",
+      "offline": "Offline"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} is above the upper threshold",
+        "detail": "The reading has stayed above the threshold."
+      },
+      "lowerBreach": {
+        "title": "{device} is below the lower threshold",
+        "detail": "The reading dropped below the threshold but has since improved."
+      },
+      "offline": {
+        "title": "{device} has stopped responding",
+        "detail": "No data has been received for a while. Please check the power and network connection."
+      }
+    },
+    "stubDevices": {
+      "device1": "Warehouse A - Entrance",
+      "device2": "Home - Living Room"
+    },
+    "ackButton": "Acknowledge",
+    "ackingLabel": "Acknowledging…",
+    "ackError": "Failed to acknowledge the alert. Please try again.",
+    "emptyState": "There is nothing to show in this tab.",
+    "footerNote": "An alert is only marked Resolved automatically, once the reading returns to a safe range or the device reconnects. You cannot resolve an alert yourself.",
+    "loading": "Loading…",
+    "loadError": "Failed to load alerts.",
+    "badgeAriaLabel": "{count} unacknowledged alerts"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "Today's Summary",
+    "cardTitle": "Summary of the last 24 hours",
+    "quotaNoteUnused": "You haven't created one today yet (up to once a day)",
+    "quotaNoteUsed": "Today's summary has already been created (resets at 3am tomorrow)",
+    "generateButton": "Create summary",
+    "rereadButton": "Read it again",
+    "loadingText": "Creating your summary…",
+    "cachedNotice": "Today's summary has already been created. You can create a new one after 3am tomorrow.",
+    "insufficientDataNotice": "Not enough data has been collected today yet.",
+    "idleDescriptionLine1": "Pressing the button turns yesterday's temperature and humidity trends and any notifications into a short written summary.",
+    "privacyNotice": "Only numeric values are used to create the summary — no names or email addresses are sent.",
+    "errorNotice": "We couldn't retrieve the summary. Please try again in a moment."
   }
 }

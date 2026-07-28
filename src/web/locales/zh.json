@@ -8,5 +8,110 @@
     "home": "首页",
     "dashboard": "仪表盘",
     "alerts": "告警"
+  },
+  "control": {
+    "eyebrow": "运维工具",
+    "title": "运维工具",
+    "noDevices": "尚未注册任何设备。",
+    "offlineWarning": "该设备当前离线。指令会被接受，但只有在设备于10分钟内重新连接时才会执行。",
+    "deviceStatus": {
+      "online": "在线",
+      "offline": "离线",
+      "provisioning": "准备中"
+    },
+    "actuator": {
+      "led": "指示灯（LED）",
+      "fan": "风扇"
+    },
+    "actuatorStateOn": "开启",
+    "actuatorStateOff": "关闭",
+    "actuatorToggleAriaLabel": "切换{actuator}",
+    "confirm": {
+      "turnOnTitle": "要开启{actuator}吗？",
+      "turnOffTitle": "要关闭{actuator}吗？",
+      "body": "这将向设备发送一条手动指令。",
+      "confirmButton": "发送",
+      "cancelButton": "取消"
+    },
+    "automation": {
+      "title": "自动化规则",
+      "fanOnTempAlert": "风扇自动控制",
+      "fanOnTempAlertDesc": "在高温告警处于未解决状态时自动开启风扇，告警解除后自动关闭。",
+      "ledOnAlert": "LED指示灯自动点亮",
+      "ledOnAlertDesc": "在告警处于未解决状态时，自动点亮现场的LED指示灯。",
+      "overrideNotice": "由于已发送手动指令，该设备的自动化规则将在接下来的{minutes}分钟内暂停。"
+    },
+    "commandStatus": {
+      "pending": "等待发送",
+      "delivered": "已送达",
+      "done": "已执行",
+      "expired": "未送达"
+    },
+    "history": {
+      "title": "操作历史",
+      "empty": "尚未进行任何操作。",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "告警",
+    "tabs": {
+      "open": "未处理",
+      "acknowledged": "已确认",
+      "closed": "已解决"
+    },
+    "tabLabelWithCount": "{label}（{count}）",
+    "severity": {
+      "info": "提示",
+      "warning": "警告",
+      "critical": "严重"
+    },
+    "type": {
+      "upperBreach": "超过上限",
+      "lowerBreach": "低于下限",
+      "offline": "离线"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device}的读数超过上限",
+        "detail": "读数持续高于阈值。"
+      },
+      "lowerBreach": {
+        "title": "{device}的读数低于下限",
+        "detail": "读数曾低于阈值，目前已有所改善。"
+      },
+      "offline": {
+        "title": "{device}已失去连接",
+        "detail": "已有一段时间未收到数据，请检查电源和网络连接。"
+      }
+    },
+    "stubDevices": {
+      "device1": "仓库A - 入口",
+      "device2": "自家 - 客厅"
+    },
+    "ackButton": "确认",
+    "ackingLabel": "确认中…",
+    "ackError": "确认失败，请重试。",
+    "emptyState": "此标签下没有内容。",
+    "footerNote": "只有当数值恢复到安全范围，或设备重新连接时，告警才会自动变为已解决。您无法自行将其标记为已解决。",
+    "loading": "正在加载…",
+    "loadError": "告警加载失败。",
+    "badgeAriaLabel": "{count} 条未处理的告警"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "今日小结",
+    "cardTitle": "最近24小时小结",
+    "quotaNoteUnused": "今天还没有生成过（每天最多一次）",
+    "quotaNoteUsed": "今天的小结已经生成（明天凌晨3点重置）",
+    "generateButton": "生成小结",
+    "rereadButton": "再次查看",
+    "loadingText": "正在生成小结…",
+    "cachedNotice": "今天的小结已经生成。明天凌晨3点后可以再次生成。",
+    "insufficientDataNotice": "今天收集到的数据还不够。",
+    "idleDescriptionLine1": "点击按钮后，会将昨天以来的温湿度变化和通知内容整理成一段文字小结。",
+    "privacyNotice": "小结只使用数值数据，不会发送姓名或电子邮件地址。",
+    "errorNotice": "获取小结失败，请稍后再试。"
   }
 }

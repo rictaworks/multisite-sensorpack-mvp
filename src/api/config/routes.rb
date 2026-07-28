@@ -14,6 +14,14 @@ Rails.application.routes.draw do
   get "auth/session" => "sessions#show"
   delete "auth/session" => "sessions#destroy"
 
+  namespace :api do
+    # F8 アラート管理API(一覧・未対応件数・ack)。src/shared/contracts/openapi.yamlの
+    # listAlerts/acknowledgeAlertに対応する(Issue #15)。
+    get "alerts" => "alerts#index"
+    get "alerts/unread_count" => "alerts#unread_count"
+    post "alerts/:alertId/ack" => "alerts#ack", as: :ack_alert
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end

@@ -8,5 +8,110 @@
     "home": "Accueil",
     "dashboard": "Tableau de bord",
     "alerts": "Alertes"
+  },
+  "control": {
+    "eyebrow": "Outils d'exploitation",
+    "title": "Outils d'exploitation",
+    "noDevices": "Aucun appareil n'est encore enregistré.",
+    "offlineWarning": "Cet appareil est hors ligne. La commande sera acceptée, mais elle ne s'exécutera que si l'appareil se reconnecte dans les 10 minutes.",
+    "deviceStatus": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "provisioning": "Préparation"
+    },
+    "actuator": {
+      "led": "Voyant (LED)",
+      "fan": "Ventilateur"
+    },
+    "actuatorStateOn": "Activé",
+    "actuatorStateOff": "Désactivé",
+    "actuatorToggleAriaLabel": "Basculer {actuator}",
+    "confirm": {
+      "turnOnTitle": "Activer {actuator} ?",
+      "turnOffTitle": "Désactiver {actuator} ?",
+      "body": "Ceci envoie une commande manuelle à l'appareil.",
+      "confirmButton": "Envoyer",
+      "cancelButton": "Annuler"
+    },
+    "automation": {
+      "title": "Règles automatiques",
+      "fanOnTempAlert": "Ventilateur automatique",
+      "fanOnTempAlertDesc": "Active automatiquement le ventilateur tant qu'une alerte de température élevée est ouverte, et le désactive une fois résolue.",
+      "ledOnAlert": "Voyant LED automatique",
+      "ledOnAlertDesc": "Active automatiquement le voyant LED sur site tant qu'une alerte est ouverte.",
+      "overrideNotice": "Une commande manuelle a été envoyée : l'automatisation de cet appareil est suspendue pendant encore {minutes} minute(s)."
+    },
+    "commandStatus": {
+      "pending": "En attente d'envoi",
+      "delivered": "Reçue",
+      "done": "Exécutée",
+      "expired": "Non délivrée"
+    },
+    "history": {
+      "title": "Historique des commandes",
+      "empty": "Aucune commande envoyée pour l'instant.",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "Alertes",
+    "tabs": {
+      "open": "Non traitées",
+      "acknowledged": "Prises en compte",
+      "closed": "Résolues"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Information",
+      "warning": "Avertissement",
+      "critical": "Critique"
+    },
+    "type": {
+      "upperBreach": "Dépassement du seuil haut",
+      "lowerBreach": "Dépassement du seuil bas",
+      "offline": "Hors ligne"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} dépasse le seuil haut",
+        "detail": "La valeur reste au-dessus du seuil."
+      },
+      "lowerBreach": {
+        "title": "{device} est en dessous du seuil bas",
+        "detail": "La valeur est passée sous le seuil, mais elle s'améliore."
+      },
+      "offline": {
+        "title": "{device} ne répond plus",
+        "detail": "Aucune donnée n'a été reçue depuis un moment. Vérifiez l'alimentation et la connexion réseau."
+      }
+    },
+    "stubDevices": {
+      "device1": "Entrepôt A - Entrée",
+      "device2": "Domicile - Salon"
+    },
+    "ackButton": "Prendre en compte",
+    "ackingLabel": "Prise en compte…",
+    "ackError": "Échec de la prise en compte de l'alerte. Veuillez réessayer.",
+    "emptyState": "Rien à afficher dans cet onglet.",
+    "footerNote": "Une alerte n'est marquée comme résolue qu'automatiquement, lorsque la valeur revient dans la plage normale ou que l'appareil se reconnecte. Vous ne pouvez pas la résoudre vous-même.",
+    "loading": "Chargement…",
+    "loadError": "Échec du chargement des alertes.",
+    "badgeAriaLabel": "{count} alertes non traitées"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "Le résumé du jour",
+    "cardTitle": "Résumé des dernières 24 heures",
+    "quotaNoteUnused": "Vous n'en avez pas encore créé aujourd'hui (une fois par jour maximum)",
+    "quotaNoteUsed": "Le résumé du jour a déjà été créé (réinitialisation demain à 3h)",
+    "generateButton": "Créer le résumé",
+    "rereadButton": "Relire",
+    "loadingText": "Création du résumé en cours…",
+    "cachedNotice": "Le résumé du jour a déjà été créé. Vous pourrez en créer un nouveau demain après 3h.",
+    "insufficientDataNotice": "Pas encore assez de données collectées aujourd'hui.",
+    "idleDescriptionLine1": "En appuyant sur le bouton, l'évolution de la température et de l'humidité depuis hier ainsi que les notifications seront résumées sous forme de texte.",
+    "privacyNotice": "Seules les valeurs numériques sont utilisées pour créer le résumé : aucun nom ni adresse e-mail n'est envoyé.",
+    "errorNotice": "Impossible de récupérer le résumé. Veuillez réessayer dans un instant."
   }
 }

@@ -8,5 +8,110 @@
     "home": "Inicio",
     "dashboard": "Panel",
     "alerts": "Alertas"
+  },
+  "control": {
+    "eyebrow": "Herramientas operativas",
+    "title": "Herramientas operativas",
+    "noDevices": "Todavía no hay dispositivos registrados.",
+    "offlineWarning": "Este dispositivo está desconectado. La orden se aceptará, pero solo se ejecutará si el dispositivo vuelve a conectarse en un plazo de 10 minutos.",
+    "deviceStatus": {
+      "online": "Conectado",
+      "offline": "Desconectado",
+      "provisioning": "Preparando"
+    },
+    "actuator": {
+      "led": "Luz (LED)",
+      "fan": "Ventilador"
+    },
+    "actuatorStateOn": "Encendido",
+    "actuatorStateOff": "Apagado",
+    "actuatorToggleAriaLabel": "Alternar {actuator}",
+    "confirm": {
+      "turnOnTitle": "¿Encender {actuator}?",
+      "turnOffTitle": "¿Apagar {actuator}?",
+      "body": "Esto envía una orden manual al dispositivo.",
+      "confirmButton": "Enviar",
+      "cancelButton": "Cancelar"
+    },
+    "automation": {
+      "title": "Reglas automáticas",
+      "fanOnTempAlert": "Control automático del ventilador",
+      "fanOnTempAlertDesc": "Enciende el ventilador automáticamente mientras haya una alerta de temperatura alta abierta, y lo apaga al cerrarse.",
+      "ledOnAlert": "Indicador LED automático",
+      "ledOnAlertDesc": "Enciende automáticamente el indicador LED del lugar mientras haya una alerta abierta.",
+      "overrideNotice": "Se envió una orden manual, así que la automatización de este dispositivo se pausa durante {minutes} minuto(s) más."
+    },
+    "commandStatus": {
+      "pending": "Esperando envío",
+      "delivered": "Entregada",
+      "done": "Completada",
+      "expired": "No entregada"
+    },
+    "history": {
+      "title": "Historial de órdenes",
+      "empty": "Todavía no se ha enviado ninguna orden.",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "Alertas",
+    "tabs": {
+      "open": "Sin atender",
+      "acknowledged": "Confirmadas",
+      "closed": "Resueltas"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Información",
+      "warning": "Advertencia",
+      "critical": "Crítica"
+    },
+    "type": {
+      "upperBreach": "Supera el límite superior",
+      "lowerBreach": "Por debajo del límite inferior",
+      "offline": "Sin conexión"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} supera el límite superior",
+        "detail": "El valor se mantiene por encima del umbral."
+      },
+      "lowerBreach": {
+        "title": "{device} está por debajo del límite inferior",
+        "detail": "El valor bajó del umbral, pero ha mejorado."
+      },
+      "offline": {
+        "title": "{device} ha dejado de responder",
+        "detail": "No se han recibido datos desde hace un tiempo. Verifique la alimentación y la conexión de red."
+      }
+    },
+    "stubDevices": {
+      "device1": "Almacén A - Entrada",
+      "device2": "Casa - Sala"
+    },
+    "ackButton": "Confirmar",
+    "ackingLabel": "Confirmando…",
+    "ackError": "No se pudo confirmar la alerta. Inténtelo de nuevo.",
+    "emptyState": "No hay nada que mostrar en esta pestaña.",
+    "footerNote": "Una alerta solo se marca como Resuelta automáticamente, cuando el valor vuelve a un rango seguro o el dispositivo se reconecta. No puede resolverla usted mismo.",
+    "loading": "Cargando…",
+    "loadError": "No se pudieron cargar las alertas.",
+    "badgeAriaLabel": "{count} alertas sin atender"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "El resumen de hoy",
+    "cardTitle": "Resumen de las últimas 24 horas",
+    "quotaNoteUnused": "Todavía no se ha creado hoy (máximo una vez al día)",
+    "quotaNoteUsed": "El resumen de hoy ya se ha creado (se restablece mañana a las 3:00)",
+    "generateButton": "Crear resumen",
+    "rereadButton": "Leer de nuevo",
+    "loadingText": "Creando el resumen…",
+    "cachedNotice": "El resumen de hoy ya se ha creado. Podrás crear uno nuevo mañana después de las 3:00.",
+    "insufficientDataNotice": "Todavía no se han recopilado suficientes datos hoy.",
+    "idleDescriptionLine1": "Al pulsar el botón, la evolución de la temperatura y la humedad desde ayer, junto con los avisos, se convertirán en un breve resumen escrito.",
+    "privacyNotice": "Para el resumen solo se usan valores numéricos: no se envían nombres ni direcciones de correo electrónico.",
+    "errorNotice": "No se pudo obtener el resumen. Inténtalo de nuevo en unos instantes."
   }
 }
