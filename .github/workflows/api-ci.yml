@@ -29,7 +29,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: src/api/.ruby-version
+          # working-directory配下の.ruby-versionを自動検出させる(ruby-version未指定時の挙動)。
           bundler-cache: true
           working-directory: src/api
 
