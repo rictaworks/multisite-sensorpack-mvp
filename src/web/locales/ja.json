@@ -8,5 +8,46 @@
     "home": "ホーム",
     "dashboard": "ダッシュボード",
     "alerts": "アラート"
+  },
+  "deviceClaim": {
+    "eyebrow": "デバイス追加",
+    "backToHome": "← ホームにもどる",
+    "title": "センサーパックを追加する",
+    "steps": {
+      "selectSite": "拠点をえらぶ",
+      "issueCode": "コードを発行",
+      "connect": "つながる"
+    },
+    "form": {
+      "siteLabel": "どの拠点に置きますか",
+      "siteEmpty": "まだ拠点が登録されていません。先に拠点を作成してください。",
+      "sitesLoadError": "拠点一覧の取得に失敗しました。ページを再読み込みしてください。",
+      "nameLabel": "この機器の呼び名",
+      "namePlaceholder": "例：倉庫A 奥の棚",
+      "nameHint": "住所は入力しないでください。自分がわかる呼び名で大丈夫です。",
+      "recaptchaHint": "reCAPTCHA・プライバシー・利用規約",
+      "recaptchaUnconfigured": "reCAPTCHAが設定されていないため、コードを発行できません。管理者にお問い合わせください。",
+      "submit": "接続コードを発行する",
+      "submitting": "発行しています…"
+    },
+    "errors": {
+      "siteRequired": "拠点を選択してください。",
+      "nameRequired": "この機器の呼び名を入力してください。",
+      "recaptchaRequired": "reCAPTCHAを完了してください。",
+      "validation": "入力内容をご確認ください。",
+      "unauthorized": "ログインが必要です。サインインしてからもう一度お試しください。",
+      "forbidden": "この操作を行う権限がありません。",
+      "rateLimited": "しばらく時間をおいてからもう一度お試しください。",
+      "network": "通信エラーが発生しました。もう一度お試しください。"
+    },
+    "issued": {
+      "instructions": "センサーパックの電源を入れ、スマホからWi-Fiにつないで、下のコードを入力してください。",
+      "codeLabel": "クレームコード",
+      "expiresIn": "のこり {time} で使えなくなります",
+      "waiting": "センサーパックからの接続を待っています…",
+      "attemptsNote": "コードを5回まちがえると、そのコードは使えなくなります。もう一度発行しなおしてください。",
+      "expired": "コードの有効期限が切れました。もう一度発行しなおしてください。",
+      "reissue": "コードを発行しなおす"
+    }
   }
 }
