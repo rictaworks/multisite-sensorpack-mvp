@@ -31,4 +31,44 @@ RSpec.describe Alert, type: :model do
       expect(alert).not_to be_valid
     end
   end
+
+  # requirements.md F4/クラス図 Alert#autoClose(): オフライン復帰・閾値解除による自動クローズ。
+  describe "#auto_close!" do
+    it "closes an open alert and stamps closed_at" do
+      alert = described_class.create!(
+        device: device, alert_type: alert_type, alert_severity: alert_severity, opened_at: Time.current
+      )
+
+      alert.auto_close!
+
+      expect(alert.status).to eq("closed")
+      expect(alert.closed_at).not_to be_nil
+    end
+
+    it "is idempotent when called on an already-closed alert" do
+      alert = described_class.create!(
+        device: device, alert_type: alert_type, alert_severity: alert_severity, opened_at: Time.current
+      )
+      alert.auto_close!
+      first_closed_at = alert.closed_at
+
+      alert.auto_close!
+
+      expect(alert.reload.closed_at).to eq(first_closed_at)
+    end
+  end
+
+  describe ".open scope" do
+    it "returns only alerts with status open" do
+      open_alert = described_class.create!(
+        device: device, alert_type: alert_type, alert_severity: alert_severity, opened_at: Time.current
+      )
+      closed_alert = described_class.create!(
+        device: device, alert_type: alert_type, alert_severity: alert_severity, opened_at: Time.current
+      )
+      closed_alert.update!(status: "closed", closed_at: Time.current)
+
+      expect(described_class.open).to contain_exactly(open_alert)
+    end
+  end
 end
