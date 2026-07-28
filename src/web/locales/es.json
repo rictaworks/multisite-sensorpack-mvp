@@ -49,5 +49,66 @@
       "expired": "Este código ha caducado. Genera uno nuevo.",
       "reissue": "Generar un nuevo código"
     }
+  },
+"alerts": {
+    "kicker": "Alerts",
+    "title": "Alertas",
+    "tabs": {
+      "open": "Sin atender",
+      "acknowledged": "Confirmadas",
+      "closed": "Resueltas"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Información",
+      "warning": "Advertencia",
+      "critical": "Crítica"
+    },
+    "type": {
+      "upperBreach": "Supera el límite superior",
+      "lowerBreach": "Por debajo del límite inferior",
+      "offline": "Sin conexión"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} supera el límite superior",
+        "detail": "El valor se mantiene por encima del umbral."
+      },
+      "lowerBreach": {
+        "title": "{device} está por debajo del límite inferior",
+        "detail": "El valor bajó del umbral, pero ha mejorado."
+      },
+      "offline": {
+        "title": "{device} ha dejado de responder",
+        "detail": "No se han recibido datos desde hace un tiempo. Verifique la alimentación y la conexión de red."
+      }
+    },
+    "stubDevices": {
+      "device1": "Almacén A - Entrada",
+      "device2": "Casa - Sala"
+    },
+    "ackButton": "Confirmar",
+    "ackingLabel": "Confirmando…",
+    "ackError": "No se pudo confirmar la alerta. Inténtelo de nuevo.",
+    "emptyState": "No hay nada que mostrar en esta pestaña.",
+    "footerNote": "Una alerta solo se marca como Resuelta automáticamente, cuando el valor vuelve a un rango seguro o el dispositivo se reconecta. No puede resolverla usted mismo.",
+    "loading": "Cargando…",
+    "loadError": "No se pudieron cargar las alertas.",
+    "badgeAriaLabel": "{count} alertas sin atender"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "El resumen de hoy",
+    "cardTitle": "Resumen de las últimas 24 horas",
+    "quotaNoteUnused": "Todavía no se ha creado hoy (máximo una vez al día)",
+    "quotaNoteUsed": "El resumen de hoy ya se ha creado (se restablece mañana a las 3:00)",
+    "generateButton": "Crear resumen",
+    "rereadButton": "Leer de nuevo",
+    "loadingText": "Creando el resumen…",
+    "cachedNotice": "El resumen de hoy ya se ha creado. Podrás crear uno nuevo mañana después de las 3:00.",
+    "insufficientDataNotice": "Todavía no se han recopilado suficientes datos hoy.",
+    "idleDescriptionLine1": "Al pulsar el botón, la evolución de la temperatura y la humedad desde ayer, junto con los avisos, se convertirán en un breve resumen escrito.",
+    "privacyNotice": "Para el resumen solo se usan valores numéricos: no se envían nombres ni direcciones de correo electrónico.",
+    "errorNotice": "No se pudo obtener el resumen. Inténtalo de nuevo en unos instantes."
   }
 }

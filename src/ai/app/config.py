@@ -42,12 +42,16 @@ class Settings(BaseSettings):
     """実行環境。development / test / production のいずれか。
     未設定・不明値はfail closedでproductionとして扱う。"""
 
-    # F7 AI日次サマリー用（今後の拡張のためのプレースホルダ）。
-    # 値はハードコードせず、必ず.envまたはデプロイ先の環境変数から供給する。
+    # F7 AI日次サマリー用。値はハードコードせず、必ず.envまたはデプロイ先の環境変数から供給する。
     openai_api_key: str | None = None
     langchain_tracing_v2: bool = False
     langchain_api_key: str | None = None
     langchain_project: str | None = None
+
+    # Rails→FastAPI内部呼び出し用の共有シークレット（X-Internal-Api-Keyヘッダで照合、Issue #13）。
+    # 未設定の場合はfail closedで /internal/ai/summaries への全リクエストを拒否する
+    # （「未設定＝認証無効」という誤ったフォールバックを防ぐため）。
+    internal_ai_api_key: str | None = None
 
     @property
     def environment(self) -> Environment:
