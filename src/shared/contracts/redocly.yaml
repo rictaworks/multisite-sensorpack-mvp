@@ -1,0 +1,8 @@
+extends:
+  - recommended
+
+rules:
+  # 開発環境用サーバーとしてlocalhostを意図的に列挙しているため無効化する
+  no-server-example.com: off
+  # MVPは非公開の自社プロダクトでOSSライセンス表記が不要なため無効化する
+  info-license: off

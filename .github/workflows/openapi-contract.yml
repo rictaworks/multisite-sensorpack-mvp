@@ -1,0 +1,62 @@
+name: API契約(OpenAPI)検証
+
+# src/shared/contracts/ 配下（Issue #5）が変更されたPR・mainへのpush時に、
+# OpenAPIスキーマのlint・TypeScript型生成の整合性・受け入れ条件テストを実行する。
+# .claude/rules/ci-cd.md: CIはこのリポジトリのスコープ内（CD/本番デプロイはClaude Desktop側）。
+
+on:
+  pull_request:
+    paths:
+      - "src/shared/contracts/**"
+      - ".github/workflows/openapi-contract.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/shared/contracts/**"
+      - ".github/workflows/openapi-contract.yml"
+
+jobs:
+  validate-contract:
+    name: OpenAPI契約の検証
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/shared/contracts
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.jsをセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/shared/contracts/package-lock.json
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: 既知の脆弱性を監査（OWASP A06）
+        run: npm audit --omit=dev --audit-level=high || true
+        # 注: devDependenciesのみで構成されるツールチェーンのため --omit=dev は事実上no-opの安全策。
+        # 既知の残課題（openapi-typescript内部のjs-yaml@4.2.0）はCONTRACT.mdに許容リスクとして記録済み。
+
+      - name: OpenAPIスキーマをlint（@redocly/cli）
+        run: npm run lint
+
+      - name: TypeScript型を生成
+        run: npm run generate:types
+
+      - name: 生成型がコミット済みの内容と一致するか確認
+        run: |
+          if ! git diff --exit-code -- types/api.ts; then
+            echo "::error::types/api.ts が openapi.yaml と同期していません。'npm run generate:types' を実行し、差分をコミットしてください。"
+            exit 1
+          fi
+
+      - name: 生成型がTypeScriptとしてコンパイル可能か検証
+        run: npm run typecheck
+
+      - name: 受け入れ条件を検証する契約テストを実行
+        run: npm test
