@@ -5,6 +5,8 @@ ja:
     forbidden: "このリソースにアクセスする権限がありません。"
     not_found: "指定されたリソースが見つかりません。"
     validation_error: "リクエスト内容が不正です。"
+    ai_summary_quota_exceeded: "本日のAIサマリーは既に生成済みです。日本時間3時にリセットされます。"
+    ai_summary_service_unavailable: "AIサマリーの生成に失敗しました。しばらくしてから再度お試しください。"
     rate_limited: "リクエストが多すぎます。しばらくしてから再度お試しください。"
     recaptcha_failed: "reCAPTCHAの検証に失敗しました。"
     claim_code_not_found: "該当するクレームコードが見つかりません。"

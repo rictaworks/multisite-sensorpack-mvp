@@ -5,6 +5,8 @@ zh:
     forbidden: "您没有权限访问此资源。"
     not_found: "未找到请求的资源。"
     validation_error: "请求内容无效。"
+    ai_summary_quota_exceeded: "今天的AI摘要已经生成。将在日本标准时间凌晨3点重置。"
+    ai_summary_service_unavailable: "AI摘要生成失败。请稍后再试。"
     rate_limited: "请求过多，请稍后重试。"
     recaptcha_failed: "reCAPTCHA验证失败。"
     claim_code_not_found: "未找到匹配的认领码。"

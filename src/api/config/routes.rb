@@ -24,6 +24,11 @@ Rails.application.routes.draw do
     get "alerts" => "alerts#index"
     get "alerts/unread_count" => "alerts#unread_count"
     post "alerts/:alertId/ack" => "alerts#ack", as: :ack_alert
+
+    # F7 AI日次サマリー クォータ制御API。src/shared/contracts/openapi.yamlの
+    # getTodaySummary/generateDailySummaryに対応する(Issue #14)。
+    get "ai-summaries/today" => "summaries#today"
+    post "ai-summaries" => "summaries#create"
   end
 
   # src/shared/contracts/openapi.yaml servers: /api/v1 を基準パスとする。

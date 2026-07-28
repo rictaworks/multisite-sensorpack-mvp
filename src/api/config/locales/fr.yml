@@ -5,6 +5,8 @@ fr:
     forbidden: "Vous n'avez pas la permission d'accéder à cette ressource."
     not_found: "La ressource demandée est introuvable."
     validation_error: "La requête est invalide."
+    ai_summary_quota_exceeded: "Le résumé IA du jour a déjà été généré. Il sera réinitialisé à 3h00 (heure du Japon)."
+    ai_summary_service_unavailable: "Échec de la génération du résumé IA. Veuillez réessayer plus tard."
     rate_limited: "Trop de requêtes. Veuillez réessayer plus tard."
     recaptcha_failed: "La vérification reCAPTCHA a échoué."
     claim_code_not_found: "Aucun code de revendication ne correspond à la valeur soumise."
