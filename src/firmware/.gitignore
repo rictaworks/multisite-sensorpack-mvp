@@ -1,0 +1,8 @@
+# Real device configuration (Wi-Fi credentials, API endpoint, device token).
+# Copy include/config.example.h to include/config.h locally; never commit config.h.
+include/config.h
+
+# PlatformIO build artifacts
+.pio/
+.pioenvs/
+.piolibdeps/
