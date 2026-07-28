@@ -53,6 +53,52 @@
       "commandLabel": "{actuator} — {state}"
     }
   },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "التنبيهات",
+    "tabs": {
+      "open": "غير معالجة",
+      "acknowledged": "تم الاطلاع عليها",
+      "closed": "تم الحل"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "معلومة",
+      "warning": "تحذير",
+      "critical": "حرج"
+    },
+    "type": {
+      "upperBreach": "تجاوز الحد الأعلى",
+      "lowerBreach": "انخفاض عن الحد الأدنى",
+      "offline": "غير متصل"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} تجاوز الحد الأعلى",
+        "detail": "لا تزال القراءة أعلى من الحد المسموح به."
+      },
+      "lowerBreach": {
+        "title": "{device} أقل من الحد الأدنى",
+        "detail": "انخفضت القراءة عن الحد المسموح به، لكنها تتحسن الآن."
+      },
+      "offline": {
+        "title": "توقف {device} عن الاستجابة",
+        "detail": "لم تُستلم أي بيانات منذ فترة. يُرجى التحقق من الطاقة واتصال الشبكة."
+      }
+    },
+    "stubDevices": {
+      "device1": "المستودع أ - المدخل",
+      "device2": "المنزل - غرفة المعيشة"
+    },
+    "ackButton": "تأكيد الاطلاع",
+    "ackingLabel": "جارٍ التأكيد…",
+    "ackError": "تعذّر تأكيد الاطلاع على التنبيه. يُرجى المحاولة مرة أخرى.",
+    "emptyState": "لا يوجد ما يُعرض في هذا التبويب.",
+    "footerNote": "يتحول التنبيه إلى «تم الحل» تلقائيًا فقط، عندما تعود القراءة إلى النطاق الآمن أو يعاود الجهاز الاتصال. لا يمكنك حل التنبيه بنفسك.",
+    "loading": "جارٍ التحميل…",
+    "loadError": "تعذّر تحميل التنبيهات.",
+    "badgeAriaLabel": "{count} تنبيهات غير معالجة"
+  },
   "summary": {
     "overline": "Daily Summary",
     "title": "ملخص اليوم",
