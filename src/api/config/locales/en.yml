@@ -34,3 +34,5 @@ en:
     forbidden: "You do not have permission to access this resource."
     not_found: "The requested resource was not found."
     validation_error: "The request is invalid."
+    ai_summary_quota_exceeded: "Today's AI summary has already been generated. It resets at 3:00 AM JST."
+    ai_summary_service_unavailable: "Failed to generate the AI summary. Please try again later."

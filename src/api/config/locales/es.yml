@@ -5,3 +5,5 @@ es:
     forbidden: "No tiene permiso para acceder a este recurso."
     not_found: "No se encontró el recurso solicitado."
     validation_error: "La solicitud no es válida."
+    ai_summary_quota_exceeded: "El resumen de IA de hoy ya se ha generado. Se restablecerá a las 3:00 (hora de Japón)."
+    ai_summary_service_unavailable: "No se pudo generar el resumen de IA. Inténtelo de nuevo más tarde."
