@@ -3,9 +3,9 @@ require "rails_helper"
 # requirements.md 1.9 Dカテゴリ(デバイス登録)のうち、コード発行(issueClaimCode)側のケースを検証する。
 # ESP32からの照合(claimDevice)側のケースは spec/services/claim_device_service_spec.rb を参照。
 #
-# 認証について: Issue #7(Google OAuth・テナント分離基盤)がまだ実装されていないため、
-# このコントローラは暫定的に `X-User-Id` ヘッダでユーザーを識別する(本番では常に401、fail closed)。
-# #7がマージされ次第、実際のセッションcookieベースのcurrent_user解決に置き換える。
+# 認証・テナント分離はIssue #7で整備された Authenticatable/TenantScoped concern を利用する。
+# ログインは実際のセッション確立エンドポイント(POST /auth/session)を通し、
+# spec/requests/tenant_scoping_spec.rbと同様にGoogleIdTokenVerifierをスタブして検証する。
 RSpec.describe "Api::ClaimCodesController", type: :request do
   let(:user) { User.create!(google_sub: "claim-codes-request-user") }
   let(:other_user) { User.create!(google_sub: "claim-codes-other-user") }
@@ -14,16 +14,20 @@ RSpec.describe "Api::ClaimCodesController", type: :request do
 
   after { ClaimDeviceService::RateLimiter.reset_all! }
 
-  def issue_claim_code(user_id:, params:, ip: "198.51.100.20")
-    post "/api/v1/claim-codes",
-      params: params,
-      headers: { "X-User-Id" => user_id.to_s, "REMOTE_ADDR" => ip },
-      as: :json
+  def login_as(logging_in_user)
+    allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(logging_in_user.google_sub)
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }, as: :json
+  end
+
+  def issue_claim_code(params:, ip: "198.51.100.20")
+    post "/api/v1/claim-codes", params: params, headers: { "REMOTE_ADDR" => ip }, as: :json
   end
 
   describe "正常系" do
     it "8桁英数字のクレームコードを有効期限15分で発行する" do
-      issue_claim_code(user_id: user.id, params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
+      login_as(user)
+
+      issue_claim_code(params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
 
       expect(response).to have_http_status(:created)
       body = response.parsed_body
@@ -36,30 +40,20 @@ RSpec.describe "Api::ClaimCodesController", type: :request do
     end
   end
 
-  describe "未認証(D関連: 認証なしでは拠点にアクセスできない)" do
-    it "X-User-Idが無ければ401を返す" do
-      post "/api/v1/claim-codes",
-        params: { siteId: site.id, recaptchaToken: success_recaptcha_token },
-        as: :json
+  describe "未認証" do
+    it "ログインしていなければ401を返す(Authenticatable concern)" do
+      issue_claim_code(params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
 
       expect(response).to have_http_status(:unauthorized)
       expect(response.parsed_body.dig("error", "code")).to eq("unauthorized")
     end
   end
 
-  describe "本番環境でのfail closed(environment.md準拠)" do
-    it "production環境ではX-User-Idヘッダによる暫定認証が絶対に到達せず401になる(Issue #7が実認証を提供するまでの暫定措置)" do
-      allow(Rails.env).to receive(:production?).and_return(true)
-
-      issue_claim_code(user_id: user.id, params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
-
-      expect(response).to have_http_status(:unauthorized)
-    end
-  end
-
   describe "他ユーザー横取り(D: 他ユーザー横取り)" do
-    it "他ユーザーの拠点に対するコード発行は403で拒否される(テナント分離)" do
-      issue_claim_code(user_id: other_user.id, params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
+    it "他ユーザーの拠点に対するコード発行は403で拒否される(テナント分離、TenantScoped concern)" do
+      login_as(other_user)
+
+      issue_claim_code(params: { siteId: site.id, recaptchaToken: success_recaptcha_token })
 
       expect(response).to have_http_status(:forbidden)
       expect(response.parsed_body.dig("error", "code")).to eq("forbidden")
@@ -67,9 +61,21 @@ RSpec.describe "Api::ClaimCodesController", type: :request do
     end
   end
 
+  describe "存在しない拠点" do
+    it "404を返す(TenantScoped concern)" do
+      login_as(user)
+
+      issue_claim_code(params: { siteId: 999_999_999, recaptchaToken: success_recaptcha_token })
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe "reCAPTCHA失敗(D: reCAPTCHA失敗)" do
     it "reCAPTCHA検証に失敗すると429で拒否される" do
-      issue_claim_code(user_id: user.id, params: { siteId: site.id, recaptchaToken: "wrong-token" })
+      login_as(user)
+
+      issue_claim_code(params: { siteId: site.id, recaptchaToken: "wrong-token" })
 
       expect(response).to have_http_status(:too_many_requests)
       expect(response.parsed_body.dig("error", "code")).to eq("recaptcha_failed")
@@ -79,14 +85,15 @@ RSpec.describe "Api::ClaimCodesController", type: :request do
 
   describe "コード発行のレート制限" do
     it "同一IPからの発行要求が上限を超えると429で拒否される" do
+      login_as(user)
       limit = Api::ClaimCodesController::RATE_LIMIT_LIMIT
       ip = "198.51.100.99"
 
       limit.times do
-        issue_claim_code(user_id: user.id, params: { siteId: site.id, recaptchaToken: success_recaptcha_token }, ip: ip)
+        issue_claim_code(params: { siteId: site.id, recaptchaToken: success_recaptcha_token }, ip: ip)
       end
 
-      issue_claim_code(user_id: user.id, params: { siteId: site.id, recaptchaToken: success_recaptcha_token }, ip: ip)
+      issue_claim_code(params: { siteId: site.id, recaptchaToken: success_recaptcha_token }, ip: ip)
 
       expect(response).to have_http_status(:too_many_requests)
       expect(response.parsed_body.dig("error", "code")).to eq("rate_limited")
