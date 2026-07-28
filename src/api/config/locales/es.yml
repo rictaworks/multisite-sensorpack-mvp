@@ -1,0 +1,7 @@
+# i18n.md: 7言語対応(ja/en/fr/zh/ru/es/ar)。
+es:
+  errors:
+    unauthorized: "Se requiere autenticación."
+    forbidden: "No tiene permiso para acceder a este recurso."
+    not_found: "No se encontró el recurso solicitado."
+    validation_error: "La solicitud no es válida."

@@ -1,0 +1,7 @@
+# i18n.md: 7言語対応(ja/en/fr/zh/ru/es/ar)。開発者用管理画面(F9)は日本語のみで別管理とする。
+ja:
+  errors:
+    unauthorized: "認証が必要です。"
+    forbidden: "このリソースにアクセスする権限がありません。"
+    not_found: "指定されたリソースが見つかりません。"
+    validation_error: "リクエスト内容が不正です。"

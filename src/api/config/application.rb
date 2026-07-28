@@ -40,5 +40,12 @@ module Api
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Issue #7: Googleログインセッションをcookie(session_id, httpOnly)で保持するために、
+    # APIモードで既定除外されるCookieミドルウェアのみ明示的に有効化する
+    # (src/shared/contracts/openapi.yaml securitySchemes.googleSessionCookie)。
+    # セッションデータ自体はDBに永続化せず、暗号化cookieにユーザーIDのみを保持する
+    # (Rails標準のActionDispatch::Cookiesを利用し、独自の署名/暗号化実装は行わない)。
+    config.middleware.use ActionDispatch::Cookies
   end
 end

@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+  errors:
+    unauthorized: "Authentication is required."
+    forbidden: "You do not have permission to access this resource."
+    not_found: "The requested resource was not found."
+    validation_error: "The request is invalid."

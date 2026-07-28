@@ -1,0 +1,7 @@
+# i18n.md: 7言語対応(ja/en/fr/zh/ru/es/ar)。
+ru:
+  errors:
+    unauthorized: "Требуется аутентификация."
+    forbidden: "У вас нет прав для доступа к этому ресурсу."
+    not_found: "Запрошенный ресурс не найден."
+    validation_error: "Некорректный запрос."

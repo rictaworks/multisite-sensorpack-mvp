@@ -1,0 +1,7 @@
+# i18n.md: 7言語対応(ja/en/fr/zh/ru/es/ar)。arはRTL表示への配慮が必要(designerエージェントがUI側でレビューする)。
+ar:
+  errors:
+    unauthorized: "المصادقة مطلوبة."
+    forbidden: "ليس لديك إذن للوصول إلى هذا المورد."
+    not_found: "لم يتم العثور على المورد المطلوب."
+    validation_error: "الطلب غير صالح."
