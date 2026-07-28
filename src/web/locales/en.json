@@ -8,5 +8,20 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "alerts": "Alerts"
+  },
+  "summary": {
+    "overline": "Daily Summary",
+    "title": "Today's Summary",
+    "cardTitle": "Summary of the last 24 hours",
+    "quotaNoteUnused": "You haven't created one today yet (up to once a day)",
+    "quotaNoteUsed": "Today's summary has already been created (resets at 3am tomorrow)",
+    "generateButton": "Create summary",
+    "rereadButton": "Read it again",
+    "loadingText": "Creating your summary…",
+    "cachedNotice": "Today's summary has already been created. You can create a new one after 3am tomorrow.",
+    "insufficientDataNotice": "Not enough data has been collected today yet.",
+    "idleDescriptionLine1": "Pressing the button turns yesterday's temperature and humidity trends and any notifications into a short written summary.",
+    "privacyNotice": "Only numeric values are used to create the summary — no names or email addresses are sent.",
+    "errorNotice": "We couldn't retrieve the summary. Please try again in a moment."
   }
 }
