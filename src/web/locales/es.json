@@ -8,5 +8,51 @@
     "home": "Inicio",
     "dashboard": "Panel",
     "alerts": "Alertas"
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "Alertas",
+    "tabs": {
+      "open": "Sin atender",
+      "acknowledged": "Confirmadas",
+      "closed": "Resueltas"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Información",
+      "warning": "Advertencia",
+      "critical": "Crítica"
+    },
+    "type": {
+      "upperBreach": "Supera el límite superior",
+      "lowerBreach": "Por debajo del límite inferior",
+      "offline": "Sin conexión"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} supera el límite superior",
+        "detail": "El valor se mantiene por encima del umbral."
+      },
+      "lowerBreach": {
+        "title": "{device} está por debajo del límite inferior",
+        "detail": "El valor bajó del umbral, pero ha mejorado."
+      },
+      "offline": {
+        "title": "{device} ha dejado de responder",
+        "detail": "No se han recibido datos desde hace un tiempo. Verifique la alimentación y la conexión de red."
+      }
+    },
+    "stubDevices": {
+      "device1": "Almacén A - Entrada",
+      "device2": "Casa - Sala"
+    },
+    "ackButton": "Confirmar",
+    "ackingLabel": "Confirmando…",
+    "ackError": "No se pudo confirmar la alerta. Inténtelo de nuevo.",
+    "emptyState": "No hay nada que mostrar en esta pestaña.",
+    "footerNote": "Una alerta solo se marca como Resuelta automáticamente, cuando el valor vuelve a un rango seguro o el dispositivo se reconecta. No puede resolverla usted mismo.",
+    "loading": "Cargando…",
+    "loadError": "No se pudieron cargar las alertas.",
+    "badgeAriaLabel": "{count} alertas sin atender"
   }
 }

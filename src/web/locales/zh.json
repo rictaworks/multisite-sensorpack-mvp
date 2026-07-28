@@ -8,5 +8,51 @@
     "home": "首页",
     "dashboard": "仪表盘",
     "alerts": "告警"
+  },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "告警",
+    "tabs": {
+      "open": "未处理",
+      "acknowledged": "已确认",
+      "closed": "已解决"
+    },
+    "tabLabelWithCount": "{label}（{count}）",
+    "severity": {
+      "info": "提示",
+      "warning": "警告",
+      "critical": "严重"
+    },
+    "type": {
+      "upperBreach": "超过上限",
+      "lowerBreach": "低于下限",
+      "offline": "离线"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device}的读数超过上限",
+        "detail": "读数持续高于阈值。"
+      },
+      "lowerBreach": {
+        "title": "{device}的读数低于下限",
+        "detail": "读数曾低于阈值，目前已有所改善。"
+      },
+      "offline": {
+        "title": "{device}已失去连接",
+        "detail": "已有一段时间未收到数据，请检查电源和网络连接。"
+      }
+    },
+    "stubDevices": {
+      "device1": "仓库A - 入口",
+      "device2": "自家 - 客厅"
+    },
+    "ackButton": "确认",
+    "ackingLabel": "确认中…",
+    "ackError": "确认失败，请重试。",
+    "emptyState": "此标签下没有内容。",
+    "footerNote": "只有当数值恢复到安全范围，或设备重新连接时，告警才会自动变为已解决。您无法自行将其标记为已解决。",
+    "loading": "正在加载…",
+    "loadError": "告警加载失败。",
+    "badgeAriaLabel": "{count} 条未处理的告警"
   }
 }
