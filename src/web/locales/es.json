@@ -9,6 +9,50 @@
     "dashboard": "Panel",
     "alerts": "Alertas"
   },
+  "control": {
+    "eyebrow": "Herramientas operativas",
+    "title": "Herramientas operativas",
+    "noDevices": "Todavía no hay dispositivos registrados.",
+    "offlineWarning": "Este dispositivo está desconectado. La orden se aceptará, pero solo se ejecutará si el dispositivo vuelve a conectarse en un plazo de 10 minutos.",
+    "deviceStatus": {
+      "online": "Conectado",
+      "offline": "Desconectado",
+      "provisioning": "Preparando"
+    },
+    "actuator": {
+      "led": "Luz (LED)",
+      "fan": "Ventilador"
+    },
+    "actuatorStateOn": "Encendido",
+    "actuatorStateOff": "Apagado",
+    "actuatorToggleAriaLabel": "Alternar {actuator}",
+    "confirm": {
+      "turnOnTitle": "¿Encender {actuator}?",
+      "turnOffTitle": "¿Apagar {actuator}?",
+      "body": "Esto envía una orden manual al dispositivo.",
+      "confirmButton": "Enviar",
+      "cancelButton": "Cancelar"
+    },
+    "automation": {
+      "title": "Reglas automáticas",
+      "fanOnTempAlert": "Control automático del ventilador",
+      "fanOnTempAlertDesc": "Enciende el ventilador automáticamente mientras haya una alerta de temperatura alta abierta, y lo apaga al cerrarse.",
+      "ledOnAlert": "Indicador LED automático",
+      "ledOnAlertDesc": "Enciende automáticamente el indicador LED del lugar mientras haya una alerta abierta.",
+      "overrideNotice": "Se envió una orden manual, así que la automatización de este dispositivo se pausa durante {minutes} minuto(s) más."
+    },
+    "commandStatus": {
+      "pending": "Esperando envío",
+      "delivered": "Entregada",
+      "done": "Completada",
+      "expired": "No entregada"
+    },
+    "history": {
+      "title": "Historial de órdenes",
+      "empty": "Todavía no se ha enviado ninguna orden.",
+      "commandLabel": "{actuator} — {state}"
+    }
+  },
   "alerts": {
     "kicker": "Alerts",
     "title": "Alertas",
