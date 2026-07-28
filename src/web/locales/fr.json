@@ -9,6 +9,52 @@
     "dashboard": "Tableau de bord",
     "alerts": "Alertes"
   },
+  "alerts": {
+    "kicker": "Alerts",
+    "title": "Alertes",
+    "tabs": {
+      "open": "Non traitées",
+      "acknowledged": "Prises en compte",
+      "closed": "Résolues"
+    },
+    "tabLabelWithCount": "{label} ({count})",
+    "severity": {
+      "info": "Information",
+      "warning": "Avertissement",
+      "critical": "Critique"
+    },
+    "type": {
+      "upperBreach": "Dépassement du seuil haut",
+      "lowerBreach": "Dépassement du seuil bas",
+      "offline": "Hors ligne"
+    },
+    "messages": {
+      "upperBreach": {
+        "title": "{device} dépasse le seuil haut",
+        "detail": "La valeur reste au-dessus du seuil."
+      },
+      "lowerBreach": {
+        "title": "{device} est en dessous du seuil bas",
+        "detail": "La valeur est passée sous le seuil, mais elle s'améliore."
+      },
+      "offline": {
+        "title": "{device} ne répond plus",
+        "detail": "Aucune donnée n'a été reçue depuis un moment. Vérifiez l'alimentation et la connexion réseau."
+      }
+    },
+    "stubDevices": {
+      "device1": "Entrepôt A - Entrée",
+      "device2": "Domicile - Salon"
+    },
+    "ackButton": "Prendre en compte",
+    "ackingLabel": "Prise en compte…",
+    "ackError": "Échec de la prise en compte de l'alerte. Veuillez réessayer.",
+    "emptyState": "Rien à afficher dans cet onglet.",
+    "footerNote": "Une alerte n'est marquée comme résolue qu'automatiquement, lorsque la valeur revient dans la plage normale ou que l'appareil se reconnecte. Vous ne pouvez pas la résoudre vous-même.",
+    "loading": "Chargement…",
+    "loadError": "Échec du chargement des alertes.",
+    "badgeAriaLabel": "{count} alertes non traitées"
+  },
   "summary": {
     "overline": "Daily Summary",
     "title": "Le résumé du jour",
