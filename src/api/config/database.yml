@@ -1,0 +1,44 @@
+# 開発環境(development)・テスト環境(test)はSQLiteを使用する。
+# 本番環境(production)はPostgreSQLを使用する。
+# requirements.md 1.3/1.8 節を正とする。
+#
+# 環境判定は RAILS_ENV を単一の情報源とし、接続情報は .env
+# (開発・テスト)またはデプロイ先プラットフォームの環境変数(本番)から取得する。
+# 値をこのファイルにハードコードしない。
+#
+default: &default
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  adapter: sqlite3
+  timeout: 5000
+  database: storage/development.sqlite3
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  adapter: sqlite3
+  timeout: 5000
+  database: storage/test.sqlite3
+
+# 本番環境: PostgreSQL。接続情報はすべて環境変数経由で渡す(シークレットのハードコード禁止)。
+# MVPエディションでは単一のPostgreSQLインスタンスを primary/cache/queue/cable で共用する
+# (requirements.mdの規模に合わせた最小構成。フォールバック値は用いず、各接続先を明示する)。
+production:
+  primary: &production_default
+    <<: *default
+    adapter: postgresql
+    url: <%= ENV["DATABASE_URL"] %>
+    encoding: unicode
+  cache:
+    <<: *production_default
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *production_default
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *production_default
+    migrations_paths: db/cable_migrate
