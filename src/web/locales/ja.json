@@ -8,5 +8,49 @@
     "home": "ホーム",
     "dashboard": "ダッシュボード",
     "alerts": "アラート"
+  },
+  "control": {
+    "eyebrow": "運用ツール",
+    "title": "運用ツール",
+    "noDevices": "登録されている機器がありません。",
+    "offlineWarning": "いまオフラインです。操作は受け付けますが、10分以内につながらなければ届きません。",
+    "deviceStatus": {
+      "online": "つながっています",
+      "offline": "つながっていません",
+      "provisioning": "準備中"
+    },
+    "actuator": {
+      "led": "ライト（LED）",
+      "fan": "ファン"
+    },
+    "actuatorStateOn": "オン",
+    "actuatorStateOff": "オフ",
+    "actuatorToggleAriaLabel": "{actuator}を切り替える",
+    "confirm": {
+      "turnOnTitle": "{actuator}をオンにしますか？",
+      "turnOffTitle": "{actuator}をオフにしますか？",
+      "body": "この機器に手動で指示を送ります。",
+      "confirmButton": "送信する",
+      "cancelButton": "キャンセル"
+    },
+    "automation": {
+      "title": "おまかせ運転",
+      "fanOnTempAlert": "ファンの自動運転",
+      "fanOnTempAlertDesc": "温度の上限アラートが発生している間はファンを自動でオンにし、解消したらオフにします。",
+      "ledOnAlert": "LED表示灯の自動点灯",
+      "ledOnAlertDesc": "アラートが発生している間、現地のLED表示灯を自動で点灯します。",
+      "overrideNotice": "手動で操作したので、あと{minutes}分はおまかせ運転より手動を優先します。"
+    },
+    "commandStatus": {
+      "pending": "送信待ち",
+      "delivered": "届きました",
+      "done": "実行ずみ",
+      "expired": "届きませんでした"
+    },
+    "history": {
+      "title": "操作の履歴",
+      "empty": "まだ操作していません。",
+      "commandLabel": "{actuator} — {state}"
+    }
   }
 }

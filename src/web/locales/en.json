@@ -8,5 +8,49 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "alerts": "Alerts"
+  },
+  "control": {
+    "eyebrow": "Operation Tools",
+    "title": "Operation Tools",
+    "noDevices": "No devices are registered yet.",
+    "offlineWarning": "This device is offline. The command will be accepted, but it will only run if the device reconnects within 10 minutes.",
+    "deviceStatus": {
+      "online": "Online",
+      "offline": "Offline",
+      "provisioning": "Preparing"
+    },
+    "actuator": {
+      "led": "Light (LED)",
+      "fan": "Fan"
+    },
+    "actuatorStateOn": "On",
+    "actuatorStateOff": "Off",
+    "actuatorToggleAriaLabel": "Toggle {actuator}",
+    "confirm": {
+      "turnOnTitle": "Turn on {actuator}?",
+      "turnOffTitle": "Turn off {actuator}?",
+      "body": "This sends a manual command to the device.",
+      "confirmButton": "Send",
+      "cancelButton": "Cancel"
+    },
+    "automation": {
+      "title": "Automation rules",
+      "fanOnTempAlert": "Auto fan control",
+      "fanOnTempAlertDesc": "Turn the fan on automatically while a high-temperature alert is open, and off once it closes.",
+      "ledOnAlert": "Auto LED indicator",
+      "ledOnAlertDesc": "Turn the on-site LED indicator on automatically while an alert is open.",
+      "overrideNotice": "A manual command was sent, so automation is paused for this device for {minutes} more minute(s)."
+    },
+    "commandStatus": {
+      "pending": "Waiting to send",
+      "delivered": "Delivered",
+      "done": "Completed",
+      "expired": "Not delivered"
+    },
+    "history": {
+      "title": "Command history",
+      "empty": "No commands issued yet.",
+      "commandLabel": "{actuator} — {state}"
+    }
   }
 }

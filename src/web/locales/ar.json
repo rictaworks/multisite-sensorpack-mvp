@@ -8,5 +8,49 @@
     "home": "الرئيسية",
     "dashboard": "لوحة التحكم",
     "alerts": "التنبيهات"
+  },
+  "control": {
+    "eyebrow": "أدوات التشغيل",
+    "title": "أدوات التشغيل",
+    "noDevices": "لا توجد أجهزة مسجَّلة بعد.",
+    "offlineWarning": "هذا الجهاز غير متصل حاليًا. سيتم قبول الأمر، لكنه لن يُنفَّذ إلا إذا أعاد الجهاز الاتصال خلال 10 دقائق.",
+    "deviceStatus": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "provisioning": "قيد التجهيز"
+    },
+    "actuator": {
+      "led": "المصباح (LED)",
+      "fan": "المروحة"
+    },
+    "actuatorStateOn": "تشغيل",
+    "actuatorStateOff": "إيقاف",
+    "actuatorToggleAriaLabel": "تبديل {actuator}",
+    "confirm": {
+      "turnOnTitle": "هل تريد تشغيل {actuator}؟",
+      "turnOffTitle": "هل تريد إيقاف {actuator}؟",
+      "body": "سيؤدي هذا إلى إرسال أمر يدوي إلى الجهاز.",
+      "confirmButton": "إرسال",
+      "cancelButton": "إلغاء"
+    },
+    "automation": {
+      "title": "قواعد التشغيل التلقائي",
+      "fanOnTempAlert": "التحكم التلقائي بالمروحة",
+      "fanOnTempAlertDesc": "تشغيل المروحة تلقائيًا أثناء وجود تنبيه ارتفاع درجة الحرارة، وإيقافها عند انتهائه.",
+      "ledOnAlert": "إضاءة LED تلقائية",
+      "ledOnAlertDesc": "تشغيل مصباح الإشارة الموجود في الموقع تلقائيًا أثناء وجود تنبيه مفتوح.",
+      "overrideNotice": "تم إرسال أمر يدوي، لذا تم إيقاف التشغيل التلقائي لهذا الجهاز مؤقتًا لمدة {minutes} دقيقة إضافية."
+    },
+    "commandStatus": {
+      "pending": "في انتظار الإرسال",
+      "delivered": "تم التسليم",
+      "done": "تم التنفيذ",
+      "expired": "لم يتم التسليم"
+    },
+    "history": {
+      "title": "سجل الأوامر",
+      "empty": "لم يتم إرسال أي أوامر بعد.",
+      "commandLabel": "{actuator} — {state}"
+    }
   }
 }
