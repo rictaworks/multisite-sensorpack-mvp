@@ -136,10 +136,6 @@
         "detail": "No se han recibido datos desde hace un tiempo. Verifique la alimentación y la conexión de red."
       }
     },
-    "stubDevices": {
-      "device1": "Almacén A - Entrada",
-      "device2": "Casa - Sala"
-    },
     "ackButton": "Confirmar",
     "ackingLabel": "Confirmando…",
     "ackError": "No se pudo confirmar la alerta. Inténtelo de nuevo.",

@@ -136,10 +136,6 @@
         "detail": "Aucune donnée n'a été reçue depuis un moment. Vérifiez l'alimentation et la connexion réseau."
       }
     },
-    "stubDevices": {
-      "device1": "Entrepôt A - Entrée",
-      "device2": "Domicile - Salon"
-    },
     "ackButton": "Prendre en compte",
     "ackingLabel": "Prise en compte…",
     "ackError": "Échec de la prise en compte de l'alerte. Veuillez réessayer.",
