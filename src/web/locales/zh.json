@@ -94,6 +94,13 @@
       "title": "操作历史",
       "empty": "尚未进行任何操作。",
       "commandLabel": "{actuator} — {state}"
+    },
+    "loading": "加载中…",
+    "errors": {
+      "loadFailed": "无法获取设备信息，请重新加载页面。",
+      "refreshFailed": "无法获取最新状态，当前显示可能不是最新的。",
+      "dispatchFailed": "指令发送失败，请稍后重试。",
+      "automationFailed": "无法更改自动运行设置，请稍后重试。"
     }
   },
   "alerts": {

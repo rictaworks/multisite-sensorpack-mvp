@@ -1,54 +1,35 @@
+import type { components } from '@contracts/api';
+
 /**
- * Local type definitions for the Operation Tools screen (Issue #21, requirements.md F5).
+ * 運用ツール画面（Issue #21, requirements.md F5）で使う型。
  *
- * These mirror the shapes defined in `src/shared/contracts/openapi.yaml`
- * (`DeviceStatus`, `CommandTypeCode`, `CommandOrigin`, `CommandStatus`, `Command`,
- * `AutomationRule`) and the generated `src/shared/contracts/types/api.ts`.
- *
- * `src/web` is not yet wired up as an npm workspace consumer of
- * `@sensorpack/contracts` (no root package.json/workspaces exists in this repo
- * yet), so per the task instructions ("APIはモック/スタブでよい") this module
- * re-declares the same field names/enums locally instead of importing across
- * packages. When the workspace wiring lands, these can be replaced by
- * `import type { components } from '@sensorpack/contracts/types/api'` without
- * changing any call sites, since the shapes are kept identical on purpose.
+ * かつては「APIはモック/スタブでよい」という前提でここに同じ形を再宣言していたが、
+ * 実APIへ結線したため、生成済みのOpenAPI型（src/shared/contracts/types/api.ts）を
+ * 参照する。契約と実装の二重定義は、片方だけ変わったときに気付けない
+ * （src/shared/contracts/CONTRACT.md「API形状をコンポーネント側で再定義しない」）。
  */
 
-export type DeviceStatus = 'provisioning' | 'online' | 'offline';
+export type DeviceStatus = components['schemas']['DeviceStatus'];
+export type CommandTypeCode = components['schemas']['CommandTypeCode'];
+export type CommandOrigin = components['schemas']['CommandOrigin'];
+export type CommandStatus = components['schemas']['CommandStatus'];
+export type Command = components['schemas']['Command'];
+export type AutomationRule = components['schemas']['AutomationRule'];
 
-export type CommandTypeCode = 'LED_ON' | 'LED_OFF' | 'FAN_ON' | 'FAN_OFF';
-
-export type CommandOrigin = 'manual' | 'auto';
-
-export type CommandStatus = 'pending' | 'delivered' | 'done' | 'expired';
-
+/** LED / ファンの2種類。契約のCommandTypeCodeから導かれる画面側の概念。 */
 export type ActuatorKind = 'led' | 'fan';
 
-export interface Command {
-  id: string;
-  deviceId: string;
-  commandType: CommandTypeCode;
-  idempotencyKey: string;
-  origin: CommandOrigin;
-  status: CommandStatus;
-  issuedAt: string;
-  /** issuedAt + 10 minutes, per openapi.yaml Command.expiresAt */
-  expiresAt: string;
-}
-
-export interface AutomationRule {
-  /** 温度上限アラートopenでFAN_ON、closeでFAN_OFFを自動発行する */
-  fanOnTempAlert: boolean;
-  /** アラートopen中の現地表示灯としてLEDを自動制御する */
-  ledOnAlert: boolean;
-  /** 手動コマンド発行後30分間、同一アクチュエータへの自動ルール発行を抑止する期限 */
-  manualOverrideUntil: string | null;
-}
-
+/**
+ * 1台ぶんの表示に必要な情報をまとめたもの。
+ *
+ * `siteName` は契約のDeviceに含まれないため拠点一覧から補完し、`ledOn`/`fanOn` は
+ * 契約に現在状態のフィールドが無いため直近のコマンドから導出する
+ * （controlApi.ts の isActuatorOn を参照）。いずれもこの画面の組み立て結果であって
+ * APIのレスポンスそのものではないため、契約の型とは別に定義する。
+ */
 export interface ControlDevice {
-  id: string;
+  id: number;
   siteName: string;
-  name: string;
   status: DeviceStatus;
   ledOn: boolean;
   fanOn: boolean;

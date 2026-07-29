@@ -25,10 +25,10 @@ type DeviceControlCardProps = {
    * `null` until the first tick has landed.
    */
   now: number | null;
-  onToggleRequested?: (deviceId: string, kind: ActuatorKind, nextOn: boolean) => void;
-  onToggleConfirmed: (deviceId: string, kind: ActuatorKind, nextOn: boolean) => void;
+  onToggleRequested?: (deviceId: number, kind: ActuatorKind, nextOn: boolean) => void;
+  onToggleConfirmed: (deviceId: number, kind: ActuatorKind, nextOn: boolean) => void;
   onAutomationToggle: (
-    deviceId: string,
+    deviceId: number,
     key: 'fanOnTempAlert' | 'ledOnAlert',
     value: boolean
   ) => void;
@@ -46,7 +46,12 @@ export default function DeviceControlCard({
   onAutomationToggle,
 }: DeviceControlCardProps) {
   const t = useTranslations('control');
+  // 契約(openapi.yaml)のDeviceに表示名のフィールドは無いため、IDから表記を作る。
+  // ダッシュボードと同じ文言を使う: 同じ機器が画面によって違う名前で出ると混乱する。
+  const tDeviceLabel = useTranslations('dashboard.overview');
   const [pendingToggle, setPendingToggle] = useState<PendingToggle | null>(null);
+
+  const deviceLabel = tDeviceLabel('deviceLabel', { id: device.id });
 
   const isOffline = device.status === 'offline';
   const overrideUntilMs = device.automationRule.manualOverrideUntil
@@ -78,11 +83,11 @@ export default function DeviceControlCard({
   const cancelToggle = () => setPendingToggle(null);
 
   return (
-    <section className={styles.deviceCard} aria-label={device.name}>
+    <section className={styles.deviceCard} aria-label={deviceLabel}>
       <header className={styles.deviceHeader}>
         <div>
           <p className={styles.deviceSite}>{device.siteName}</p>
-          <h2 className={styles.deviceName}>{device.name}</h2>
+          <h2 className={styles.deviceName}>{deviceLabel}</h2>
         </div>
         <span
           className={`${styles.deviceStatus} ${

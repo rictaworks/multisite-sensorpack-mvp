@@ -94,6 +94,13 @@
       "title": "Command history",
       "empty": "No commands issued yet.",
       "commandLabel": "{actuator} — {state}"
+    },
+    "loading": "Loading…",
+    "errors": {
+      "loadFailed": "We could not load your devices. Please reload the page.",
+      "refreshFailed": "We could not refresh the status. What you see may not be up to date.",
+      "dispatchFailed": "We could not send the command. Please try again in a moment.",
+      "automationFailed": "We could not change the automation setting. Please try again in a moment."
     }
   },
   "alerts": {

@@ -3,45 +3,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import DeviceControlCard from './DeviceControlCard';
-import { dispatchCommand } from './mockControlApi';
+import { dispatchCommand, fetchControlDevices, updateAutomationRule } from './controlApi';
+import { usePolling, DEFAULT_POLLING_INTERVAL_MS } from '../../lib/dashboard/usePolling';
 import styles from './control.module.css';
-import type { ActuatorKind, Command, CommandTypeCode, ControlDevice } from './types';
+import type { ActuatorKind, CommandTypeCode, ControlDevice } from './types';
 
 /**
- * Manual override window: a manual command suppresses automation for the
- * same actuator for 30 minutes (openapi.yaml AutomationRule.manualOverrideUntil).
+ * F5 遠隔手動制御（運用ツール）画面 — Issue #21。
+ *
+ * データは実API（`GET /devices`・`/devices/{id}/commands`・`/devices/{id}/automation-rule`、
+ * `POST /devices/{id}/commands`、`PUT /devices/{id}/automation-rule`）から取得する。
+ * かつての components/control/mockControlApi.ts（pending→delivered→done をタイマーで
+ * 擬似再現するモック）は撤去した。
+ *
+ * 実際の状態遷移はデバイスがテレメトリ送信時にACKすることで進むため（ピギーバック方式）、
+ * 画面はポーリングで観測する。届いていないコマンドを届いたと表示しない。
  */
-const MANUAL_OVERRIDE_MS = 30 * 60 * 1000;
 
-/**
- * Seed devices for this screen. The real device/site list comes from the
- * backend (F1/F4); since Issue #21 explicitly scopes the API as mock/stub,
- * this is representative sample data only, shaped like `ControlDevice`.
- */
-function createInitialDevices(): ControlDevice[] {
-  return [
-    {
-      id: 'd1',
-      siteName: 'Warehouse A',
-      name: 'Warehouse A - Entrance',
-      status: 'online',
-      ledOn: false,
-      fanOn: false,
-      automationRule: { fanOnTempAlert: true, ledOnAlert: true, manualOverrideUntil: null },
-      commands: [],
-    },
-    {
-      id: 'd2',
-      siteName: 'Home',
-      name: 'Home - Living Room',
-      status: 'offline',
-      ledOn: false,
-      fanOn: false,
-      automationRule: { fanOnTempAlert: false, ledOnAlert: true, manualOverrideUntil: null },
-      commands: [],
-    },
-  ];
-}
+type ControlState =
+  | { status: 'loading' }
+  | { status: 'ready'; devices: ControlDevice[] }
+  // 取得できていないことを「デバイス0台」と同じ見た目にしない。
+  // 同じにすると、ユーザーは機器が消えたと誤解する。
+  | { status: 'error' };
+
+const CLOCK_TICK_MS = 1000;
 
 function commandTypeFor(kind: ActuatorKind, nextOn: boolean): CommandTypeCode {
   if (kind === 'led') {
@@ -50,16 +36,17 @@ function commandTypeFor(kind: ActuatorKind, nextOn: boolean): CommandTypeCode {
   return nextOn ? 'FAN_ON' : 'FAN_OFF';
 }
 
-const MAX_HISTORY_ROWS = 6;
-const CLOCK_TICK_MS = 1000;
-
 export default function ControlView() {
   const t = useTranslations('control');
-  const [devices, setDevices] = useState<ControlDevice[]>(createInitialDevices);
-  // `now` is sampled inside this effect (not during render) so the component
-  // stays pure per the React `react-hooks/purity` rule, and is threaded down
-  // as a prop wherever a manual-override countdown needs "the current time".
+
+  const [state, setState] = useState<ControlState>({ status: 'loading' });
+  const [actionError, setActionError] = useState<string | null>(null);
+  // `now` はレンダー中ではなく効果内でサンプリングする。コンポーネントを純粋に保つため
+  // （React の react-hooks/purity ルール）、手動オーバーライドの残り時間表示に使う
+  // 「現在時刻」はpropsで配る。
   const [now, setNow] = useState<number | null>(null);
+
+  const { tickCount } = usePolling(DEFAULT_POLLING_INTERVAL_MS);
 
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -68,68 +55,67 @@ export default function ControlView() {
     return () => clearInterval(interval);
   }, []);
 
-  const applyCommandUpdate = useCallback((deviceId: string, updated: Command) => {
-    setDevices((current) =>
-      current.map((device) =>
-        device.id === deviceId
-          ? {
-              ...device,
-              commands: device.commands.map((command) =>
-                command.idempotencyKey === updated.idempotencyKey ? updated : command
-              ),
-            }
-          : device
-      )
-    );
-  }, []);
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchControlDevices()
+      .then((devices) => {
+        if (cancelled) return;
+        setState({ status: 'ready', devices });
+      })
+      .catch((error: unknown) => {
+        console.error('[ControlView] failed to load devices', error);
+        if (cancelled) return;
+        // 既に表示できている内容があるなら消さない（一度の通信失敗で操作面を奪わない）。
+        setState((current) => (current.status === 'ready' ? current : { status: 'error' }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tickCount]);
+
+  /** 発行・設定変更のあとにサーバーの現在値で組み直す（画面側で先回りして作らない）。 */
+  const reload = useCallback(async () => {
+    try {
+      const devices = await fetchControlDevices();
+      setState({ status: 'ready', devices });
+    } catch (error) {
+      console.error('[ControlView] failed to refresh devices', error);
+      setActionError(t('errors.refreshFailed'));
+    }
+  }, [t]);
 
   const handleToggleConfirmed = useCallback(
-    (deviceId: string, kind: ActuatorKind, nextOn: boolean) => {
-      // Reading the clock and dispatching the (side-effecting) mock command
-      // here, in the event handler, rather than inside the setDevices
-      // updater below: state updater functions are re-invoked by React
-      // during rendering and must stay pure, so they must not call impure
-      // functions (Date.now()) or trigger side effects (scheduling timers).
-      const target = devices.find((device) => device.id === deviceId);
-      if (!target) {
-        throw new Error(`handleToggleConfirmed: unknown deviceId "${deviceId}"`);
+    async (deviceId: number, kind: ActuatorKind, nextOn: boolean) => {
+      setActionError(null);
+      try {
+        await dispatchCommand(deviceId, commandTypeFor(kind, nextOn));
+        await reload();
+      } catch (error) {
+        // 失敗したのにトグルだけ切り替わると「送った」と誤解する。状態は動かさず理由を伝える。
+        console.error('[ControlView] failed to dispatch command', { deviceId, kind, nextOn, error });
+        setActionError(t('errors.dispatchFailed'));
       }
-
-      const commandType = commandTypeFor(kind, nextOn);
-      const command = dispatchCommand(deviceId, commandType, target.status, (updated) =>
-        applyCommandUpdate(deviceId, updated)
-      );
-      const manualOverrideUntil = new Date(Date.now() + MANUAL_OVERRIDE_MS).toISOString();
-
-      setDevices((current) =>
-        current.map((device) =>
-          device.id === deviceId
-            ? {
-                ...device,
-                ledOn: kind === 'led' ? nextOn : device.ledOn,
-                fanOn: kind === 'fan' ? nextOn : device.fanOn,
-                automationRule: { ...device.automationRule, manualOverrideUntil },
-                commands: [command, ...device.commands].slice(0, MAX_HISTORY_ROWS),
-              }
-            : device
-        )
-      );
     },
-    [devices, applyCommandUpdate]
+    [reload, t]
   );
 
   const handleAutomationToggle = useCallback(
-    (deviceId: string, key: 'fanOnTempAlert' | 'ledOnAlert', value: boolean) => {
-      setDevices((current) =>
-        current.map((device) =>
-          device.id === deviceId
-            ? { ...device, automationRule: { ...device.automationRule, [key]: value } }
-            : device
-        )
-      );
+    async (deviceId: number, key: 'fanOnTempAlert' | 'ledOnAlert', value: boolean) => {
+      setActionError(null);
+      try {
+        await updateAutomationRule(deviceId, { [key]: value });
+        await reload();
+      } catch (error) {
+        console.error('[ControlView] failed to update automation rule', { deviceId, key, value, error });
+        setActionError(t('errors.automationFailed'));
+      }
     },
-    []
+    [reload, t]
   );
+
+  const devices = state.status === 'ready' ? state.devices : [];
 
   return (
     <main className={styles.page}>
@@ -137,9 +123,13 @@ export default function ControlView() {
       <h1 className={styles.title}>{t('title')}</h1>
       <div className={styles.titleRule} />
 
-      {devices.length === 0 ? (
-        <p className={styles.noDevices}>{t('noDevices')}</p>
-      ) : (
+      {state.status === 'loading' && <p>{t('loading')}</p>}
+      {state.status === 'error' && <p role="alert">{t('errors.loadFailed')}</p>}
+      {actionError && <p role="alert">{actionError}</p>}
+
+      {state.status === 'ready' && devices.length === 0 && <p className={styles.noDevices}>{t('noDevices')}</p>}
+
+      {state.status === 'ready' && devices.length > 0 && (
         <div className={styles.deviceList}>
           {devices.map((device) => (
             <DeviceControlCard
