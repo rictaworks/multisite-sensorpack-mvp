@@ -12,19 +12,34 @@ module Api
   class SitesController < ApplicationController
     include Authenticatable
 
+    # GET /api/v1/sites (openapi.yaml listSites / requirements.md F6.1)
+    #
+    # 契約上のレスポンス形状は getDashboardSitesSummary と同一({sites: [Site]})のため、
+    # 集計・シリアライズは dashboard_summary と同じ経路を通す(DRY)。
+    # 用途が別のエンドポイントとして契約に定義されているため、ルーティングは分けたまま残す。
+    def index
+      render json: sites_payload("index"), status: :ok
+    end
+
     # GET /api/v1/dashboard/sites-summary
     def dashboard_summary
+      render json: sites_payload("dashboard_summary"), status: :ok
+    end
+
+    private
+
+    # current_user.sites を起点にすることで、他ユーザーの拠点はクエリの構造上入り込まない
+    # (.claude/OWASP10.md A01)。
+    def sites_payload(action_name)
       sites = current_user.sites.where(deleted: false).order(:id).to_a
       aggregates = SiteAggregates.new(sites.map(&:id))
 
       Rails.logger.info(
-        "[Api::SitesController#dashboard_summary] user_id=#{current_user.id} site_count=#{sites.size}"
+        "[Api::SitesController##{action_name}] user_id=#{current_user.id} site_count=#{sites.size}"
       )
 
-      render json: { sites: sites.map { |site| serialize_site(site, aggregates) } }, status: :ok
+      { sites: sites.map { |site| serialize_site(site, aggregates) } }
     end
-
-    private
 
     def serialize_site(site, aggregates)
       latest_reading = aggregates.latest_reading_for(site.id)
