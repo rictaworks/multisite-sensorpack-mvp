@@ -15,3 +15,42 @@ ja:
     claim_code_locked: "失敗が続いたため、このクレームコードは失効しました。"
     invalid_device_token: "デバイストークンが無効です。"
     device_deleted: "このデバイスは削除済みです。"
+
+  # F9 開発者向け管理画面(Issue #16)専用の文言。
+  # .claude/rules/i18n.md: 開発者用管理画面は日本語のみでよく、多言語対応の対象外。
+  # そのためen/fr/zh/ru/es/ar.ymlにこのキーを追加する必要はない。
+  admin:
+    title: "SensorPack 開発者向け管理画面"
+    nav:
+      devices: "デバイス一覧"
+      ai_quota_usages: "AIクォータ手動リセット"
+    devices:
+      heading: "デバイス一覧"
+      columns:
+        id: "ID"
+        site: "拠点"
+        status: "状態"
+        last_seen_at: "最終通信時刻"
+        discarded_readings_count: "破棄件数"
+        deleted: "削除済み"
+      never_seen: "未受信"
+      deleted_yes: "削除済み"
+      deleted_no: "-"
+      empty: "デバイスが登録されていません。"
+    ai_quota_usages:
+      reset_heading: "AIクォータ手動リセット"
+      reset_description: "指定したユーザーIDとクォータ日(日本時間の対象日)のAIサマリー生成クォータをリセットします。"
+      list_heading: "現在のクォータ消費記録"
+      form:
+        user_id: "ユーザーID"
+        quota_date: "クォータ日"
+        submit: "リセット"
+      columns:
+        user_id: "ユーザーID"
+        quota_date: "クォータ日"
+        consumed_at: "消費日時"
+        reset: "操作"
+      empty: "クォータ消費記録はありません。"
+      reset_success: "ユーザーID %{user_id} のクォータ(%{quota_date})をリセットしました。"
+      user_not_found: "指定されたユーザーIDが見つかりません。"
+      invalid_date: "クォータ日の形式が不正です(YYYY-MM-DD形式で指定してください)。"

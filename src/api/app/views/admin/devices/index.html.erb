@@ -1,0 +1,31 @@
+<%# F9 開発者向け管理画面: デバイス一覧(Issue #16)。layouts/admin.html.erbに包まれる。 %>
+<div class="admin-card">
+  <h2><i class="fa-solid fa-microchip"></i> <%= t("admin.devices.heading") %></h2>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th><%= t("admin.devices.columns.id") %></th>
+        <th><%= t("admin.devices.columns.site") %></th>
+        <th><%= t("admin.devices.columns.status") %></th>
+        <th><%= t("admin.devices.columns.last_seen_at") %></th>
+        <th><%= t("admin.devices.columns.discarded_readings_count") %></th>
+        <th><%= t("admin.devices.columns.deleted") %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @devices.each do |device| %>
+        <tr>
+          <td><%= device.id %></td>
+          <td><%= device.site.name %></td>
+          <td><%= device.device_status.name %></td>
+          <td><%= device.last_seen_at&.iso8601 || t("admin.devices.never_seen") %></td>
+          <td><%= device.discarded_readings_count %></td>
+          <td><%= device.deleted? ? t("admin.devices.deleted_yes") : t("admin.devices.deleted_no") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @devices.empty? %>
+    <p><%= t("admin.devices.empty") %></p>
+  <% end %>
+</div>

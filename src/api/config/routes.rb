@@ -58,6 +58,15 @@ Rails.application.routes.draw do
     get "devices/:deviceId/commands" => "devices#commands"
   end
 
+  # F9 開発者向け管理画面(Issue #16)。BASIC認証(Admin::BaseController)で保護され、
+  # 一般消費者向けGoogleログイン導線(/auth/session)とは完全に分離している
+  # (.claude/rules/environment.md)。日本語のみのUIでよい(.claude/rules/i18n.md)。
+  namespace :admin do
+    root to: "devices#index"
+    resources :devices, only: [ :index ]
+    resources :ai_quota_usages, only: [ :index, :create ]
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
