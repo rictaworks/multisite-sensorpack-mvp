@@ -1,0 +1,60 @@
+<%# F9 開発者向け管理画面: AIクォータ手動リセット(Issue #16)。layouts/admin.html.erbに包まれる。 %>
+<% if @notice.present? %>
+  <div class="admin-notice"><i class="fa-solid fa-circle-check"></i> <%= @notice %></div>
+<% end %>
+<% if @alert.present? %>
+  <div class="admin-alert"><i class="fa-solid fa-triangle-exclamation"></i> <%= @alert %></div>
+<% end %>
+
+<div class="admin-card">
+  <h2><i class="fa-solid fa-rotate-left"></i> <%= t("admin.ai_quota_usages.reset_heading") %></h2>
+  <p><%= t("admin.ai_quota_usages.reset_description") %></p>
+  <%= form_with url: admin_ai_quota_usages_path, method: :post, class: "admin-inline-form" do %>
+    <label>
+      <%= t("admin.ai_quota_usages.form.user_id") %>
+      <input type="number" name="user_id" required>
+    </label>
+    <label>
+      <%= t("admin.ai_quota_usages.form.quota_date") %>
+      <input type="date" name="quota_date" value="<%= Date.current.iso8601 %>" required>
+    </label>
+    <button type="submit" class="admin-button">
+      <i class="fa-solid fa-rotate-left"></i> <%= t("admin.ai_quota_usages.form.submit") %>
+    </button>
+  <% end %>
+</div>
+
+<div class="admin-card">
+  <h2><i class="fa-solid fa-list"></i> <%= t("admin.ai_quota_usages.list_heading") %></h2>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th><%= t("admin.ai_quota_usages.columns.user_id") %></th>
+        <th><%= t("admin.ai_quota_usages.columns.quota_date") %></th>
+        <th><%= t("admin.ai_quota_usages.columns.consumed_at") %></th>
+        <th><%= t("admin.ai_quota_usages.columns.reset") %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @ai_quota_usages.each do |usage| %>
+        <tr>
+          <td><%= usage.user_id %></td>
+          <td><%= usage.quota_date.iso8601 %></td>
+          <td><%= usage.consumed_at.iso8601 %></td>
+          <td>
+            <%= form_with url: admin_ai_quota_usages_path, method: :post, class: "admin-inline-form" do %>
+              <input type="hidden" name="user_id" value="<%= usage.user_id %>">
+              <input type="hidden" name="quota_date" value="<%= usage.quota_date.iso8601 %>">
+              <button type="submit" class="admin-button">
+                <i class="fa-solid fa-rotate-left"></i> <%= t("admin.ai_quota_usages.form.submit") %>
+              </button>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @ai_quota_usages.empty? %>
+    <p><%= t("admin.ai_quota_usages.empty") %></p>
+  <% end %>
+</div>
