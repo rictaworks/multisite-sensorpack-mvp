@@ -28,9 +28,9 @@ RSpec.describe "Api::Summaries", type: :request do
     allow(DailySummaryService::InternalAiClient).to receive(:new).and_return(fake_client)
   end
 
-  describe "GET /api/ai-summaries/today" do
+  describe "GET /api/v1/ai-summaries/today" do
     it "認証していなければ401を返す" do
-      get "/api/ai-summaries/today"
+      get "/api/v1/ai-summaries/today"
 
       expect(response).to have_http_status(:unauthorized)
     end
@@ -38,7 +38,7 @@ RSpec.describe "Api::Summaries", type: :request do
     it "当日分が未生成であれば204を返す" do
       login_as(user)
 
-      get "/api/ai-summaries/today"
+      get "/api/v1/ai-summaries/today"
 
       expect(response).to have_http_status(:no_content)
     end
@@ -46,9 +46,9 @@ RSpec.describe "Api::Summaries", type: :request do
     it "当日分が生成済みであれば契約形状(camelCase)で再表示する" do
       login_as(user)
       create_reading(seq: 1, recorded_at: Time.current - 1.hour)
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
-      get "/api/ai-summaries/today"
+      get "/api/v1/ai-summaries/today"
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
@@ -57,9 +57,9 @@ RSpec.describe "Api::Summaries", type: :request do
     end
   end
 
-  describe "POST /api/ai-summaries" do
+  describe "POST /api/v1/ai-summaries" do
     it "認証していなければ401を返す" do
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
       expect(response).to have_http_status(:unauthorized)
     end
@@ -68,7 +68,7 @@ RSpec.describe "Api::Summaries", type: :request do
       login_as(user)
       create_reading(seq: 1, recorded_at: Time.current - 1.hour)
 
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
       expect(response).to have_http_status(:created)
       body = JSON.parse(response.body)
@@ -79,10 +79,10 @@ RSpec.describe "Api::Summaries", type: :request do
     it "同一クォータ日の2回目は429と既存サマリーを返す" do
       login_as(user)
       create_reading(seq: 1, recorded_at: Time.current - 1.hour)
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
       first_body = JSON.parse(response.body)
 
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
       expect(response).to have_http_status(:too_many_requests)
       body = JSON.parse(response.body)
@@ -93,7 +93,7 @@ RSpec.describe "Api::Summaries", type: :request do
     it "過去24hにテレメトリが無ければデータ不足の定型文を201で返し、クォータを消費しない" do
       login_as(user)
 
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
       expect(response).to have_http_status(:created)
       body = JSON.parse(response.body)
@@ -102,7 +102,7 @@ RSpec.describe "Api::Summaries", type: :request do
 
       # クォータ未消費のため、同日中でも再度呼び出せる(データが後から揃うケース)。
       create_reading(seq: 1, recorded_at: Time.current - 1.hour)
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
       expect(response).to have_http_status(:created)
       expect(JSON.parse(response.body)["dataSufficient"]).to be(true)
     end
@@ -117,13 +117,13 @@ RSpec.describe "Api::Summaries", type: :request do
         device: other_device, seq: 1, temperature_c: 24.5, humidity_pct: 55.0, recorded_at: Time.current - 1.hour
       )
       login_as(other_user)
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
       expect(response).to have_http_status(:created)
 
       login_as(user)
       create_reading(seq: 1, recorded_at: Time.current - 1.hour)
 
-      post "/api/ai-summaries"
+      post "/api/v1/ai-summaries"
 
       expect(response).to have_http_status(:created)
     end

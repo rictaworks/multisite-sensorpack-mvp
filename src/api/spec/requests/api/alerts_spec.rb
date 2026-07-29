@@ -46,9 +46,9 @@ RSpec.describe "Api::Alerts", type: :request do
     expect(body.dig("error", "message")).to be_present
   end
 
-  describe "GET /api/alerts" do
+  describe "GET /api/v1/alerts" do
     it "未認証であれば401を返す" do
-      get "/api/alerts"
+      get "/api/v1/alerts"
 
       expect(response).to have_http_status(:unauthorized)
       expect_contract_error("unauthorized")
@@ -61,7 +61,7 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts"
+      get "/api/v1/alerts"
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
@@ -74,7 +74,7 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts", params: { status: "closed" }
+      get "/api/v1/alerts", params: { status: "closed" }
 
       body = JSON.parse(response.body)
       expect(body["alerts"].map { |a| a["id"] }).to contain_exactly(closed_alert.id)
@@ -86,7 +86,7 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: second_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts", params: { deviceId: owner_device.id }
+      get "/api/v1/alerts", params: { deviceId: owner_device.id }
 
       body = JSON.parse(response.body)
       expect(body["alerts"].map { |a| a["id"] }).to contain_exactly(target.id)
@@ -96,7 +96,7 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts", params: { deviceId: other_device.id }
+      get "/api/v1/alerts", params: { deviceId: other_device.id }
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["alerts"]).to be_empty
@@ -106,7 +106,7 @@ RSpec.describe "Api::Alerts", type: :request do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts"
+      get "/api/v1/alerts"
 
       body = JSON.parse(response.body)["alerts"].first
       expect(body).to include(
@@ -124,7 +124,7 @@ RSpec.describe "Api::Alerts", type: :request do
     it "不正なstatus値を指定すると契約形状の400を返す" do
       login_as(owner)
 
-      get "/api/alerts", params: { status: "bogus" }
+      get "/api/v1/alerts", params: { status: "bogus" }
 
       expect(response).to have_http_status(:bad_request)
       expect_contract_error("validation_error")
@@ -132,9 +132,9 @@ RSpec.describe "Api::Alerts", type: :request do
     end
   end
 
-  describe "GET /api/alerts/unread_count" do
+  describe "GET /api/v1/alerts/unread-count" do
     it "未認証であれば401を返す" do
-      get "/api/alerts/unread_count"
+      get "/api/v1/alerts/unread-count"
 
       expect(response).to have_http_status(:unauthorized)
       expect_contract_error("unauthorized")
@@ -148,19 +148,19 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      get "/api/alerts/unread_count"
+      get "/api/v1/alerts/unread-count"
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["unreadCount"]).to eq(2)
     end
   end
 
-  describe "POST /api/alerts/:alertId/ack" do
+  describe "POST /api/v1/alerts/:alertId/ack" do
     it "open状態の自分のアラートをacknowledgedに遷移させる" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack"
+      post "/api/v1/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:ok)
       alert.reload
@@ -173,7 +173,7 @@ RSpec.describe "Api::Alerts", type: :request do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "acknowledged")
       login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack"
+      post "/api/v1/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:ok)
       expect(alert.reload.status).to eq("acknowledged")
@@ -183,7 +183,7 @@ RSpec.describe "Api::Alerts", type: :request do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "closed")
       login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack"
+      post "/api/v1/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:conflict)
       expect_contract_error("alert_already_closed")
@@ -193,7 +193,7 @@ RSpec.describe "Api::Alerts", type: :request do
     it "存在しないアラートIDには契約形状の404を返す" do
       login_as(owner)
 
-      post "/api/alerts/999999999/ack"
+      post "/api/v1/alerts/999999999/ack"
 
       expect(response).to have_http_status(:not_found)
       expect_contract_error("not_found")
@@ -203,7 +203,7 @@ RSpec.describe "Api::Alerts", type: :request do
       other_alert = create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(owner)
 
-      post "/api/alerts/#{other_alert.id}/ack"
+      post "/api/v1/alerts/#{other_alert.id}/ack"
 
       expect(response).to have_http_status(:forbidden)
       expect_contract_error("forbidden")
@@ -213,7 +213,7 @@ RSpec.describe "Api::Alerts", type: :request do
     it "未認証であれば401を返し、状態を変更しない" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
 
-      post "/api/alerts/#{alert.id}/ack"
+      post "/api/v1/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:unauthorized)
       expect_contract_error("unauthorized")
@@ -228,7 +228,7 @@ RSpec.describe "Api::Alerts", type: :request do
     it "test環境でも一切機能せず401を返す(なりすまし不可)" do
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
 
-      get "/api/alerts", headers: { "X-Debug-User-Id" => owner.id.to_s }
+      get "/api/v1/alerts", headers: { "X-Debug-User-Id" => owner.id.to_s }
 
       expect(response).to have_http_status(:unauthorized)
       expect_contract_error("unauthorized")
@@ -238,7 +238,7 @@ RSpec.describe "Api::Alerts", type: :request do
       owner_alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
       login_as(other_user)
 
-      post "/api/alerts/#{owner_alert.id}/ack", headers: { "X-Debug-User-Id" => owner.id.to_s }
+      post "/api/v1/alerts/#{owner_alert.id}/ack", headers: { "X-Debug-User-Id" => owner.id.to_s }
 
       expect(response).to have_http_status(:forbidden)
       expect(owner_alert.reload.status).to eq("open")

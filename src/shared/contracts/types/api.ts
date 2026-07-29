@@ -286,6 +286,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/alerts/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * アプリ内通知バッジ用の未対応（open）アラート件数を取得する（F8-3）
+         * @description 一覧を取得せずに件数だけを得るための軽量エンドポイント。 30秒ポーリングでバッジを更新する想定のため、listAlertsとは別に用意している。 メール通知は実装しない（requirements.md 1.4）。
+         */
+        get: operations["getUnreadAlertCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/alerts/{alertId}/ack": {
         parameters: {
             query?: never;
@@ -1319,6 +1339,30 @@ export interface operations {
                 content: {
                     "application/json": {
                         alerts: components["schemas"]["Alert"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getUnreadAlertCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 未対応アラート件数 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 自分の拠点配下でstatusがopenのアラート件数 */
+                        unreadCount: number;
                     };
                 };
             };
