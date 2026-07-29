@@ -1,5 +1,13 @@
-# 環境変数・シークレット（CLAUDE.md: シークレットは.envで管理し、コミットしない）
+.claude/
 .env
+CLIENT/
+DEBUG/
+DELETE/
+ENV/
+TASKS/
+WORK/
+
+# 環境変数・シークレット（CLAUDE.md: シークレットは.envで管理し、コミットしない）
 .env.*
 !.env.example
 config/master.key
@@ -17,6 +25,3 @@ node_modules/
 
 # OS
 .DS_Store
-
-# Claude Code 設定・プロンプト資産（機密情報のためgit管理対象外）
-.claude/
