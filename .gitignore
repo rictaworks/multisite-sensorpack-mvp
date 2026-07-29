@@ -17,3 +17,6 @@ node_modules/
 
 # OS
 .DS_Store
+
+# Claude Code 設定・プロンプト資産（機密情報のためgit管理対象外）
+.claude/
