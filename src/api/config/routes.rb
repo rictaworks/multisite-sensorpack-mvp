@@ -51,6 +51,10 @@ Rails.application.routes.draw do
     # src/shared/contracts/openapi.yamlのgetDashboardSitesSummary/listDevices/getDevice/
     # getDeviceTelemetrySeries/listCommandsに対応する(Issue #12)。ユーザー側APIのため
     # Googleセッションcookie認証(Authenticatable/TenantScoped)。
+    # 拠点一覧(openapi.yaml listSites)。Next.jsのデバイス追加画面が拠点セレクタのために
+    # 呼び出す(src/web/components/claim/api.ts)。
+    get "sites" => "sites#index"
+
     get "dashboard/sites-summary" => "sites#dashboard_summary"
     get "devices" => "devices#index"
     get "devices/:deviceId" => "devices#show"
