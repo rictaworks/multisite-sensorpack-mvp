@@ -17,11 +17,15 @@ class SessionsController < ApplicationController
     return render_validation_error("idToken is required") if id_token.blank?
     return render_validation_error("recaptchaToken is required") if recaptcha_token.blank?
 
-    # NOTE: reCAPTCHA検証(Google siteverify呼び出し)はBot対策issueで別途実装する残課題。
-    # ここではrequirements.md 1.3節のログイン導線契約に合わせてパラメータの必須化のみ行い、
-    # 未検証であることをログに残す(フォールバックで無条件に信頼しない)。
-    Rails.logger.warn("[SessionsController#create] recaptchaToken is present but not yet verified " \
-                       "against Google siteverify (tracked as a follow-up task)")
+    # requirements.md 1.3節: ログイン導線にreCAPTCHAを適用する。
+    # Bot対策として機能させるため、Google IDトークンの検証(外部通信を伴う)より前に判定する。
+    # 設定漏れ(RecaptchaVerifier::ConfigurationError)はここで握りつぶさず、
+    # 「検証失敗」に化けさせないまま送出させる(.claude/rules/coding-style.md)。
+    unless RecaptchaVerifier.verify(recaptcha_token)
+      Rails.logger.warn("[SessionsController#create] reCAPTCHA verification failed; rejecting login attempt")
+      return render json: { error: { code: "recaptcha_failed", message: I18n.t("errors.recaptcha_failed") } },
+                    status: :too_many_requests
+    end
 
     sub = GoogleIdTokenVerifier.verify_sub(id_token)
     user = User.find_or_create_by!(google_sub: sub)

@@ -46,7 +46,7 @@ RSpec.describe "Admin devices (F9)", type: :request do
     context "一般消費者向けGoogleログインのセッションcookieのみを持つ場合" do
       it "BASIC認証情報がなければ401を返す(管理画面のログイン導線は分離されている)" do
         allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return("google-sub-user-1")
-        post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+        post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
         expect(response).to have_http_status(:ok)
 
         get "/admin/devices"

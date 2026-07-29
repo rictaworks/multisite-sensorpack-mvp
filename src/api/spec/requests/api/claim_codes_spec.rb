@@ -10,13 +10,13 @@ RSpec.describe "Api::ClaimCodesController", type: :request do
   let(:user) { User.create!(google_sub: "claim-codes-request-user") }
   let(:other_user) { User.create!(google_sub: "claim-codes-other-user") }
   let(:site) { Site.create!(user: user, name: "倉庫A") }
-  let(:success_recaptcha_token) { "test-recaptcha-success" }
+  let(:success_recaptcha_token) { RecaptchaVerifier::TEST_SUCCESS_TOKEN }
 
   after { ClaimDeviceService::RateLimiter.reset_all! }
 
   def login_as(logging_in_user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(logging_in_user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }, as: :json
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }, as: :json
   end
 
   def issue_claim_code(params:, ip: "198.51.100.20")

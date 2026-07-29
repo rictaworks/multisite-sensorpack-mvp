@@ -8,7 +8,7 @@ RSpec.describe "GET /api/v1/dashboard/sites-summary", type: :request do
 
   def login_as(user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
   end
 
   def create_device(site:, status: "online")
