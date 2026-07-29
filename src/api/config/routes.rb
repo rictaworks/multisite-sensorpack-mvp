@@ -46,6 +46,11 @@ Rails.application.routes.draw do
     get "devices/:deviceId/telemetry-series" => "devices#telemetry_series"
     get "devices/:deviceId/commands" => "devices#commands"
 
+    # F5 自動制御ルール設定(openapi.yaml getAutomationRule/updateAutomationRule)。
+    # 運用ツール画面(Issue #21)の自動制御トグルが参照・更新する。
+    get "devices/:deviceId/automation-rule" => "automation_rules#show"
+    put "devices/:deviceId/automation-rule" => "automation_rules#update"
+
     # F8 アラート管理API(一覧・未対応件数・ack)。openapi.yamlの
     # listAlerts/getUnreadAlertCount/acknowledgeAlertに対応する(Issue #15)。
     get "alerts" => "alerts#index"
