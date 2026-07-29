@@ -11,6 +11,7 @@
 module Api
   class SitesController < ApplicationController
     include Authenticatable
+    include TenantScoped
 
     # GET /api/v1/sites (openapi.yaml listSites / requirements.md F6.1)
     #
@@ -21,12 +22,54 @@ module Api
       render json: sites_payload("index"), status: :ok
     end
 
+    # POST /api/v1/sites (openapi.yaml createSite)
+    #
+    # 所有者はセッションのcurrent_userから決める。リクエストのパラメータで所有者を
+    # 指定させると、他ユーザー名義の拠点を作れてしまう(.claude/OWASP10.md A01)。
+    def create
+      site = current_user.sites.create!(name: site_params[:name])
+
+      Rails.logger.info("[Api::SitesController#create] user_id=#{current_user.id} site_id=#{site.id}")
+
+      # 作成直後は配下デバイスもアラートも無いが、契約上のSiteスキーマ(deviceCount等を含む)を
+      # 満たすため一覧と同じシリアライザを通す。
+      render json: serialize_site(site, SiteAggregates.new([ site.id ])), status: :created
+    rescue ActiveRecord::RecordInvalid => e
+      render_validation_error(e.record.errors.full_messages.join(", "))
+    rescue ActionController::ParameterMissing => e
+      render_validation_error(e.message)
+    end
+
+    # DELETE /api/v1/sites/:siteId (openapi.yaml deleteSite)
+    #
+    # 存在しなければ404、他ユーザーの拠点なら403(TenantScopedのrescue_fromが変換する)。
+    def destroy
+      site = authorize_owner!(Site.find(params[:siteId]))
+      site.soft_delete!
+
+      head :no_content
+    end
+
     # GET /api/v1/dashboard/sites-summary
     def dashboard_summary
       render json: sites_payload("dashboard_summary"), status: :ok
     end
 
     private
+
+    # 空白のみの名前は「見た目が空の拠点」を生むため、presence検証に掛かるよう先に整える。
+    # 住所入力を促すような追加の制約は設けない(requirements.md 1.4)。
+    def site_params
+      name = params.require(:name)
+      { name: name.is_a?(String) ? name.strip : name }
+    end
+
+    def render_validation_error(message)
+      Rails.logger.info("[Api::SitesController] validation error: #{message}")
+      render json: {
+        error: { code: "validation_error", message: I18n.t("errors.validation_error"), details: { message: message } }
+      }, status: :bad_request
+    end
 
     # current_user.sites を起点にすることで、他ユーザーの拠点はクエリの構造上入り込まない
     # (.claude/OWASP10.md A01)。

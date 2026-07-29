@@ -7,7 +7,8 @@
     "ariaLabel": "Main navigation",
     "home": "Home",
     "dashboard": "Dashboard",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "sites": "Sites"
   },
   "deviceClaim": {
     "eyebrow": "Add Device",
@@ -28,7 +29,8 @@
       "recaptchaHint": "reCAPTCHA · Privacy · Terms of Service",
       "recaptchaUnconfigured": "reCAPTCHA is not configured, so a code cannot be issued. Please contact an administrator.",
       "submit": "Issue connection code",
-      "submitting": "Issuing…"
+      "submitting": "Issuing…",
+      "createSiteLink": "Create a site"
     },
     "errors": {
       "siteRequired": "Please choose a site.",
@@ -256,6 +258,46 @@
     "polling": {
       "label": "Auto-refreshing every {seconds}s",
       "lastUpdated": "Last updated {time}"
+    }
+  },
+  "sites": {
+    "eyebrow": "Sites",
+    "title": "Manage your sites",
+    "backToHome": "← Back to home",
+    "list": {
+      "heading": "Registered sites",
+      "loading": "Loading…",
+      "loadError": "We could not load your sites. Please reload the page.",
+      "empty": "You have no sites yet. Create your first one below.",
+      "deviceCount": "{count} devices"
+    },
+    "create": {
+      "heading": "Add a site",
+      "nameLabel": "Site name",
+      "namePlaceholder": "e.g. Warehouse A",
+      "nameHint": "Do not enter an address. Any name that makes sense to you is fine.",
+      "submit": "Create this site",
+      "submitting": "Creating…",
+      "success": "Created the site “{name}”."
+    },
+    "delete": {
+      "button": "Delete",
+      "buttonLabel": "Delete the site “{name}”",
+      "confirmTitle": "Delete the site “{name}”?",
+      "confirmBody": "The devices registered to this site will stop being usable as well. Past records are kept, but the site will no longer appear in the list.",
+      "confirmButton": "Delete",
+      "cancelButton": "Cancel",
+      "deleting": "Deleting…",
+      "success": "Deleted the site “{name}”."
+    },
+    "errors": {
+      "nameRequired": "Please enter a site name.",
+      "nameTooLong": "The site name must be 100 characters or fewer.",
+      "validation": "Please check what you entered.",
+      "unauthorized": "You need to sign in. Please sign in and try again.",
+      "forbidden": "You do not have permission to do this.",
+      "notFound": "That site could not be found. It may already have been deleted.",
+      "network": "The connection failed. Please try again in a moment."
     }
   }
 }

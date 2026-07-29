@@ -3,13 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import {
-  ClaimApiError,
-  fetchSites,
-  issueClaimCode,
-  type ClaimCodeCreateResponse,
-  type Site,
-} from './api';
+import { ApiError } from '../../lib/api/apiClient';
+import { fetchSites, type Site } from '../sites/api';
+import { issueClaimCode, type ClaimCodeCreateResponse } from './api';
 import RecaptchaField from './RecaptchaField';
 
 type SitesState =
@@ -96,7 +92,7 @@ export default function DeviceClaimView() {
   const remainingSeconds = issued ? secondsUntil(issued.expiresAt) : 0;
 
   const errorMessageForApiError = useCallback(
-    (error: ClaimApiError): string => {
+    (error: ApiError): string => {
       switch (error.code) {
         case 'validation_error':
           return t('errors.validation');
@@ -143,7 +139,7 @@ export default function DeviceClaimView() {
         });
         setIssued(response);
       } catch (error) {
-        if (error instanceof ClaimApiError) {
+        if (error instanceof ApiError) {
           setSubmitError(errorMessageForApiError(error));
         } else {
           console.error('[DeviceClaimView] unexpected error issuing claim code', error);
@@ -202,7 +198,11 @@ export default function DeviceClaimView() {
             {sitesState.status === 'loading' && <p>…</p>}
             {sitesState.status === 'error' && <p role="alert">{t('form.sitesLoadError')}</p>}
             {sitesState.status === 'ready' && sitesState.sites.length === 0 && (
-              <p>{t('form.siteEmpty')}</p>
+              <p>
+                {t('form.siteEmpty')}{' '}
+                {/* 拠点が無いとこの画面では先に進めないため、作成画面(Issue #61)へ導く。 */}
+                <Link href={`/${locale}/sites`}>{t('form.createSiteLink')}</Link>
+              </p>
             )}
             {sitesState.status === 'ready' &&
               sitesState.sites.map((site) => (
