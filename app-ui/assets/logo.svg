@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" fill="none">
+
+  <polygon points="14,2 26,24 2,24" fill="none" stroke="white" stroke-width="2"></polygon>
+  <polygon points="14,8 21,22 7,22" fill="#1a73e8"></polygon>
+
+  <text x="36" y="17" font-family="Montserrat, sans-serif" font-size="11" font-weight="700" fill="white" letter-spacing="2">VELIORA</text>
+  <text x="36" y="30" font-family="Montserrat, sans-serif" font-size="11" font-weight="700" fill="white" letter-spacing="2">OFFICE</text>
+</svg>

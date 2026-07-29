@@ -17,3 +17,7 @@ node_modules/
 
 # OS
 .DS_Store
+
+# Claude Code ローカル専用設定・並列worktree作業ディレクトリ
+.claude/settings.local.json
+.claude/worktrees/
