@@ -1,3 +1,4 @@
+import { ApiError, requestJson, requestOptionalJson } from '../../lib/api/apiClient';
 import type { components } from '../../../shared/contracts/types/api';
 
 /**
@@ -39,74 +40,52 @@ export interface AiSummaryClient {
 }
 
 /**
- * クォータ日＝JSTの現在時刻から3時間引いた日付（requirements.md F7-1、
- * JST 03:00リセットと等価）。UTCのDateから直接計算することで、実行環境の
- * タイムゾーン設定に依存しない（CLAUDE.md: タイムゾーンは常にJST基準）。
- */
-function computeJstQuotaDate(referenceDate: Date): string {
-  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
-  const QUOTA_RESET_SHIFT_MS = 3 * 60 * 60 * 1000;
-  const shifted = new Date(referenceDate.getTime() + JST_OFFSET_MS - QUOTA_RESET_SHIFT_MS);
-  return shifted.toISOString().slice(0, 10);
-}
-
-const SAMPLE_SUMMARY_TEXT =
-  '倉庫Aは夕方から気温が上がり、17時ごろに29.4℃まで達しました。28℃の上限をこえていた時間はおよそ2時間で、' +
-  'この間にファンが自動で回りはじめ、20時には範囲内に戻っています。\n' +
-  '湿度は45〜62%の範囲で、注意が必要な変化はありませんでした。';
-
-/**
- * In-memory stub standing in for the not-yet-deployed Rails endpoints
- * (`GET /ai-summaries/today`, `POST /ai-summaries` — Issue #13 is being
- * implemented in parallel). Issue #22's edit scope explicitly allows a
- * mock/stub API for this screen. Behaviour intentionally mirrors the
- * documented contract exactly (quota-day bookkeeping, 429 + existingSummary)
- * so that swapping in a real fetch-based client later is a drop-in change.
+ * 実API（`GET /ai-summaries/today` / `POST /ai-summaries`）を呼ぶクライアント。
  *
- * State is held in a closure returned by this factory (never at module
- * scope), per `.claude/rules/coding-style.md`'s prohibition on global
- * variables — each call yields an independent, isolated client instance.
+ * かつてはこの位置にインメモリのモックがあり、「Issue #13 のRails側が並行実装中のため
+ * モック/スタブでよい」という前提で置かれていた。Rails側は Issue #14 で実装済みであり、
+ * モックを残す理由が無くなったため撤去した。
+ *
+ * リクエストは同一オリジンの相対パスへ送り、Next.jsのサーバー側プロキシがRailsへ転送する。
  */
-export function createMockAiSummaryClient(): AiSummaryClient {
-  let storedSummary: AiSummary | null = null;
-  let storedQuotaDate: string | null = null;
-
-  function hasSummaryForQuotaDate(quotaDate: string): boolean {
-    return storedSummary !== null && storedQuotaDate === quotaDate;
-  }
-
+export function createAiSummaryApiClient(fetchImpl: typeof fetch = fetch): AiSummaryClient {
   return {
+    /**
+     * GET /ai-summaries/today — 未生成の場合、Railsは 204 (No Content) を返す。
+     * 204は「まだ生成していない」という正常な状態であり、エラーではない。
+     */
     async fetchTodaySummary(): Promise<AiSummary | null> {
-      const quotaDate = computeJstQuotaDate(new Date());
-      if (hasSummaryForQuotaDate(quotaDate)) {
-        return storedSummary;
-      }
-      return null;
+      const response = await requestOptionalJson<AiSummary>({
+        path: '/ai-summaries/today',
+        method: 'GET',
+        context: 'aiSummaryClient#fetchTodaySummary',
+        fetchImpl,
+      });
+      return response;
     },
 
+    /**
+     * POST /ai-summaries — 同一クォータ日の2回目は 429 で、既存のサマリーが併せて返る
+     * （requirements.md F7-1）。これは異常系ではなく仕様上の分岐なので、
+     * 既存サマリーを持つ専用の例外に翻訳して呼び出し側が再表示できるようにする。
+     */
     async generateSummary(): Promise<AiSummary> {
-      const quotaDate = computeJstQuotaDate(new Date());
-
-      if (hasSummaryForQuotaDate(quotaDate) && storedSummary) {
-        console.debug('[aiSummaryClient] quota already used for quotaDate', quotaDate);
-        throw new AiSummaryQuotaExceededError({
-          error: {
-            code: 'quota_exceeded',
-            message: 'Daily AI summary quota already used for this quota date.',
-          },
-          existingSummary: storedSummary,
+      try {
+        return await requestJson<AiSummary>({
+          path: '/ai-summaries',
+          method: 'POST',
+          context: 'aiSummaryClient#generateSummary',
+          fetchImpl,
         });
+      } catch (error) {
+        if (error instanceof ApiError && error.code === 'rate_limited' && error.body) {
+          const body = error.body as Partial<AiSummaryQuotaExceededBody>;
+          if (body.existingSummary && body.error) {
+            throw new AiSummaryQuotaExceededError(body as AiSummaryQuotaExceededBody);
+          }
+        }
+        throw error;
       }
-
-      const summary: AiSummary = {
-        quotaDate,
-        summaryText: SAMPLE_SUMMARY_TEXT,
-        generatedAt: new Date().toISOString(),
-        dataSufficient: true,
-      };
-      storedSummary = summary;
-      storedQuotaDate = quotaDate;
-      return summary;
     },
   };
 }

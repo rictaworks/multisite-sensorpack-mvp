@@ -1,47 +1,121 @@
-import { AiSummaryQuotaExceededError, createMockAiSummaryClient } from '../components/summary/aiSummaryClient';
+import {
+  AiSummaryQuotaExceededError,
+  createAiSummaryApiClient,
+} from '../components/summary/aiSummaryClient';
+import { ApiError } from '../lib/api/apiClient';
 
-describe('createMockAiSummaryClient (stub for the not-yet-deployed Issue #13 backend)', () => {
-  it('reports no existing summary before the first generation of the day', async () => {
-    const client = createMockAiSummaryClient();
+/**
+ * F7 AI日次サマリーのAPIクライアント（openapi.yaml getTodaySummary / generateDailySummary）。
+ * かつてはこのモジュールがインメモリのスタブを提供していたが、Rails側は Issue #14 で
+ * 実装済みであり撤去した。
+ */
+function jsonResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: String(status),
+    json: async () => body,
+  } as unknown as Response;
+}
 
-    await expect(client.fetchTodaySummary()).resolves.toBeNull();
+function noContentResponse(): Response {
+  return {
+    ok: true,
+    status: 204,
+    statusText: '204',
+    json: async () => {
+      throw new Error('204 responses have no body');
+    },
+  } as unknown as Response;
+}
+
+const SUMMARY = {
+  quotaDate: '2026-07-29',
+  summaryText: '倉庫Aは夕方から気温が上がりました。',
+  generatedAt: '2026-07-29T12:00:00.000Z',
+  dataSufficient: true,
+};
+
+describe('summary/aiSummaryClient', () => {
+  describe('fetchTodaySummary', () => {
+    it('生成済みのサマリーを返す', async () => {
+      const fetchImpl = jest.fn().mockResolvedValue(jsonResponse(SUMMARY));
+
+      const result = await createAiSummaryApiClient(fetchImpl).fetchTodaySummary();
+
+      expect(result).toEqual(SUMMARY);
+      expect(fetchImpl.mock.calls[0][0]).toBe('/api/v1/ai-summaries/today');
+      expect(fetchImpl.mock.calls[0][1]).toEqual(
+        expect.objectContaining({ method: 'GET', credentials: 'include' })
+      );
+    });
+
+    // 未生成は仕様上の正常な状態(204)であり、エラーでも空オブジェクトでもない。
+    it('未生成(204)の場合はnullを返し、本文を読もうとしない', async () => {
+      const fetchImpl = jest.fn().mockResolvedValue(noContentResponse());
+
+      await expect(createAiSummaryApiClient(fetchImpl).fetchTodaySummary()).resolves.toBeNull();
+    });
+
+    it('通信に失敗した場合はnullに丸めず例外を投げる(未生成と区別する)', async () => {
+      const fetchImpl = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+
+      await expect(createAiSummaryApiClient(fetchImpl).fetchTodaySummary()).rejects.toBeInstanceOf(ApiError);
+    });
   });
 
-  it('generates a data-sufficient summary and stores it for the current quota date', async () => {
-    const client = createMockAiSummaryClient();
+  describe('generateSummary', () => {
+    it('生成を要求し、生成されたサマリーを返す', async () => {
+      const fetchImpl = jest.fn().mockResolvedValue(jsonResponse(SUMMARY, 201));
 
-    const generated = await client.generateSummary();
+      const result = await createAiSummaryApiClient(fetchImpl).generateSummary();
 
-    expect(generated.dataSufficient).toBe(true);
-    expect(generated.summaryText.length).toBeGreaterThan(0);
-    expect(generated.quotaDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(result).toEqual(SUMMARY);
+      expect(fetchImpl.mock.calls[0][0]).toBe('/api/v1/ai-summaries');
+      expect(fetchImpl.mock.calls[0][1]).toEqual(
+        expect.objectContaining({ method: 'POST', credentials: 'include' })
+      );
+    });
 
-    await expect(client.fetchTodaySummary()).resolves.toEqual(generated);
-  });
+    // requirements.md F7-1: 同一クォータ日の2回目は429で、既存サマリーが併せて返る。
+    // これは異常系ではなく仕様上の分岐なので、既存サマリーを保持した例外に翻訳する。
+    it('同日2回目(429)は既存サマリーを持つ専用の例外に翻訳する', async () => {
+      const fetchImpl = jest.fn().mockResolvedValue(
+        jsonResponse(
+          {
+            error: { code: 'quota_exceeded', message: '本日のAIサマリーは既に生成済みです。' },
+            existingSummary: SUMMARY,
+          },
+          429
+        )
+      );
 
-  it('rejects a second same-day generation with AiSummaryQuotaExceededError carrying the existing summary (requirements.md F7-1)', async () => {
-    const client = createMockAiSummaryClient();
+      const rejection = createAiSummaryApiClient(fetchImpl).generateSummary();
 
-    const first = await client.generateSummary();
+      await expect(rejection).rejects.toBeInstanceOf(AiSummaryQuotaExceededError);
+      await expect(rejection).rejects.toMatchObject({ existingSummary: SUMMARY });
+    });
 
-    await expect(client.generateSummary()).rejects.toBeInstanceOf(AiSummaryQuotaExceededError);
+    // AIサービス側の障害(502)を「クォータ超過」に丸めると、原因の切り分けができなくなる。
+    it('AIサービス障害(502)はApiErrorのまま伝える', async () => {
+      const fetchImpl = jest.fn().mockResolvedValue(
+        jsonResponse({ error: { code: 'ai_service_unavailable', message: '生成に失敗しました。' } }, 502)
+      );
 
-    try {
-      await client.generateSummary();
-      throw new Error('expected generateSummary to reject');
-    } catch (error) {
-      expect(error).toBeInstanceOf(AiSummaryQuotaExceededError);
-      expect((error as AiSummaryQuotaExceededError).existingSummary).toEqual(first);
-    }
-  });
+      const rejection = createAiSummaryApiClient(fetchImpl).generateSummary();
 
-  it('keeps state isolated between separate client instances (no shared/global state)', async () => {
-    const clientA = createMockAiSummaryClient();
-    const clientB = createMockAiSummaryClient();
+      await expect(rejection).rejects.toBeInstanceOf(ApiError);
+      await expect(rejection).rejects.not.toBeInstanceOf(AiSummaryQuotaExceededError);
+    });
 
-    await clientA.generateSummary();
+    it('429でも既存サマリーが無い応答は、クォータ超過として扱わない', async () => {
+      const fetchImpl = jest
+        .fn()
+        .mockResolvedValue(jsonResponse({ error: { code: 'rate_limited', message: 'too many' } }, 429));
 
-    await expect(clientB.fetchTodaySummary()).resolves.toBeNull();
-    await expect(clientB.generateSummary()).resolves.toBeTruthy();
+      await expect(
+        createAiSummaryApiClient(fetchImpl).generateSummary()
+      ).rejects.not.toBeInstanceOf(AiSummaryQuotaExceededError);
+    });
   });
 });
