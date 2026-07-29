@@ -19,9 +19,17 @@ class ClaimCode < ApplicationRecord
     create!(user: user, site: site, code: generate_unique_code, expires_at: EXPIRY_DURATION.from_now)
   end
 
+  # クレームコードは発行から15分間、これを知る者がデバイスをクレームできる秘密情報である
+  # (requirements.md F1手順3-6)。Array#sample / Kernel#rand が用いる既定のRNG(メルセンヌ・
+  # ツイスタ)は暗号学的に安全ではなく、出力を十分観測すれば内部状態を復元して後続のコードを
+  # 予測できるため、デバイストークン(Device.provision_for_site!のSecureRandom.hex)と同様に
+  # CSPRNGから生成する(.claude/OWASP10.md A02: 暗号化の失敗)。
+  #
+  # SecureRandom.random_number(n)は0以上n未満の一様な整数を返すため、剰余によるモジュロ
+  # バイアス(文字種の出現確率の偏り)も生じない。
   def self.generate_unique_code
     loop do
-      candidate = Array.new(CODE_LENGTH) { CODE_CHARSET.sample }.join
+      candidate = Array.new(CODE_LENGTH) { CODE_CHARSET[SecureRandom.random_number(CODE_CHARSET.length)] }.join
       break candidate unless exists?(code: candidate)
     end
   end

@@ -53,6 +53,26 @@ RSpec.describe ClaimCode, type: :model do
     end
   end
 
+  # クレームコードは15分間有効な秘密情報であり、これを推測できると他人のデバイスとして
+  # クレームを成立させられる(requirements.md F1手順3-6)。デバイストークン(Device.provision_for_site!)
+  # と同様、生成には必ずCSPRNGを使う(.claude/OWASP10.md A02: 暗号化の失敗)。
+  describe ".generate_unique_code の乱数源" do
+    it "暗号学的に安全な乱数(SecureRandom)から生成する" do
+      expect(SecureRandom).to receive(:random_number).at_least(:once).and_call_original
+
+      described_class.generate_unique_code
+    end
+
+    it "Kernel#srandで再現できない(予測可能な既定RNGを使っていない)" do
+      srand(20260729)
+      first = described_class.generate_unique_code
+      srand(20260729)
+      second = described_class.generate_unique_code
+
+      expect(first).not_to eq(second)
+    end
+  end
+
   describe "#usable?/#expired?/#used?/#exhausted?" do
     it "未使用・期限内・失敗5回未満はusable" do
       claim_code = described_class.issue!(user: user, site: site)
