@@ -15,6 +15,7 @@ ja:
     claim_code_locked: "失敗が続いたため、このクレームコードは失効しました。"
     invalid_device_token: "デバイストークンが無効です。"
     device_deleted: "このデバイスは削除済みです。"
+    alert_already_closed: "このアラートは既にクローズされているため、確認済みにできません。"
 
   # F9 開発者向け管理画面(Issue #16)専用の文言。
   # .claude/rules/i18n.md: 開発者用管理画面は日本語のみでよく、多言語対応の対象外。

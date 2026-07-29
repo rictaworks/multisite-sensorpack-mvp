@@ -15,3 +15,4 @@ zh:
     claim_code_locked: "由于多次失败尝试，此认领码已被锁定。"
     invalid_device_token: "设备令牌无效。"
     device_deleted: "该设备已被删除。"
+    alert_already_closed: "该警报已关闭，无法确认。"

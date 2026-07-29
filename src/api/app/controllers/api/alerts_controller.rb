@@ -5,17 +5,20 @@
 # 解除条件成立時の自動処理のみで行われる(#9・#10で実装)。通知はアプリ内通知バッジのみであり、
 # メール通知は実装しない(requirements.md 1.4/1.6 F8)。
 #
-# NOTE: Google OAuthセッションによるcurrent_user解決はIssue #7(認証・テナント分離基盤)の担当範囲。
-# #7がマージされ次第、本コントローラの#current_user/#resolve_current_userはApplicationController
-# 共通の実装に置き換える。それまではdevelopment/test環境限定のデバッグヘッダーで代替し、
-# production環境ではこのヘッダーが絶対に機能しない(fail closed、.claude/rules/environment.md)。
+# 認証・テナント分離はIssue #7で整備された Authenticatable/TenantScoped concern に委譲する
+# (自前のユーザー識別・所有権チェックを再実装しない。.claude/rules/architecture.md準拠)。
+# src/shared/contracts/openapi.yaml の listAlerts/acknowledgeAlert はいずれも
+# `security: [googleSessionCookie]` を要求しており、Issue #15時点で暫定的に用いていた
+# development/test限定のデバッグヘッダー(X-Debug-User-Id)は廃止した。当該ヘッダーは
+# 本番ではfail closedで無効だったものの、development/testでは任意ユーザーへのなりすましが
+# 可能でテナント分離が成立していなかったため、環境を問わず一切参照しない。
 module Api
   class AlertsController < ApplicationController
-    # X-Debug-User-Idヘッダーで許容するのはdevelopment/testのみ。判定不能な環境は本番として扱う。
-    DEBUG_AUTH_ALLOWED_ENVIRONMENTS = %i[development test].freeze
+    include Authenticatable
+    include TenantScoped
+
     DEFAULT_LIST_STATUSES = %w[open acknowledged].freeze
 
-    before_action :authenticate_user!
     before_action :set_alert, only: [ :ack ]
 
     # GET /api/alerts
@@ -28,11 +31,13 @@ module Api
       invalid_statuses = statuses - Alert::STATUSES
       if invalid_statuses.any?
         Rails.logger.warn("[Api::AlertsController#index] invalid status requested: #{invalid_statuses}")
-        render json: { error: "invalid_status", invalidStatuses: invalid_statuses }, status: :bad_request
-        return
+        return render_error(status: :bad_request, code: "validation_error", i18n_key: "errors.validation_error",
+                            details: { invalidStatuses: invalid_statuses })
       end
 
       alerts = scoped_alerts.where(status: statuses)
+      # deviceIdはscoped_alerts(自分の拠点配下)への追加絞り込みでしかないため、他ユーザーの
+      # デバイスIDを指定しても常に空配列になる(越境参照は構造的に不可)。
       alerts = alerts.where(device_id: params[:deviceId]) if params[:deviceId].present?
       alerts = alerts.order(opened_at: :desc)
 
@@ -49,6 +54,8 @@ module Api
     def unread_count
       count = scoped_alerts.where(status: "open").count
 
+      Rails.logger.info("[Api::AlertsController#unread_count] user_id=#{current_user.id} count=#{count}")
+
       render json: { unreadCount: count }, status: :ok
     end
 
@@ -61,50 +68,26 @@ module Api
       render json: serialize_alert(@alert), status: :ok
     rescue Alert::AlreadyClosedError => e
       Rails.logger.info("[Api::AlertsController#ack] #{e.message}")
-      render json: { error: "alert_already_closed" }, status: :conflict
+      render_error(status: :conflict, code: "alert_already_closed", i18n_key: "errors.alert_already_closed")
     end
 
     private
-
-    def authenticate_user!
-      render json: { error: "unauthorized" }, status: :unauthorized unless current_user
-    end
-
-    def current_user
-      @current_user ||= resolve_current_user
-    end
-
-    def resolve_current_user
-      unless DEBUG_AUTH_ALLOWED_ENVIRONMENTS.any? { |env| Rails.env.public_send("#{env}?") }
-        return nil
-      end
-
-      debug_user_id = request.headers["X-Debug-User-Id"]
-      return nil if debug_user_id.blank?
-
-      User.find_by(id: debug_user_id)
-    end
 
     # 自分(current_user)が所有する拠点配下のデバイスに紐づくアラートのみを対象とする。
     def scoped_alerts
       Alert.joins(device: :site).where(sites: { user_id: current_user.id })
     end
 
+    # 存在しないアラートはActiveRecord::RecordNotFoundから、他ユーザー所有のアラートは
+    # TenantScoped::TenantViolationから、それぞれTenantScopedのrescue_fromが
+    # 契約形状の404/403を返す(自前のnot_found/forbidden分岐は書かない)。
+    #
+    # AlertはuserもsiteもDBカラム/関連として直接持たない(belongs_to :deviceのみ)ため、
+    # TenantScoped#resolve_tenant_ownerが辿れる@alert.device(Device#site#user)を
+    # 所有権チェックの対象として渡す。
     def set_alert
-      @alert = Alert.find_by(id: params[:alertId])
-      unless @alert
-        render json: { error: "not_found" }, status: :not_found
-        return
-      end
-
-      unless @alert.device.site.user_id == current_user.id
-        Rails.logger.warn(
-          "[Api::AlertsController#set_alert] user_id=#{current_user.id} attempted cross-tenant access " \
-          "to alert_id=#{@alert.id}"
-        )
-        render json: { error: "forbidden" }, status: :forbidden
-        nil
-      end
+      @alert = Alert.find(params[:alertId])
+      authorize_owner!(@alert.device)
     end
 
     def serialize_alert(alert)
@@ -118,6 +101,11 @@ module Api
         acknowledgedAt: alert.acknowledged_at&.iso8601,
         closedAt: alert.closed_at&.iso8601
       }
+    end
+
+    # src/shared/contracts/openapi.yaml components.schemas.Error: {error: {code, message, details?}}
+    def render_error(status:, code:, i18n_key:, details: nil)
+      render json: { error: { code: code, message: I18n.t(i18n_key), details: details } }, status: status
     end
   end
 end

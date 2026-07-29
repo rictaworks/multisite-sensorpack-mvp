@@ -2,10 +2,11 @@ require "rails_helper"
 
 # F8 アラート管理API(一覧・ack・未対応件数)のリクエストスペック。
 #
-# 認証(Google OAuth本番実装)はIssue #7の担当範囲であり未着手のため、本スペックでは
-# development/test環境限定のデバッグヘッダー(X-Debug-User-Id)でcurrent_userを切り替える。
-# production環境ではこのヘッダーが絶対に機能しないこと(fail closed)も検証する
-# (.claude/rules/environment.md)。
+# 認証はIssue #7のGoogleログインセッション(Authenticatable)を使う。
+# src/shared/contracts/openapi.yaml の listAlerts/acknowledgeAlert はいずれも
+# `security: [googleSessionCookie]` を要求しており、development/test限定の
+# デバッグヘッダー(X-Debug-User-Id)によるプレースホルダー認証は廃止済みである。
+# 本スペックはそのヘッダーがどの環境でも一切機能しないことも検証する。
 RSpec.describe "Api::Alerts", type: :request do
   let(:owner) { User.create!(google_sub: "alerts-spec-owner") }
   let(:other_user) { User.create!(google_sub: "alerts-spec-other-user") }
@@ -30,15 +31,27 @@ RSpec.describe "Api::Alerts", type: :request do
     )
   end
 
-  def auth_headers(user)
-    { "X-Debug-User-Id" => user.id.to_s }
+  # 他のリクエストスペック(spec/requests/api/summaries_spec.rb 等)と同じく、
+  # GoogleのIDトークン検証のみをスタブし、以降はRailsが発行する本物の
+  # セッションcookieでリクエストを継続する。
+  def login_as(target_user)
+    allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(target_user.google_sub)
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+  end
+
+  # src/shared/contracts/openapi.yaml components.schemas.Error: {error: {code, message}}
+  def expect_contract_error(code)
+    body = JSON.parse(response.body)
+    expect(body.dig("error", "code")).to eq(code)
+    expect(body.dig("error", "message")).to be_present
   end
 
   describe "GET /api/alerts" do
-    it "認証ヘッダーがなければ401を返す" do
+    it "未認証であれば401を返す" do
       get "/api/alerts"
 
       expect(response).to have_http_status(:unauthorized)
+      expect_contract_error("unauthorized")
     end
 
     it "既定ではopen/acknowledgedのみを返し、closedとテナント外は含めない" do
@@ -46,8 +59,9 @@ RSpec.describe "Api::Alerts", type: :request do
       ack_alert = create_alert(device: owner_device, alert_type: offline_type, severity: critical, status: "acknowledged")
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "closed")
       create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      get "/api/alerts", headers: auth_headers(owner)
+      get "/api/alerts"
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
@@ -58,8 +72,9 @@ RSpec.describe "Api::Alerts", type: :request do
     it "statusクエリで明示的に絞り込める(例:closed)" do
       closed_alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "closed")
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      get "/api/alerts", params: { status: "closed" }, headers: auth_headers(owner)
+      get "/api/alerts", params: { status: "closed" }
 
       body = JSON.parse(response.body)
       expect(body["alerts"].map { |a| a["id"] }).to contain_exactly(closed_alert.id)
@@ -69,17 +84,29 @@ RSpec.describe "Api::Alerts", type: :request do
       target = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
       second_device = Device.create!(site: owner_site, device_token_digest: "alerts-spec-owner-device-2")
       create_alert(device: second_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      get "/api/alerts", params: { deviceId: owner_device.id }, headers: auth_headers(owner)
+      get "/api/alerts", params: { deviceId: owner_device.id }
 
       body = JSON.parse(response.body)
       expect(body["alerts"].map { |a| a["id"] }).to contain_exactly(target.id)
     end
 
+    it "テナント分離: 他ユーザーのdeviceIdを指定しても空配列を返す(越境参照不可)" do
+      create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
+
+      get "/api/alerts", params: { deviceId: other_device.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["alerts"]).to be_empty
+    end
+
     it "アラートをOpenAPI契約のcamelCase形状(id/deviceId/alertType/severity/status/openedAt)で返す" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      get "/api/alerts", headers: auth_headers(owner)
+      get "/api/alerts"
 
       body = JSON.parse(response.body)["alerts"].first
       expect(body).to include(
@@ -94,18 +121,23 @@ RSpec.describe "Api::Alerts", type: :request do
       expect(body["closedAt"]).to be_nil
     end
 
-    it "不正なstatus値を指定すると400を返す" do
-      get "/api/alerts", params: { status: "bogus" }, headers: auth_headers(owner)
+    it "不正なstatus値を指定すると契約形状の400を返す" do
+      login_as(owner)
+
+      get "/api/alerts", params: { status: "bogus" }
 
       expect(response).to have_http_status(:bad_request)
+      expect_contract_error("validation_error")
+      expect(JSON.parse(response.body).dig("error", "details", "invalidStatuses")).to eq([ "bogus" ])
     end
   end
 
   describe "GET /api/alerts/unread_count" do
-    it "認証ヘッダーがなければ401を返す" do
+    it "未認証であれば401を返す" do
       get "/api/alerts/unread_count"
 
       expect(response).to have_http_status(:unauthorized)
+      expect_contract_error("unauthorized")
     end
 
     it "自分のopen状態アラート件数のみをバッジ用件数として返す(closed/acknowledged/他テナントは含めない)" do
@@ -114,8 +146,9 @@ RSpec.describe "Api::Alerts", type: :request do
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "acknowledged")
       create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "closed")
       create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      get "/api/alerts/unread_count", headers: auth_headers(owner)
+      get "/api/alerts/unread_count"
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)["unreadCount"]).to eq(2)
@@ -125,8 +158,9 @@ RSpec.describe "Api::Alerts", type: :request do
   describe "POST /api/alerts/:alertId/ack" do
     it "open状態の自分のアラートをacknowledgedに遷移させる" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack", headers: auth_headers(owner)
+      post "/api/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:ok)
       alert.reload
@@ -137,54 +171,77 @@ RSpec.describe "Api::Alerts", type: :request do
 
     it "既にacknowledged済みのアラートへのackは冪等に200を返す(二重ack)" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "acknowledged")
+      login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack", headers: auth_headers(owner)
+      post "/api/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:ok)
       expect(alert.reload.status).to eq("acknowledged")
     end
 
-    it "closed状態のアラートへのackは409を返し、状態を変更しない(手動close不可)" do
+    it "closed状態のアラートへのackは契約形状の409を返し、状態を変更しない(手動close不可)" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "closed")
+      login_as(owner)
 
-      post "/api/alerts/#{alert.id}/ack", headers: auth_headers(owner)
+      post "/api/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:conflict)
+      expect_contract_error("alert_already_closed")
       expect(alert.reload.status).to eq("closed")
     end
 
-    it "存在しないアラートIDには404を返す" do
-      post "/api/alerts/999999999/ack", headers: auth_headers(owner)
+    it "存在しないアラートIDには契約形状の404を返す" do
+      login_as(owner)
+
+      post "/api/alerts/999999999/ack"
 
       expect(response).to have_http_status(:not_found)
+      expect_contract_error("not_found")
     end
 
     it "テナント分離: 他ユーザーのデバイスに属するアラートは403で拒否し、状態を変更しない" do
       other_alert = create_alert(device: other_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(owner)
 
-      post "/api/alerts/#{other_alert.id}/ack", headers: auth_headers(owner)
+      post "/api/alerts/#{other_alert.id}/ack"
 
       expect(response).to have_http_status(:forbidden)
+      expect_contract_error("forbidden")
       expect(other_alert.reload.status).to eq("open")
     end
 
-    it "認証ヘッダーがなければ401を返す" do
+    it "未認証であれば401を返し、状態を変更しない" do
       alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
 
       post "/api/alerts/#{alert.id}/ack"
 
       expect(response).to have_http_status(:unauthorized)
+      expect_contract_error("unauthorized")
+      expect(alert.reload.status).to eq("open")
     end
   end
 
-  describe "環境フェイルクローズ(.claude/rules/environment.md)" do
-    it "development/test以外の環境ではX-Debug-User-Idヘッダーが機能せず401になる" do
-      allow(Rails.env).to receive(:development?).and_return(false)
-      allow(Rails.env).to receive(:test?).and_return(false)
+  # 旧実装(Issue #15時点)はcurrent_userをX-Debug-User-Idヘッダーから解決していた。
+  # 本番ではfail closedで無効だったものの、development/testでは任意ユーザーへの
+  # なりすましが可能でテナント分離が成立していなかったため、ヘッダー自体を廃止した。
+  describe "廃止されたデバッグ認証ヘッダー(X-Debug-User-Id)" do
+    it "test環境でも一切機能せず401を返す(なりすまし不可)" do
+      create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
 
-      get "/api/alerts", headers: auth_headers(owner)
+      get "/api/alerts", headers: { "X-Debug-User-Id" => owner.id.to_s }
 
       expect(response).to have_http_status(:unauthorized)
+      expect_contract_error("unauthorized")
+    end
+
+    it "セッション確立済みの別ユーザーがヘッダーで所有者になりすますことはできない" do
+      owner_alert = create_alert(device: owner_device, alert_type: upper_breach, severity: warning, status: "open")
+      login_as(other_user)
+
+      post "/api/alerts/#{owner_alert.id}/ack", headers: { "X-Debug-User-Id" => owner.id.to_s }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(owner_alert.reload.status).to eq("open")
     end
   end
 end
