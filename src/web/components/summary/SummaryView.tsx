@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   AiSummaryQuotaExceededError,
-  createMockAiSummaryClient,
+  createAiSummaryApiClient,
   type AiSummary,
   type AiSummaryClient,
 } from './aiSummaryClient';
@@ -13,16 +13,15 @@ type ViewStatus = 'idle' | 'loading' | 'done';
 
 export interface SummaryViewProps {
   /**
-   * Injection point for tests / a future real client. Defaults to the
-   * in-memory stub (see aiSummaryClient.ts) since the backend for
-   * Issue #13 is developed in parallel.
+   * テストから差し替えるための注入点。既定は実API
+   * （`GET /ai-summaries/today` / `POST /ai-summaries`）を呼ぶクライアント。
    */
   client?: AiSummaryClient;
 }
 
 export default function SummaryView({ client }: SummaryViewProps) {
   const t = useTranslations('summary');
-  const clientRef = useRef<AiSummaryClient>(client ?? createMockAiSummaryClient());
+  const clientRef = useRef<AiSummaryClient>(client ?? createAiSummaryApiClient());
 
   const [status, setStatus] = useState<ViewStatus>('idle');
   const [summary, setSummary] = useState<AiSummary | null>(null);

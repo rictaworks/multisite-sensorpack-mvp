@@ -4,6 +4,7 @@ import { passTestRecaptcha } from './support/recaptcha';
 import { STUB_SITES, stubClaimCodeSuccess, stubSitesList } from './support/claimApiStub';
 import { stubDashboardApi } from './support/dashboardApiStub';
 import { stubAlertsApi } from './support/alertsApiStub';
+import { stubSummaryApi } from './support/summaryApiStub';
 
 /**
  * Holistic smoke test for the "主要導線" (primary user journey) Issue #25
@@ -59,6 +60,7 @@ test('主要導線: ホーム→ログイン→ダッシュボード→デバイ
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'control.title') })).toBeVisible();
   await expect(page.getByRole('switch').first()).toBeVisible();
 
+  await stubSummaryApi(page);
   await page.goto('/ja/summary');
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'summary.title') })).toBeVisible();
   await expect(page.getByRole('button', { name: t('ja', 'summary.generateButton') })).toBeVisible();

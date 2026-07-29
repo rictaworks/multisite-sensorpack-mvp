@@ -1,19 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { t } from './support/messages';
+import { stubSummaryApi } from './support/summaryApiStub';
 
 /**
  * F7 きょうのまとめ(AI日次サマリー) — Issue #22.
  *
- * components/summary/aiSummaryClient.ts's `createMockAiSummaryClient()` is a
- * pure in-memory mock (no network at all — see
- * WORK/2026-07-28-issue-22-daily-summary.md's residual-gap note that the
- * real Rails/FastAPI endpoint is still pending), and `app/[locale]/summary/page.tsx`
- * always renders `<SummaryView />` with no `client` prop, so this is the
- * real client the deployed app currently uses — this suite needs no
- * `page.route()` stubbing at all to exercise the full generate → quota-reuse
- * flow end to end.
+ * この画面は実API(`GET /ai-summaries/today` / `POST /ai-summaries`)へ結線しており、
+ * かつてのインメモリのスタブ(createMockAiSummaryClient)は撤去した。
+ * このスイートはRailsの起動に依存しない方針のため、応答は support/summaryApiStub.ts が
+ * ブラウザのネットワーク層で差し替える(アプリ側のフォールバックではない)。
+ * 生成→クォータ消費→再表示の状態遷移はすべて実物のコンポーネントロジックが動く。
  */
 test.describe('きょうのまとめ(AI日次サマリー)', () => {
+  test.beforeEach(async ({ page }) => {
+    await stubSummaryApi(page);
+  });
+
   test('生成→同日中の再読み込みでクォータ済み表示になり、同じ内容が再表示される', async ({ page }) => {
     await page.goto('/ja/summary');
 
@@ -25,12 +27,8 @@ test.describe('きょうのまとめ(AI日次サマリー)', () => {
     await expect(generateButton).toBeVisible();
     await generateButton.click();
 
-    // Not asserting `summary.loadingText` here: createMockAiSummaryClient()
-    // (components/summary/aiSummaryClient.ts) resolves generateSummary()
-    // with no artificial delay at all, so the loading state is a single,
-    // sub-frame-length React render that this suite cannot reliably observe
-    // — asserting it would make this test flaky against real timing rather
-    // than testing real behaviour.
+    // `summary.loadingText` は検証しない: スタブが即座に応答するため、読み込み中の
+    // 状態は1フレーム未満で消える。ここで検証するとタイミング依存の不安定なテストになる。
     const rereadButton = page.getByRole('button', { name: t('ja', 'summary.rereadButton') });
     await expect(rereadButton).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(t('ja', 'summary.quotaNoteUsed'))).toBeVisible();

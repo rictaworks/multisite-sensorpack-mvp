@@ -31,12 +31,22 @@ export type ApiErrorCode =
 export class ApiError extends Error {
   readonly status: number;
   readonly code: ApiErrorCode;
+  /**
+   * パース済みのエラーレスポンス本文。
+   *
+   * 契約上、エラー応答が `error` 以外の情報を含むことがある（例: AIサマリーの429は
+   * 既に生成済みの `existingSummary` を併せて返す）。メッセージだけに畳むとその情報が
+   * 失われ、呼び出し側が仕様どおりの再表示をできなくなるため保持する。
+   * 本文がJSONでなかった場合は undefined。
+   */
+  readonly body?: unknown;
 
-  constructor(status: number, code: ApiErrorCode, message: string) {
+  constructor(status: number, code: ApiErrorCode, message: string, body?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
+    this.body = body;
   }
 }
 
@@ -52,10 +62,12 @@ function classifyStatus(status: number): ApiErrorCode {
 
 async function throwForFailedResponse(response: Response, context: string): Promise<never> {
   let message = response.statusText || `HTTP ${response.status}`;
+  let body: unknown;
   try {
-    const body = (await response.json()) as { error?: { code?: string; message?: string } };
-    if (body?.error?.message) {
-      message = body.error.message;
+    body = await response.json();
+    const parsed = body as { error?: { code?: string; message?: string } };
+    if (parsed?.error?.message) {
+      message = parsed.error.message;
     }
   } catch (parseError) {
     // The error body was not valid JSON (e.g. an upstream proxy/network failure
@@ -63,7 +75,7 @@ async function throwForFailedResponse(response: Response, context: string): Prom
     // swallowing it, per .claude/rules/coding-style.md ("デバッグトレースができるように").
     console.error(`[${context}] failed to parse error response body`, parseError);
   }
-  throw new ApiError(response.status, classifyStatus(response.status), message);
+  throw new ApiError(response.status, classifyStatus(response.status), message, body);
 }
 
 type RequestOptions = {
@@ -120,4 +132,21 @@ export async function requestJson<T>(options: RequestOptions): Promise<T> {
  */
 export async function requestNoContent(options: RequestOptions): Promise<void> {
   await send(options);
+}
+
+/**
+ * Sends a request whose success response is either a JSON body or 204 No Content,
+ * returning `null` for the latter.
+ *
+ * 204 is used by the contract to mean "this resource legitimately does not exist yet"
+ * (e.g. today's AI summary before it has been generated). That is a normal state, not
+ * a failure — but it is also not an empty object, so callers must be able to tell the
+ * two apart rather than receiving a fabricated placeholder.
+ */
+export async function requestOptionalJson<T>(options: RequestOptions): Promise<T | null> {
+  const response = await send(options);
+  if (response.status === 204) {
+    return null;
+  }
+  return (await response.json()) as T;
 }
