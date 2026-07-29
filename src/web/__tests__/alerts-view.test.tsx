@@ -1,8 +1,83 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import AlertsView from '../components/alerts/AlertsView';
+import { ApiError } from '../lib/api/apiClient';
 import ja from '../locales/ja.json';
 import en from '../locales/en.json';
+
+/**
+ * データは実API(`GET /alerts` / `POST /alerts/{id}/ack`)から取得する。
+ * かつては components/alerts/alertsRepository.ts のインメモリのモックを画面が
+ * 直接抱えていたが、Rails側のアラートAPIが実装済みになったため撤去した。
+ *
+ * 固定値は以前のシードと同じ構成(未対応2・確認ずみ1・解決ずみ1)にして、
+ * 画面の期待値を据え置いている。
+ */
+jest.mock('../components/alerts/alertsApi', () => {
+  class AlertNotAcknowledgeableError extends Error {
+    readonly reason: 'not_found' | 'not_open';
+    constructor(alertId: number, reason: 'not_found' | 'not_open') {
+      super(`Alert ${alertId}: ${reason}`);
+      this.name = 'AlertNotAcknowledgeableError';
+      this.reason = reason;
+    }
+  }
+  return {
+    __esModule: true,
+    AlertNotAcknowledgeableError,
+    ALL_ALERT_STATUSES: ['open', 'acknowledged', 'closed'],
+    listAlerts: jest.fn(),
+    acknowledgeAlert: jest.fn(),
+  };
+});
+
+import { acknowledgeAlert, listAlerts } from '../components/alerts/alertsApi';
+
+const mockedListAlerts = listAlerts as jest.Mock;
+const mockedAcknowledgeAlert = acknowledgeAlert as jest.Mock;
+
+function minutesAgoIso(minutes: number): string {
+  return new Date(Date.now() - minutes * 60_000).toISOString();
+}
+
+function fixtureAlerts() {
+  return [
+    { id: 1, deviceId: 1, alertType: 'upper_breach', severity: 'warning', status: 'open', openedAt: minutesAgoIso(12) },
+    { id: 2, deviceId: 2, alertType: 'offline', severity: 'critical', status: 'open', openedAt: minutesAgoIso(47) },
+    {
+      id: 3,
+      deviceId: 2,
+      alertType: 'upper_breach',
+      severity: 'warning',
+      status: 'acknowledged',
+      openedAt: minutesAgoIso(90),
+      acknowledgedAt: minutesAgoIso(30),
+    },
+    {
+      id: 4,
+      deviceId: 1,
+      alertType: 'lower_breach',
+      severity: 'info',
+      status: 'closed',
+      openedAt: minutesAgoIso(320),
+      closedAt: minutesAgoIso(60),
+    },
+  ];
+}
+
+beforeEach(() => {
+  mockedListAlerts.mockReset();
+  mockedAcknowledgeAlert.mockReset();
+  mockedListAlerts.mockResolvedValue(fixtureAlerts());
+  // サーバーが返した更新後のアラートで画面を更新する(画面側で組み立て直さない)。
+  mockedAcknowledgeAlert.mockImplementation((alertId: number) =>
+    Promise.resolve({
+      ...fixtureAlerts().find((alert) => alert.id === alertId)!,
+      status: 'acknowledged',
+      acknowledgedAt: new Date().toISOString(),
+    })
+  );
+});
 
 function renderAlertsView(locale: 'ja' | 'en', messages: typeof ja | typeof en) {
   return render(

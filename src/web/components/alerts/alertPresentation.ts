@@ -1,4 +1,4 @@
-import type { Alert, AlertTypeCode } from './alertsRepository';
+import type { Alert, AlertTypeCode } from './alertsApi';
 
 /**
  * Pure, presentation-only mappings for the alerts screen. These are plain
