@@ -308,5 +308,48 @@
       "notFound": "No se encontró esa ubicación. Es posible que ya se haya eliminado.",
       "network": "Falló la conexión. Inténtalo de nuevo en unos momentos."
     }
+  },
+  "legal": {
+    "draftNotice": "Este documento es un borrador pendiente de revisión legal. La versión definitiva, con el nombre y los datos de contacto del responsable, lo sustituirá antes de que el servicio se abra al público.",
+    "lastUpdated": "Última actualización: {date}",
+    "backToLogin": "← Volver al inicio de sesión",
+    "termsLink": "Condiciones de uso",
+    "privacyLink": "Política de privacidad",
+    "terms": {
+      "title": "Condiciones de uso",
+      "intro": "Estas condiciones establecen los términos de uso de Multisite SensorPack (el «Servicio»). Al utilizar el Servicio se entiende que las aceptas.",
+      "scopeTitle": "1. Ámbito de aplicación",
+      "scopeBody": "Estas condiciones se aplican a todo lo relacionado con el uso del Servicio. Los avisos e indicaciones que el responsable publique dentro del Servicio también forman parte de ellas.",
+      "serviceTitle": "2. Contenido del Servicio",
+      "serviceBody": "El Servicio registra la temperatura y la humedad de dispositivos instalados en varias ubicaciones y permite consultarlas, recibir avisos y controlar los dispositivos a distancia. Se ofrece de forma experimental para validar la demanda, por lo que sus funciones y características pueden cambiar sin previo aviso.",
+      "accountTitle": "3. Cuenta",
+      "accountBody": "Para usar el Servicio es necesario iniciar sesión con una cuenta de Google. La gestión de esa cuenta es responsabilidad del usuario y no debe cederse a terceros. Las acciones realizadas a través de la cuenta se consideran realizadas por el propio usuario.",
+      "prohibitedTitle": "4. Conductas prohibidas",
+      "prohibitedBody": "Queda prohibido infringir la ley o el orden público, vulnerar los derechos de otros usuarios o de terceros, acceder sin autorización al Servicio o someterlo a una carga excesiva, y manejar cuentas o dispositivos ajenos sin permiso.",
+      "disclaimerTitle": "5. Exención de responsabilidad",
+      "disclaimerBody": "El Servicio se ofrece tal cual, sin garantía de disponibilidad, exactitud ni idoneidad para un fin concreto. No lo utilices como único medio de vigilancia o control de aquello que protege la vida, la salud o los bienes. Según el estado de la red y de los dispositivos, pueden faltar mediciones, retrasarse los avisos o no llegar las órdenes remotas.",
+      "changesTitle": "6. Modificación, suspensión y cese",
+      "changesBody": "El responsable puede modificar el contenido del Servicio, así como suspender o cesar su prestación. No responde de los daños que ello ocasione al usuario.",
+      "lawTitle": "7. Ley aplicable y jurisdicción",
+      "lawBody": "Estas condiciones se rigen por la legislación japonesa. Cualquier controversia relativa al Servicio se someterá, en primera instancia, a la jurisdicción exclusiva del tribunal del domicilio del responsable."
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "intro": "Aquí se explica qué información recoge el Servicio y cómo se utiliza. El Servicio está diseñado para recoger la mínima información identificativa posible.",
+      "collectedTitle": "Información que recogemos",
+      "collectedBody": "Recogemos el identificador que Google facilita al iniciar sesión (un identificador opaco emitido por Google), el nombre de las ubicaciones que registras, las mediciones de temperatura y humedad que envían tus dispositivos, el estado de estos y el historial de órdenes remotas.",
+      "notCollectedTitle": "Información que no recogemos",
+      "notCollectedBody": "No almacenamos tu dirección de correo electrónico, tu nombre ni tu foto de perfil. Aunque Google los facilite al iniciar sesión, no los conservamos: solo se registra el identificador. Tampoco recogemos direcciones postales: el nombre de la ubicación es texto libre y nunca se pide una dirección.",
+      "purposeTitle": "Finalidad",
+      "purposeBody": "Usamos esta información para registrar y mostrar las mediciones, avisar de superaciones de umbral y de dispositivos desconectados, ejecutar las órdenes remotas, generar el resumen diario con IA y prevenir usos indebidos. No la usamos para ninguna otra finalidad.",
+      "thirdPartyTitle": "Cesión a terceros",
+      "thirdPartyBody": "Para generar el resumen diario con IA enviamos a un servicio de IA externo únicamente las estadísticas de las mediciones (mínimo, máximo, media y tiempo por encima de los umbrales) y el tipo, la gravedad y la hora de las alertas. No enviamos tu identificador, el nombre de las ubicaciones ni datos de los dispositivos. Salvo obligación legal, no cedemos información a terceros por ningún otro motivo.",
+      "cookiesTitle": "Uso de cookies",
+      "cookiesBody": "El Servicio utiliza una sola cookie, para mantener la sesión iniciada. Está cifrada y sirve únicamente para identificar la sesión. No se usa para publicidad ni para análisis de comportamiento. Si desactivas las cookies en el navegador, las funciones que requieren iniciar sesión no funcionarán.",
+      "retentionTitle": "Plazo de conservación",
+      "retentionBody": "Las mediciones en bruto enviadas por los sensores se eliminan a los 14 días. De los periodos anteriores solo se conservan agregados por hora. La cuenta y los datos de ubicaciones y dispositivos se conservan hasta que los elimines.",
+      "contactTitle": "Contacto",
+      "contactBody": "Los datos de contacto para consultas sobre el tratamiento de datos personales se indicarán en este apartado en la versión definitiva."
+    }
   }
 }

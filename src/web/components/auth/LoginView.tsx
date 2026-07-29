@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -45,6 +46,7 @@ type LoginViewProps = {
 export default function LoginView({ googleClientId, recaptchaSiteKey, devAutoAuthEnabled }: LoginViewProps) {
   const t = useTranslations('login');
   const locale = useLocale();
+  const tLegal = useTranslations('legal');
   const router = useRouter();
 
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
@@ -133,6 +135,13 @@ export default function LoginView({ googleClientId, recaptchaSiteKey, devAutoAut
             <span>{t('devBypass')}</span>
           </button>
         )}
+
+        {/* CC03/CC04: 利用規約とプライバシーポリシーへ、ログイン導線から到達できるようにする。 */}
+        <p className={styles.legalLinks}>
+          <Link href={`/${locale}/legal/terms`}>{tLegal('termsLink')}</Link>
+          {' · '}
+          <Link href={`/${locale}/legal/privacy`}>{tLegal('privacyLink')}</Link>
+        </p>
       </div>
     </main>
   );

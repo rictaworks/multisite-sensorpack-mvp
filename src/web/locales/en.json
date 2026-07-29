@@ -308,5 +308,48 @@
       "notFound": "That site could not be found. It may already have been deleted.",
       "network": "The connection failed. Please try again in a moment."
     }
+  },
+  "legal": {
+    "draftNotice": "This document is a draft awaiting legal review. The final version, including the operator's name and contact details, will replace it before the service becomes publicly available.",
+    "lastUpdated": "Last updated: {date}",
+    "backToLogin": "← Back to sign-in",
+    "termsLink": "Terms of Service",
+    "privacyLink": "Privacy Policy",
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "These terms set out the conditions for using Multisite SensorPack (the “Service”). By using the Service you are deemed to have agreed to these terms.",
+      "scopeTitle": "1. Scope",
+      "scopeBody": "These terms apply to every aspect of your use of the Service. Any notices or guidance the operator publishes within the Service also form part of these terms.",
+      "serviceTitle": "2. What the Service does",
+      "serviceBody": "The Service records temperature and humidity from sensor devices installed at multiple sites, and lets you view readings, receive notifications and operate devices remotely. It is offered on a trial basis to validate demand, and its features and specifications may change without notice.",
+      "accountTitle": "3. Accounts",
+      "accountBody": "Using the Service requires signing in with a Google account. You are responsible for managing the account you sign in with and must not let anyone else use it. Actions taken through your account are treated as your own.",
+      "prohibitedTitle": "4. Prohibited conduct",
+      "prohibitedBody": "You must not break the law or public order, infringe the rights of other users or third parties, gain unauthorised access to or place excessive load on the Service, or operate anyone else's account or devices without permission.",
+      "disclaimerTitle": "5. Disclaimer",
+      "disclaimerBody": "The Service is provided as is, with no guarantee of availability, accuracy or fitness for any particular purpose. Do not rely on it as the sole means of monitoring or controlling anything that protects human life, health or property. Readings may be missing, notifications delayed and remote commands undelivered, depending on network conditions and the state of your devices.",
+      "changesTitle": "6. Changes, suspension and termination",
+      "changesBody": "The operator may change what the Service does, or suspend or discontinue it. The operator is not liable for losses arising from such changes.",
+      "lawTitle": "7. Governing law and jurisdiction",
+      "lawBody": "These terms are governed by the laws of Japan. Any dispute concerning the Service shall be submitted to the exclusive jurisdiction of the court having jurisdiction over the operator's location as the court of first instance."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This explains what information the Service collects and how it is used. The Service is designed to collect as little identifying information as possible.",
+      "collectedTitle": "What we collect",
+      "collectedBody": "We collect the identifier Google provides when you sign in (an opaque ID issued by Google), the names of the sites you register, the temperature and humidity readings your sensor devices send, device status, and your remote-control history.",
+      "notCollectedTitle": "What we do not collect",
+      "notCollectedBody": "We do not store your email address, name or profile picture. Even when Google provides them at sign-in we do not keep them — only the identifier is recorded. We do not collect addresses either: site names are free text and we never ask you to enter an address.",
+      "purposeTitle": "How we use it",
+      "purposeBody": "We use this information to record and display readings, to notify you of threshold breaches and offline devices, to carry out remote commands, to generate the AI daily summary, and to prevent abuse. We do not use it for anything else.",
+      "thirdPartyTitle": "Sharing with third parties",
+      "thirdPartyBody": "When generating the AI daily summary, we send an external AI service only the statistics of your readings (minimum, maximum, average and time spent beyond thresholds) and the type, severity and timestamps of alerts. We do not send your identifier, site names or device information. We do not otherwise share information with third parties except where required by law.",
+      "cookiesTitle": "Cookies",
+      "cookiesBody": "The Service uses one cookie, to keep you signed in. It is encrypted and used solely to identify your session. It is not used for advertising or behavioural analytics. If you disable cookies in your browser, features that require signing in will not work.",
+      "retentionTitle": "How long we keep it",
+      "retentionBody": "Raw readings sent by your sensors are deleted after 14 days. For earlier periods we keep hourly aggregates instead. Your account and your site and device records are kept until you delete them.",
+      "contactTitle": "Contact",
+      "contactBody": "Contact details for questions about how personal information is handled will be stated here in the final published version."
+    }
   }
 }

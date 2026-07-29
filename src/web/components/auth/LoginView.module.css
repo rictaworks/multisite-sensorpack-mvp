@@ -97,3 +97,21 @@
   justify-content: center;
   gap: 8px;
 }
+
+/* CC03/CC04: 利用規約・プライバシーポリシーへの導線（Issue #70）。
+   ログインの主導線を邪魔しないよう、控えめな見た目でカード下部に置く。 */
+.legalLinks {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b82a0;
+}
+
+.legalLinks a {
+  color: #6b82a0;
+  text-decoration: underline;
+}
+
+.legalLinks a:hover {
+  color: #1a73e8;
+}

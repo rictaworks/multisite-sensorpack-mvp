@@ -205,4 +205,25 @@ describe('LoginView (Issue #17)', () => {
     expect(mockActivateDevAutoAuthSession).toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith('/en');
   });
+
+  // CC03/CC04: 利用規約とプライバシーポリシーは、ログイン導線から到達できる必要がある。
+  it('利用規約とプライバシーポリシーへのリンクを表示する', () => {
+    renderLoginView({ devAutoAuthEnabled: false });
+
+    expect(screen.getByRole('link', { name: ja.legal.termsLink })).toHaveAttribute(
+      'href',
+      '/ja/legal/terms'
+    );
+    expect(screen.getByRole('link', { name: ja.legal.privacyLink })).toHaveAttribute(
+      'href',
+      '/ja/legal/privacy'
+    );
+  });
+
+  it('本番相当（開発用バイパスが無効）でも規約への導線は残る', () => {
+    renderLoginView({ devAutoAuthEnabled: false }, 'en');
+
+    expect(screen.getByRole('link', { name: en.legal.termsLink })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: en.legal.privacyLink })).toBeInTheDocument();
+  });
 });
