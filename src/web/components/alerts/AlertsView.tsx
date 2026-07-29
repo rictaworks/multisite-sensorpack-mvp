@@ -4,12 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import AlertBadge from './AlertBadge';
 import { acknowledgeAlert, listAlerts, type Alert, type AlertStatus } from './alertsApi';
-import {
-  getAlertMessageKey,
-  getDeviceLabelKey,
-  SEVERITY_COLORS,
-  STATUS_COLORS,
-} from './alertPresentation';
+import { getAlertMessageKey, SEVERITY_COLORS, STATUS_COLORS } from './alertPresentation';
 import styles from './AlertsView.module.css';
 
 const TAB_ORDER: AlertStatus[] = ['open', 'acknowledged', 'closed'];
@@ -29,6 +24,10 @@ function formatOpenedAt(isoTimestamp: string): string {
  */
 export default function AlertsView() {
   const t = useTranslations('alerts');
+  // 契約(openapi.yaml)のDeviceに表示名のフィールドは無いため、IDから表記を作る。
+  // ダッシュボード・運用ツールと同じ文言を使う: 同じ機器が画面によって違う名前で
+  // 出ると、どの機器のアラートなのか分からなくなる。
+  const tDeviceLabel = useTranslations('dashboard.overview');
 
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -120,7 +119,7 @@ export default function AlertsView() {
         <div className={styles.list}>
           {visibleAlerts.map((alert) => {
             const messageKey = getAlertMessageKey(alert.alertType);
-            const deviceLabel = t(`stubDevices.${getDeviceLabelKey(alert.deviceId)}`);
+            const deviceLabel = tDeviceLabel('deviceLabel', { id: alert.deviceId });
             const canAcknowledge = alert.status === 'open';
 
             return (

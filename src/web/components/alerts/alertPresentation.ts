@@ -23,30 +23,11 @@ export const STATUS_COLORS: Record<Status, string> = {
   closed: '#1e8e3e',
 };
 
-/**
- * requirements.md 1.8 fixes the MVP test fixture at exactly 2 devices, so a
- * static id -> locale-key map is sufficient for this stub. Once device
- * records are fetched from the real API (Issue #1), this should be replaced
- * by the device's own name field instead of a translation key.
- */
-const DEVICE_LABEL_KEYS: Record<number, string> = {
-  1: 'device1',
-  2: 'device2',
-};
-
 const ALERT_TYPE_MESSAGE_KEYS: Record<AlertTypeCode, string> = {
   upper_breach: 'upperBreach',
   lower_breach: 'lowerBreach',
   offline: 'offline',
 };
-
-export function getDeviceLabelKey(deviceId: number): string {
-  const key = DEVICE_LABEL_KEYS[deviceId];
-  if (!key) {
-    throw new Error(`No stub device label configured for deviceId ${deviceId}`);
-  }
-  return key;
-}
 
 export function getAlertMessageKey(alertType: AlertTypeCode): string {
   return ALERT_TYPE_MESSAGE_KEYS[alertType];

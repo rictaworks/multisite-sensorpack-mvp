@@ -136,10 +136,6 @@
         "detail": "No data has been received for a while. Please check the power and network connection."
       }
     },
-    "stubDevices": {
-      "device1": "Warehouse A - Entrance",
-      "device2": "Home - Living Room"
-    },
     "ackButton": "Acknowledge",
     "ackingLabel": "Acknowledging…",
     "ackError": "Failed to acknowledge the alert. Please try again.",

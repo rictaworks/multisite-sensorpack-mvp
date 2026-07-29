@@ -136,10 +136,6 @@
         "detail": "已有一段时间未收到数据，请检查电源和网络连接。"
       }
     },
-    "stubDevices": {
-      "device1": "仓库A - 入口",
-      "device2": "自家 - 客厅"
-    },
     "ackButton": "确认",
     "ackingLabel": "确认中…",
     "ackError": "确认失败，请重试。",

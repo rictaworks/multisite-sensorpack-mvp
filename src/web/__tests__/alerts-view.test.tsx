@@ -36,6 +36,14 @@ import { acknowledgeAlert, listAlerts } from '../components/alerts/alertsApi';
 const mockedListAlerts = listAlerts as jest.Mock;
 const mockedAcknowledgeAlert = acknowledgeAlert as jest.Mock;
 
+/**
+ * デバイスの表記。契約(openapi.yaml)のDeviceに表示名のフィールドが無いため、
+ * ダッシュボード・運用ツールと同じ文言をIDから作る。
+ */
+function deviceLabel(id: number): string {
+  return ja.dashboard.overview.deviceLabel.replace('{id}', String(id));
+}
+
 function minutesAgoIso(minutes: number): string {
   return new Date(Date.now() - minutes * 60_000).toISOString();
 }
@@ -104,11 +112,11 @@ describe('AlertsView (Issue #20, requirements.md F8)', () => {
     // offline/critical on device2.
     expect(
       await screen.findByText(
-        ja.alerts.messages.upperBreach.title.replace('{device}', ja.alerts.stubDevices.device1)
+        ja.alerts.messages.upperBreach.title.replace('{device}', deviceLabel(1))
       )
     ).toBeInTheDocument();
     expect(
-      screen.getByText(ja.alerts.messages.offline.title.replace('{device}', ja.alerts.stubDevices.device2))
+      screen.getByText(ja.alerts.messages.offline.title.replace('{device}', deviceLabel(2)))
     ).toBeInTheDocument();
 
     expect(screen.getAllByText(ja.alerts.severity.warning).length).toBeGreaterThan(0);
@@ -139,7 +147,7 @@ describe('AlertsView (Issue #20, requirements.md F8)', () => {
     // The one seeded closed alert (lower_breach/info on device1) should now show.
     expect(
       await screen.findByText(
-        ja.alerts.messages.lowerBreach.title.replace('{device}', ja.alerts.stubDevices.device1)
+        ja.alerts.messages.lowerBreach.title.replace('{device}', deviceLabel(1))
       )
     ).toBeInTheDocument();
 
@@ -193,6 +201,27 @@ describe('AlertsView (Issue #20, requirements.md F8)', () => {
       expect(screen.queryByRole('button', { name: ja.alerts.ackButton })).not.toBeInTheDocument();
     });
     expect(screen.getByText(ja.alerts.emptyState)).toBeInTheDocument();
+  });
+
+  // 実データのデバイスIDは1・2に限らない。かつては固定のID→表示名の対応表を引いており、
+  // 対応の無いIDで例外を投げていたため、実APIに結線した時点で画面全体が壊れる状態だった。
+  it('対応表に無いデバイスIDのアラートも表示できる(実データのIDは連番とは限らない)', async () => {
+    mockedListAlerts.mockResolvedValue([
+      {
+        id: 99,
+        deviceId: 4321,
+        alertType: 'offline',
+        severity: 'critical',
+        status: 'open',
+        openedAt: minutesAgoIso(5),
+      },
+    ]);
+
+    renderAlertsView('ja', ja);
+
+    expect(
+      await screen.findByText(ja.alerts.messages.offline.title.replace('{device}', deviceLabel(4321)))
+    ).toBeInTheDocument();
   });
 
   it('always shows the footer note explaining that resolution only happens automatically', async () => {
