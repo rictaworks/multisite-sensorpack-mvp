@@ -1,0 +1,8 @@
+/* =============================================================
+   Veliora Office Design System — Global CSS Entry Point
+   Import this one file to pull in all tokens and foundations.
+   ============================================================= */
+
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';

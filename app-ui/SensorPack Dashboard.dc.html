@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/veliora-office-3bad8ca4-debf-4445-93b3-538650fd64d0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/veliora-office-3bad8ca4-debf-4445-93b3-538650fd64d0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/veliora-office-3bad8ca4-debf-4445-93b3-538650fd64d0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/veliora-office-3bad8ca4-debf-4445-93b3-538650fd64d0/styles.css">
+<script src="_ds/veliora-office-3bad8ca4-debf-4445-93b3-538650fd64d0/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #0a1628; }
+  body { font-family: "Noto Sans JP", sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #1a73e8; text-decoration: none; }
+  a:hover { color: #2196f3; }
+  input, button, select { font-family: inherit; }
+  button { white-space: nowrap; word-break: keep-all; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#0a1628;color:#fff;padding-bottom:64px">
+
+  <header style="position:sticky;top:0;z-index:20;background:rgba(10,22,40,0.86);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08)">
+    <div style="max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;margin-right:8px">
+        <img src="assets/logo.svg" alt="Veliora Office" style="display:block;height:26px;width:auto">
+        <div style="font-family:Montserrat,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.55);border-left:1px solid rgba(255,255,255,0.18);padding-left:12px;white-space:nowrap">SensorPack</div>
+      </div>
+      <nav style="display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:240px">
+        <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="5">
+          <button type="button" onClick="{{ item.go }}" style="{{ item.style }}">{{ item.label }}</button>
+        </sc-for>
+      </nav>
+      <div style="display:flex;align-items:center;gap:14px;margin-left:auto">
+        <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:rgba(255,255,255,0.5);white-space:nowrap">
+          <span style="width:7px;height:7px;border-radius:50%;background:#2196f3;animation:pulseDot 2s infinite"></span>
+          <span>{{ pollLabel }}</span>
+        </div>
+        <button type="button" onClick="{{ goAlerts }}" style="position:relative;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;width:36px;height:34px;color:#fff;cursor:pointer">
+          <i class="fa-solid fa-bell" style="font-size:13px"></i>
+          <sc-if value="{{ hasOpenAlerts }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e5484d;color:#fff;font-size:10.5px;font-weight:700;line-height:18px">{{ openAlertCount }}</span>
+          </sc-if>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1180px;margin:0 auto;padding:32px 20px 0">
+
+    <!-- ============ 拠点一覧 ============ -->
+    <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+          <div>
+            <div style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;color:#a8c8ff;text-transform:uppercase">Overview</div>
+            <h1 style="margin:8px 0 0;font-size:26px;font-weight:900;letter-spacing:0.02em">拠点のようす</h1>
+            <div style="width:48px;height:3px;background:#1a73e8;margin-top:14px"></div>
+          </div>
+          <x-import component-from-global-scope="VelioraOfficeDesignSystem_3bad8c.Button" variant="primary" size="md" icon="fa-solid fa-angles-right" onClick="{{ goClaim }}" hint-size="240px,48px">センサーパックを追加</x-import>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:28px 0 30px">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+            <div style="background:#102040;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:18px 20px">
+              <div style="font-size:11.5px;color:rgba(255,255,255,0.5);letter-spacing:0.04em">{{ s.label }}</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+                <span style="font-family:Montserrat,sans-serif;font-size:32px;font-weight:800;color:{{ s.color }}">{{ s.value }}</span>
+                <span style="font-size:12px;color:rgba(255,255,255,0.45)">{{ s.unit }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
+          <sc-for list="{{ siteCards }}" as="site" hint-placeholder-count="2">
+            <div style="background:#fff;border-radius:8px;padding:26px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="font-size:19px;font-weight:700;border-bottom:2px solid #0a1628;padding-bottom:8px;display:inline-block">{{ site.name }}</div>
+                  <div style="font-size:12px;color:#6b82a0;margin-top:10px">{{ site.meta }}</div>
+                </div>
+                <span style="{{ site.badgeStyle }}">{{ site.badgeLabel }}</span>
+              </div>
+
+              <div style="display:flex;gap:26px;margin:22px 0 20px">
+                <div>
+                  <div style="font-size:11px;color:#6b82a0;letter-spacing:0.06em">いまの温度</div>
+                  <div style="font-family:Montserrat,sans-serif;font-size:34px;font-weight:800;color:{{ site.tempColor }};line-height:1.1">{{ site.temp }}<span style="font-size:15px;font-weight:700">℃</span></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#6b82a0;letter-spacing:0.06em">いまの湿度</div>
+                  <div style="font-family:Montserrat,sans-serif;font-size:34px;font-weight:800;color:#1a3560;line-height:1.1">{{ site.hum }}<span style="font-size:15px;font-weight:700">%</span></div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(10,22,40,0.1);padding-top:16px">
+                <sc-for list="{{ site.devices }}" as="d" hint-placeholder-count="1">
+                  <button type="button" onClick="{{ d.open }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#f0f4f8;border:1px solid rgba(10,22,40,0.08);border-radius:6px;padding:12px 14px;cursor:pointer" style-hover="background:#e4ecf6">
+                    <span style="width:9px;height:9px;border-radius:50%;background:{{ d.dot }};flex:none"></span>
+                    <span style="flex:1;font-size:13px;font-weight:500;color:#0a1628">{{ d.name }}</span>
+                    <span style="font-size:11.5px;color:#6b82a0;white-space:nowrap">{{ d.sub }}</span>
+                    <i class="fa-solid fa-angles-right" style="font-size:11px;color:#1a73e8"></i>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ デバイス詳細 ============ -->
+    <sc-if value="{{ isDevice }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both">
+        <button type="button" onClick="{{ goDashboard }}" style="background:transparent;border:none;color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;padding:0 0 14px">← 拠点一覧にもどる</button>
+
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:12px;color:#a8c8ff;letter-spacing:0.1em">{{ dev.siteName }}</div>
+            <h1 style="margin:6px 0 10px;font-size:25px;font-weight:900">{{ dev.name }}</h1>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="{{ dev.badgeStyle }}">{{ dev.badgeLabel }}</span>
+              <span style="font-size:12px;color:rgba(255,255,255,0.5)">最終受信 {{ dev.lastSeen }}・{{ dev.intervalLabel }}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;background:#102040;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:4px">
+            <sc-for list="{{ rangeTabs }}" as="t" hint-placeholder-count="2">
+              <button type="button" onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border-radius:8px;padding:24px;margin-top:22px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="font-size:14px;font-weight:700">温度・湿度のうごき</div>
+            <div style="display:flex;gap:16px;font-size:11.5px;color:#6b82a0;flex-wrap:wrap;white-space:nowrap">
+              <span><span style="display:inline-block;width:16px;height:3px;background:#1a73e8;vertical-align:middle;margin-right:6px"></span>温度</span>
+              <span><span style="display:inline-block;width:16px;height:3px;background:#64b5f6;vertical-align:middle;margin-right:6px"></span>湿度（右めもり 0〜100%）</span>
+              <span><span style="display:inline-block;width:16px;height:0;border-top:2px dashed #e5484d;vertical-align:middle;margin-right:6px"></span>温度の上限ライン</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:stretch">
+            <div style="display:flex;flex-direction:column;justify-content:space-between;width:32px;height:220px;padding:4px 0 2px;font-family:Montserrat,sans-serif;font-size:9px;font-weight:600;color:#6b82a0;text-align:right;flex:none">
+              <sc-for list="{{ chart.yLabels }}" as="y" hint-placeholder-count="5">
+                <span style="line-height:1">{{ y }}</span>
+              </sc-for>
+            </div>
+            <div style="flex:1;min-width:0">
+              <svg viewBox="0 0 720 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block">
+                <sc-for list="{{ chart.grid }}" as="g" hint-placeholder-count="5">
+                  <line x1="0" y1="{{ g.y }}" x2="720" y2="{{ g.y }}" stroke="rgba(10,22,40,0.08)" stroke-width="1"></line>
+                </sc-for>
+                <path d="{{ chart.humPath }}" fill="none" stroke="#64b5f6" stroke-width="1.6" vector-effect="non-scaling-stroke"></path>
+                <path d="{{ chart.tempArea }}" fill="rgba(26,115,232,0.08)" stroke="none"></path>
+                <path d="{{ chart.tempPath }}" fill="none" stroke="#1a73e8" stroke-width="2.2" vector-effect="non-scaling-stroke"></path>
+                <line x1="0" y1="{{ chart.upperY }}" x2="720" y2="{{ chart.upperY }}" stroke="#e5484d" stroke-width="1.4" stroke-dasharray="6 5"></line>
+                <line x1="0" y1="{{ chart.lowerY }}" x2="720" y2="{{ chart.lowerY }}" stroke="rgba(107,130,160,0.7)" stroke-width="1.2" stroke-dasharray="3 5"></line>
+              </svg>
+              <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:Montserrat,sans-serif;font-size:9.5px;font-weight:600;color:#6b82a0">
+                <sc-for list="{{ chart.xLabels }}" as="x" hint-placeholder-count="5">
+                  <span style="white-space:nowrap">{{ x.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;justify-content:space-between;width:32px;height:220px;padding:4px 0 2px;font-family:Montserrat,sans-serif;font-size:9px;font-weight:600;color:#64b5f6;flex:none">
+              <sc-for list="{{ chart.humLabels }}" as="h" hint-placeholder-count="5">
+                <span style="line-height:1;white-space:nowrap">{{ h }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;border-top:1px solid rgba(10,22,40,0.1);padding-top:16px">
+            <sc-for list="{{ chart.summary }}" as="c" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:11px;color:#6b82a0">{{ c.label }}</div>
+                <div style="font-family:Montserrat,sans-serif;font-size:19px;font-weight:700;color:#0a1628;margin-top:3px">{{ c.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:20px">
+
+          <div style="background:#fff;border-radius:8px;padding:24px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+            <div style="font-size:14px;font-weight:700;border-bottom:2px solid #0a1628;padding-bottom:9px;display:inline-block">遠隔でうごかす</div>
+            <sc-if value="{{ dev.isOffline }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:10px;background:#fff4e5;border:1px solid #ffd8a8;border-radius:6px;padding:12px 14px;margin-top:16px;font-size:12px;color:#7a4a00;line-height:1.7">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-top:2px"></i>
+                <span>いまオフラインです。操作は受け付けますが、10分以内につながらなければ届きません。</span>
+              </div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">
+              <sc-for list="{{ actuators }}" as="a" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:14px;background:#f0f4f8;border-radius:6px;padding:14px 16px">
+                  <i class="{{ a.icon }}" style="font-size:17px;color:{{ a.iconColor }};width:22px;text-align:center"></i>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:700">{{ a.name }}</div>
+                    <div style="font-size:11px;color:#6b82a0;margin-top:2px">{{ a.state }}</div>
+                  </div>
+                  <button type="button" onClick="{{ a.toggle }}" style="{{ a.switchStyle }}">
+                    <span style="{{ a.knobStyle }}"></span>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:22px;border-top:1px solid rgba(10,22,40,0.1);padding-top:18px">
+              <div style="font-size:13px;font-weight:700;margin-bottom:12px">おまかせ運転</div>
+              <sc-for list="{{ rules }}" as="r" hint-placeholder-count="2">
+                <label style="display:flex;align-items:flex-start;gap:11px;padding:8px 0;cursor:pointer">
+                  <input type="checkbox" checked="{{ r.on }}" onChange="{{ r.toggle }}" style="margin-top:3px;accent-color:#1a73e8;width:15px;height:15px">
+                  <span style="flex:1">
+                    <span style="display:block;font-size:12.5px;font-weight:500">{{ r.label }}</span>
+                    <span style="display:block;font-size:11px;color:#6b82a0;margin-top:3px;line-height:1.6">{{ r.desc }}</span>
+                  </span>
+                </label>
+              </sc-for>
+              <sc-if value="{{ overrideActive }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top:12px;background:#eef4fd;border-left:3px solid #1a73e8;padding:11px 14px;font-size:11.5px;color:#1a3560;line-height:1.7">手動で操作したので、あと{{ overrideLabel }}はおまかせ運転より手動を優先します。</div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="background:#fff;border-radius:8px;padding:24px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+            <div style="font-size:14px;font-weight:700;border-bottom:2px solid #0a1628;padding-bottom:9px;display:inline-block">お知らせする条件</div>
+            <div style="font-size:11.5px;color:#6b82a0;margin-top:14px;line-height:1.8">この範囲から3回続けてはずれたときだけお知らせします。一瞬だけの値では鳴りません。</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-top:18px">
+              <sc-for list="{{ thresholdFields }}" as="f" hint-placeholder-count="4">
+                <label style="display:block">
+                  <span style="display:block;font-size:11px;color:#6b82a0;margin-bottom:6px">{{ f.label }}</span>
+                  <span style="display:flex;align-items:center;gap:8px;border:1px solid #c8d6e8;border-radius:4px;padding:9px 12px">
+                    <input type="number" step="{{ f.step }}" value="{{ f.value }}" onChange="{{ f.set }}" style="width:100%;border:none;outline:none;font-size:15px;font-weight:700;color:#0a1628;background:transparent">
+                    <span style="font-size:12px;color:#6b82a0">{{ f.unit }}</span>
+                  </span>
+                </label>
+              </sc-for>
+            </div>
+            <div style="margin-top:16px;background:#f0f4f8;border-radius:6px;padding:13px 15px;font-size:11.5px;color:#3a4a60;line-height:1.8">{{ hysteresisNote }}</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:20px">
+          <div style="background:#102040;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:22px">
+            <div style="font-size:13px;font-weight:700;letter-spacing:0.04em;margin-bottom:14px">操作の履歴</div>
+            <sc-if value="{{ hasCommands }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ commandRows }}" as="c" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:6px;padding:11px 13px">
+                    <span style="flex:1;font-size:12.5px">{{ c.label }}</span>
+                    <span style="font-size:11px;color:rgba(255,255,255,0.4)">{{ c.origin }}</span>
+                    <span style="{{ c.statusStyle }}">{{ c.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noCommands }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:12px;color:rgba(255,255,255,0.4);padding:8px 0">まだ操作していません。</div>
+            </sc-if>
+          </div>
+          <div style="background:#102040;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:22px">
+            <div style="font-size:13px;font-weight:700;letter-spacing:0.04em;margin-bottom:14px">この機器のお知らせ</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ deviceAlerts }}" as="a" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:6px;padding:11px 13px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ a.dot }};flex:none"></span>
+                  <span style="flex:1;font-size:12.5px">{{ a.title }}</span>
+                  <span style="font-size:11px;color:rgba(255,255,255,0.4)">{{ a.time }}</span>
+                  <span style="{{ a.statusStyle }}">{{ a.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ お知らせ一覧 ============ -->
+    <sc-if value="{{ isAlerts }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both">
+        <div style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;color:#a8c8ff;text-transform:uppercase">Alerts</div>
+        <h1 style="margin:8px 0 0;font-size:26px;font-weight:900">お知らせ</h1>
+        <div style="width:48px;height:3px;background:#1a73e8;margin-top:14px"></div>
+
+        <div style="display:flex;gap:6px;margin:24px 0 18px;flex-wrap:wrap">
+          <sc-for list="{{ alertTabs }}" as="t" hint-placeholder-count="3">
+            <button type="button" onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ alertRows }}" as="a" hint-placeholder-count="3">
+            <div style="background:#fff;border-radius:8px;padding:20px 22px;color:#0a1628;display:flex;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:0 2px 12px rgba(0,0,0,0.14);border-left:4px solid {{ a.dot }}">
+              <div style="flex:1;min-width:200px">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="font-size:15px;font-weight:700">{{ a.title }}</span>
+                  <span style="{{ a.sevStyle }}">{{ a.severity }}</span>
+                </div>
+                <div style="font-size:12px;color:#6b82a0;margin-top:7px;line-height:1.7">{{ a.detail }}</div>
+              </div>
+              <div style="text-align:right;min-width:120px">
+                <div style="font-size:11.5px;color:#6b82a0">{{ a.time }}</div>
+                <div style="{{ a.statusStyle }}">{{ a.status }}</div>
+              </div>
+              <sc-if value="{{ a.canAck }}" hint-placeholder-val="{{ true }}">
+                <x-import component-from-global-scope="VelioraOfficeDesignSystem_3bad8c.Button" variant="primary" size="sm" onClick="{{ a.ack }}" hint-size="96px,38px">確認した</x-import>
+              </sc-if>
+              <x-import component-from-global-scope="VelioraOfficeDesignSystem_3bad8c.Button" variant="ghost" size="sm" onClick="{{ a.open }}" hint-size="112px,38px">機器を見る</x-import>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ noAlertRows }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#102040;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:40px;text-align:center;color:rgba(255,255,255,0.45);font-size:13px">このタブに表示するものはありません。</div>
+        </sc-if>
+        <div style="margin-top:18px;font-size:11.5px;color:rgba(255,255,255,0.4);line-height:1.8">「解決ずみ」になるのは、値が安全な範囲に3回続けて戻ったとき、または機器がつながり直したときです。自分で消すことはできません。</div>
+      </div>
+    </sc-if>
+
+    <!-- ============ AIサマリー ============ -->
+    <sc-if value="{{ isAi }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both">
+        <div style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;color:#a8c8ff;text-transform:uppercase">Daily Summary</div>
+        <h1 style="margin:8px 0 0;font-size:26px;font-weight:900">きょうのまとめ</h1>
+        <div style="width:48px;height:3px;background:#1a73e8;margin-top:14px"></div>
+
+        <div style="background:#fff;border-radius:8px;padding:30px;margin-top:26px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18);max-width:820px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:1px solid rgba(10,22,40,0.1);padding-bottom:16px">
+            <div>
+              <div style="font-size:15px;font-weight:700">直近24時間のまとめ</div>
+              <div style="font-size:11.5px;color:#6b82a0;margin-top:6px">{{ aiQuotaNote }}</div>
+            </div>
+            <button type="button" onClick="{{ generateAi }}" style="{{ aiButtonStyle }}">{{ aiButtonLabel }}</button>
+          </div>
+
+          <sc-if value="{{ aiLoading }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:12px;padding:34px 0;color:#6b82a0;font-size:13px">
+              <span style="width:16px;height:16px;border:2px solid #c8d6e8;border-top-color:#1a73e8;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block"></span>
+              まとめを作っています…
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aiHasText }}" hint-placeholder-val="{{ true }}">
+            <div style="padding-top:20px">
+              <sc-if value="{{ aiCached }}" hint-placeholder-val="{{ true }}">
+                <div style="background:#eef4fd;border-left:3px solid #1a73e8;padding:11px 14px;font-size:11.5px;color:#1a3560;margin-bottom:18px;line-height:1.7">きょうのぶんは作成ずみです。あすの朝3時にまた作れます。</div>
+              </sc-if>
+              <div style="font-size:13.5px;line-height:2.05;color:#1a2535;white-space:pre-line;text-wrap:pretty">{{ aiText }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:24px;border-top:1px solid rgba(10,22,40,0.1);padding-top:18px">
+                <sc-for list="{{ aiStats }}" as="s" hint-placeholder-count="4">
+                  <div>
+                    <div style="font-size:11px;color:#6b82a0">{{ s.label }}</div>
+                    <div style="font-family:Montserrat,sans-serif;font-size:18px;font-weight:700;margin-top:3px">{{ s.value }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aiIdle }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:34px 0;color:#6b82a0;font-size:13px;line-height:1.9">ボタンを押すと、きのうからの温度・湿度のうごきとお知らせの内容を文章にまとめます。<br>まとめに使うのは数値だけで、名前やメールアドレスは送りません。</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ デバイス追加 ============ -->
+    <sc-if value="{{ isClaim }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both;max-width:760px">
+        <button type="button" onClick="{{ goDashboard }}" style="background:transparent;border:none;color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;padding:0 0 14px">← 拠点一覧にもどる</button>
+        <div style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;color:#a8c8ff;text-transform:uppercase">Add Device</div>
+        <h1 style="margin:8px 0 0;font-size:26px;font-weight:900">センサーパックを追加する</h1>
+        <div style="width:48px;height:3px;background:#1a73e8;margin-top:14px"></div>
+
+        <div style="background:#fff;border-radius:8px;padding:30px;margin-top:26px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+          <div style="display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap">
+            <sc-for list="{{ claimSteps }}" as="s" hint-placeholder-count="3">
+              <div style="{{ s.style }}"><span style="font-family:Montserrat,sans-serif;font-weight:800;margin-right:8px">{{ s.n }}</span>{{ s.label }}</div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ claimForm }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <label style="display:block;margin-bottom:20px">
+                <span style="display:block;font-size:12px;font-weight:700;margin-bottom:8px">どの拠点に置きますか</span>
+                <span style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ claimSiteOptions }}" as="o" hint-placeholder-count="2">
+                    <button type="button" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.name }}</button>
+                  </sc-for>
+                </span>
+              </label>
+              <label style="display:block;margin-bottom:22px">
+                <span style="display:block;font-size:12px;font-weight:700;margin-bottom:8px">この機器の呼び名</span>
+                <input type="text" value="{{ claimName }}" onChange="{{ setClaimName }}" placeholder="例：倉庫A 奥の棚" style="width:100%;border:1px solid #c8d6e8;border-radius:4px;padding:12px 14px;font-size:14px;color:#0a1628;outline:none">
+                <span style="display:block;font-size:11px;color:#6b82a0;margin-top:7px">住所は入力しないでください。自分がわかる呼び名で大丈夫です。</span>
+              </label>
+
+              <div style="display:flex;align-items:center;gap:14px;border:1px solid #c8d6e8;border-radius:4px;padding:14px 16px;background:#f8fafc;max-width:330px">
+                <input type="checkbox" checked="{{ recaptcha }}" onChange="{{ toggleRecaptcha }}" style="width:22px;height:22px;accent-color:#1a73e8">
+                <span style="flex:1;font-size:12.5px;color:#1a2535">私はロボットではありません</span>
+                <span style="font-size:9px;color:#6b82a0;text-align:center;line-height:1.4">reCAPTCHA<br>プライバシー・利用規約</span>
+              </div>
+
+              <div style="margin-top:24px">
+                <x-import component-from-global-scope="VelioraOfficeDesignSystem_3bad8c.Button" variant="primary" size="md" icon="fa-solid fa-angles-right" disabled="{{ issueDisabled }}" onClick="{{ issueCode }}" hint-size="240px,48px">接続コードを発行する</x-import>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ claimIssued }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="font-size:13px;color:#3a4a60;line-height:1.9;margin-bottom:20px">センサーパックの電源を入れ、スマホからWi-Fiにつないで、下のコードを入力してください。</div>
+              <div style="background:#0a1628;border-radius:8px;padding:28px;text-align:center">
+                <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.18em;text-transform:uppercase;font-family:Montserrat,sans-serif;font-weight:700">Claim Code</div>
+                <div style="font-family:Montserrat,sans-serif;font-size:clamp(30px,7vw,46px);font-weight:800;letter-spacing:0.22em;color:#fff;margin:14px 0 10px">{{ claimCode }}</div>
+                <div style="font-size:12px;color:#a8c8ff">のこり {{ claimCountdown }} で使えなくなります</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:22px;color:#6b82a0;font-size:12.5px">
+                <span style="width:15px;height:15px;border:2px solid #c8d6e8;border-top-color:#1a73e8;border-radius:50%;animation:spin 0.9s linear infinite;display:inline-block"></span>
+                センサーパックからの接続を待っています…
+              </div>
+              <div style="margin-top:20px;background:#f0f4f8;border-radius:6px;padding:14px 16px;font-size:11.5px;color:#3a4a60;line-height:1.8">コードを5回まちがえると、そのコードは使えなくなります。もう一度発行しなおしてください。</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ claimDone }}" hint-placeholder-val="{{ true }}">
+            <div style="text-align:center;padding:16px 0">
+              <div style="width:54px;height:54px;border-radius:50%;background:#e6f4ea;display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+                <i class="fa-solid fa-check" style="color:#1e8e3e;font-size:21px"></i>
+              </div>
+              <div style="font-size:17px;font-weight:700">つながりました</div>
+              <div style="font-size:12.5px;color:#6b82a0;margin-top:10px;line-height:1.9">「{{ claimName }}」を{{ claimSiteName }}に追加しました。<br>はじめのデータが届くまで数分かかることがあります。</div>
+              <button type="button" onClick="{{ goDashboard }}" style="margin-top:22px;background:#1a73e8;color:#fff;border:none;border-radius:4px;padding:13px 26px;font-size:13px;font-weight:700;cursor:pointer">拠点一覧を見る</button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ 管理画面 ============ -->
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:fadeUp 0.5s ease both">
+        <div style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;color:#a8c8ff;text-transform:uppercase">Admin</div>
+        <h1 style="margin:8px 0 0;font-size:26px;font-weight:900">運用ツール</h1>
+        <div style="width:48px;height:3px;background:#1a73e8;margin-top:14px"></div>
+
+        <sc-if value="{{ adminLocked }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border-radius:8px;padding:30px;margin-top:26px;color:#0a1628;max-width:400px;box-shadow:0 2px 12px rgba(0,0,0,0.18)">
+            <div style="font-size:14px;font-weight:700">ログインが必要です</div>
+            <div style="font-size:11.5px;color:#6b82a0;margin-top:8px;line-height:1.8">運用担当者むけの画面です。</div>
+            <label style="display:block;margin-top:18px">
+              <span style="display:block;font-size:11px;color:#6b82a0;margin-bottom:6px">ユーザー名</span>
+              <input type="text" value="{{ adminUser }}" onChange="{{ setAdminUser }}" style="width:100%;border:1px solid #c8d6e8;border-radius:4px;padding:11px 13px;font-size:14px;outline:none;color:#0a1628">
+            </label>
+            <label style="display:block;margin-top:14px">
+              <span style="display:block;font-size:11px;color:#6b82a0;margin-bottom:6px">パスワード</span>
+              <input type="password" value="{{ adminPass }}" onChange="{{ setAdminPass }}" style="width:100%;border:1px solid #c8d6e8;border-radius:4px;padding:11px 13px;font-size:14px;outline:none;color:#0a1628">
+            </label>
+            <button type="button" onClick="{{ adminLogin }}" style="width:100%;margin-top:20px;background:#1a73e8;color:#fff;border:none;border-radius:4px;padding:13px;font-size:13px;font-weight:700;cursor:pointer">ログイン</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ adminOpen }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:26px;display:flex;flex-direction:column;gap:20px">
+            <div style="background:#fff;border-radius:8px;padding:24px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18);overflow-x:auto">
+              <div style="font-size:14px;font-weight:700;margin-bottom:16px">登録されている機器</div>
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:520px">
+                <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1fr 1fr;gap:12px;font-size:11px;color:#6b82a0;padding:0 12px 8px;border-bottom:1px solid rgba(10,22,40,0.1)">
+                  <span>機器</span><span>拠点</span><span>状態</span><span>最終受信</span><span>送信間隔</span>
+                </div>
+                <sc-for list="{{ adminDevices }}" as="d" hint-placeholder-count="2">
+                  <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1fr 1fr;gap:12px;font-size:12.5px;background:#f8fafc;border-radius:6px;padding:13px 12px;align-items:center">
+                    <span style="font-weight:500">{{ d.name }}</span>
+                    <span style="color:#6b82a0">{{ d.site }}</span>
+                    <span style="color:{{ d.color }};font-weight:700">{{ d.status }}</span>
+                    <span style="color:#6b82a0">{{ d.lastSeen }}</span>
+                    <span style="color:#6b82a0">{{ d.interval }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:8px;padding:24px;color:#0a1628;box-shadow:0 2px 12px rgba(0,0,0,0.18);max-width:520px">
+              <div style="font-size:14px;font-weight:700">まとめ機能の回数リセット</div>
+              <div style="font-size:11.5px;color:#6b82a0;margin-top:9px;line-height:1.8">1日1回までの制限を、その場で戻します。</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:18px;background:#f0f4f8;border-radius:6px;padding:14px 16px;flex-wrap:wrap">
+                <span style="flex:1;font-size:12.5px">きょうの利用：{{ aiQuotaShort }}</span>
+                <x-import component-from-global-scope="VelioraOfficeDesignSystem_3bad8c.Button" variant="primary" size="sm" onClick="{{ resetQuota }}" hint-size="120px,38px">リセットする</x-import>
+              </div>
+              <sc-if value="{{ quotaResetDone }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top:14px;font-size:11.5px;color:#1e8e3e">リセットしました。もう一度まとめを作れます。</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;pollingSeconds&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:30,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:5,&quot;max&quot;:120,&quot;step&quot;:5,&quot;unit&quot;:&quot;秒&quot;,&quot;section&quot;:&quot;ふるまい&quot;},&quot;simulateOfflineDevice&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;ふるまい&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'dashboard', deviceId: 'd1', range: '24h', now: Date.now(), pollLeft: 30,
+    led: { d1: false, d2: false }, fan: { d1: false, d2: false },
+    commands: [], overrideUntil: { d1: 0, d2: 0 },
+    rules: { d1: { fan: true, led: true }, d2: { fan: false, led: true } },
+    thresholds: {
+      d1: { tu: 28, tl: 5, hu: 75, hl: 25, db: 1.0 },
+      d2: { tu: 30, tl: 2, hu: 80, hl: 20, db: 1.0 }
+    },
+    alerts: [
+      { id: 'a1', devId: 'd1', title: '倉庫A 入口の温度が高すぎます', detail: '28℃をこえた状態が3回つづきました（いま29.4℃）。', sev: 'warning', status: 'open', minsAgo: 12 },
+      { id: 'a2', devId: 'd2', title: '実家 リビングの機器がつながりません', detail: '3分30秒以上データが届いていません。電源とWi-Fiをご確認ください。', sev: 'critical', status: 'open', minsAgo: 47 },
+      { id: 'a3', devId: 'd1', title: '倉庫A 入口の湿度が低すぎます', detail: '25%を下回りましたが、いまは戻っています。', sev: 'info', status: 'closed', minsAgo: 320 }
+    ],
+    alertFilter: 'open',
+    ai: { status: 'idle', text: '', used: false, cached: false },
+    admin: { authed: false, user: '', pass: '', reset: false },
+    claim: { step: 'form', site: 's1', name: '', recaptcha: false, code: '', left: 900 }
+  };
+
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      this.setState(s => {
+        const pollLeft = s.pollLeft <= 1 ? (this.props.pollingSeconds ?? 30) : s.pollLeft - 1;
+        const next = { now: Date.now(), pollLeft };
+        if (s.claim.step === 'issued') {
+          const left = s.claim.left - 1;
+          next.claim = Object.assign({}, s.claim, { left, step: left <= 886 ? 'done' : 'issued' });
+        }
+        return next;
+      });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  sites() {
+    return [
+      { id: 's1', name: '倉庫A' },
+      { id: 's2', name: '実家' }
+    ];
+  }
+  devices() {
+    const off = this.props.simulateOfflineDevice ?? true;
+    return [
+      { id: 'd1', siteId: 's1', name: '倉庫A 入口', status: 'online', lastSeenMin: 0.6, interval: 60 },
+      { id: 'd2', siteId: 's2', name: '実家 リビング', status: off ? 'offline' : 'online', lastSeenMin: off ? 47 : 0.9, interval: 60 }
+    ];
+  }
+
+  series(devId, range) {
+    const n = range === '24h' ? 144 : 168;
+    const stepMin = range === '24h' ? 10 : 60;
+    const seed = devId === 'd1' ? 7 : 23;
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = (i * stepMin) / 60;
+      const r = Math.sin(seed + i * 1.7) * 0.5 + Math.sin(seed * 2 + i * 0.43) * 0.35;
+      let temp = 22.5 + Math.sin((t / 24) * Math.PI * 2 - 1.9) * 4.2 + r * 1.1;
+      let hum = 52 + Math.sin((t / 24) * Math.PI * 2 + 0.7) * 12 + r * 4;
+      if (devId === 'd1') {
+        const spikeAt = range === '24h' ? n - 26 : n - 12;
+        const d = Math.abs(i - spikeAt);
+        if (d < 10) temp += (10 - d) * 0.72;
+      } else {
+        temp -= 3.2; hum += 6;
+      }
+      pts.push({ temp: temp, hum: Math.max(2, Math.min(98, hum)), t: t });
+    }
+    return pts;
+  }
+
+  fmtMins(m) {
+    if (m < 1) return '数十秒前';
+    if (m < 60) return Math.round(m) + '分前';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + '時間前';
+    return Math.floor(h / 24) + '日前';
+  }
+  badge(bg, fg) {
+    return 'display:inline-block;padding:5px 11px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0.04em;background:' + bg + ';color:' + fg;
+  }
+  pill(active) {
+    return 'flex:none;padding:9px 16px;border-radius:4px;font-size:12.5px;font-weight:' + (active ? '700' : '400') +
+      ';cursor:pointer;white-space:nowrap;border:1px solid ' + (active ? '#1a73e8' : 'rgba(255,255,255,0.14)') +
+      ';background:' + (active ? '#1a73e8' : 'transparent') + ';color:' + (active ? '#fff' : 'rgba(255,255,255,0.72)');
+  }
+
+  go(view, extra) { this.setState(Object.assign({ view: view }, extra || {})); }
+
+  issueCommand(devId, type, origin) {
+    const id = 'c' + Math.random().toString(36).slice(2, 8);
+    const labels = { LED_ON: 'ライトをつける', LED_OFF: 'ライトを消す', FAN_ON: 'ファンを回す', FAN_OFF: 'ファンを止める' };
+    this.setState(s => {
+      const cmd = { id, devId, label: labels[type], origin, status: 'pending' };
+      const ov = Object.assign({}, s.overrideUntil);
+      if (origin === 'manual') ov[devId] = Date.now() + 30 * 60 * 1000;
+      return { commands: [cmd].concat(s.commands).slice(0, 6), overrideUntil: ov };
+    });
+    const bump = (status, ms) => setTimeout(() => this.setState(s => ({
+      commands: s.commands.map(c => (c.id === id ? Object.assign({}, c, { status }) : c))
+    })), ms);
+    const dev = this.devices().find(d => d.id === devId);
+    if (dev && dev.status === 'offline') { bump('expired', 2600); }
+    else { bump('delivered', 1100); bump('done', 2700); }
+  }
+
+  toggleActuator(devId, kind) {
+    const key = kind === 'led' ? 'led' : 'fan';
+    const on = !this.state[key][devId];
+    this.setState(s => ({ [key]: Object.assign({}, s[key], { [devId]: on }) }));
+    this.issueCommand(devId, (kind === 'led' ? 'LED_' : 'FAN_') + (on ? 'ON' : 'OFF'), 'manual');
+  }
+
+  buildChart(devId, range) {
+    const pts = this.series(devId, range);
+    const th = this.state.thresholds[devId];
+    const W = 720, H = 220, PT = 10, PB = 8;
+    const x = i => (i * W) / (pts.length - 1);
+    const ty = v => PT + (1 - Math.max(0, Math.min(40, v)) / 40) * (H - PT - PB);
+    const hy = v => PT + (1 - v / 100) * (H - PT - PB);
+    const path = (fn, key) => pts.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + fn(p[key]).toFixed(1)).join(' ');
+    const tempPath = path(ty, 'temp');
+    const temps = pts.map(p => p.temp), hums = pts.map(p => p.hum);
+    const max = Math.max.apply(null, temps), min = Math.min.apply(null, temps);
+    const avg = temps.reduce((a, b) => a + b, 0) / temps.length;
+    const over = pts.filter(p => p.temp > th.tu).length * (range === '24h' ? 10 : 60);
+    const grid = [0, 10, 20, 30, 40].map(v => ({ y: ty(v).toFixed(1) }));
+    const yLabels = [40, 30, 20, 10, 0].map(v => v + '℃');
+    const humLabels = [100, 75, 50, 25, 0].map(v => v + '%');
+    const xLabels = [];
+    const cnt = 5;
+    for (let i = 0; i < cnt; i++) {
+      const idx = Math.round((i * (pts.length - 1)) / (cnt - 1));
+      const hoursAgo = ((pts.length - 1 - idx) * (range === '24h' ? 10 : 60)) / 60;
+      xLabels.push({ x: x(idx).toFixed(1), label: hoursAgo < 0.5 ? 'いま' : (range === '24h' ? Math.round(hoursAgo) + '時間前' : Math.round(hoursAgo / 24) + '日前') });
+    }
+    return {
+      tempPath, humPath: path(hy, 'hum'),
+      tempArea: tempPath + ' L' + W + ' ' + (H - PB) + ' L0 ' + (H - PB) + ' Z',
+      upperY: ty(th.tu).toFixed(1), lowerY: ty(th.tl).toFixed(1),
+      grid, xLabels, yLabels, humLabels,
+      summary: [
+        { label: 'いちばん高かった温度', value: max.toFixed(1) + '℃' },
+        { label: 'いちばん低かった温度', value: min.toFixed(1) + '℃' },
+        { label: '平均の温度', value: avg.toFixed(1) + '℃' },
+        { label: '上限をこえていた時間', value: over >= 60 ? Math.round(over / 60) + '時間' : over + '分' },
+        { label: '平均の湿度', value: (hums.reduce((a, b) => a + b, 0) / hums.length).toFixed(0) + '%' }
+      ]
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const sites = this.sites(), devices = this.devices();
+    const dev = devices.find(d => d.id === s.deviceId) || devices[0];
+    const th = s.thresholds[dev.id];
+    const openAlerts = s.alerts.filter(a => a.status === 'open');
+    const sevMap = {
+      info: { label: 'お知らせ', dot: '#6b82a0', bg: '#f0f4f8', fg: '#3a4a60' },
+      warning: { label: '注意', dot: '#f0a020', bg: '#fff4e5', fg: '#7a4a00' },
+      critical: { label: '重要', dot: '#e5484d', bg: '#fdecec', fg: '#a01c20' }
+    };
+    const statusMap = {
+      open: { label: '未対応', style: 'font-size:11.5px;font-weight:700;color:#e5484d;margin-top:5px' },
+      acknowledged: { label: '確認ずみ', style: 'font-size:11.5px;font-weight:700;color:#f0a020;margin-top:5px' },
+      closed: { label: '解決ずみ', style: 'font-size:11.5px;font-weight:700;color:#1e8e3e;margin-top:5px' }
+    };
+    const nav = [
+      { id: 'dashboard', label: '拠点一覧' },
+      { id: 'device', label: '機器の詳細' },
+      { id: 'alerts', label: 'お知らせ' },
+      { id: 'ai', label: 'きょうのまとめ' },
+      { id: 'admin', label: '運用ツール' }
+    ];
+    const latest = id => {
+      const p = this.series(id, '24h');
+      return p[p.length - 1];
+    };
+    const devStatus = d => d.status === 'online'
+      ? { label: 'つながっています', dot: '#1e8e3e', badge: this.badge('#e6f4ea', '#1e8e3e') }
+      : d.status === 'offline'
+        ? { label: 'つながっていません', dot: '#e5484d', badge: this.badge('#fdecec', '#a01c20') }
+        : { label: '準備中', dot: '#6b82a0', badge: this.badge('#f0f4f8', '#3a4a60') };
+
+    const ov = s.overrideUntil[dev.id] || 0;
+    const ovLeft = Math.max(0, Math.round((ov - s.now) / 60000));
+    const cmdStatus = {
+      pending: { label: '送信待ち', style: this.badge('rgba(255,255,255,0.12)', 'rgba(255,255,255,0.75)') },
+      delivered: { label: '届きました', style: this.badge('rgba(26,115,232,0.22)', '#a8c8ff') },
+      done: { label: '実行ずみ', style: this.badge('rgba(30,142,62,0.22)', '#8fd6a3') },
+      expired: { label: '届きませんでした', style: this.badge('rgba(229,72,77,0.22)', '#ffb3b5') }
+    };
+    const claim = s.claim;
+    const claimSite = sites.find(x => x.id === claim.site) || sites[0];
+    const stepIdx = claim.step === 'form' ? 0 : claim.step === 'issued' ? 1 : 2;
+    const mm = Math.floor(claim.left / 60), ss = ('0' + (claim.left % 60)).slice(-2);
+    const tf = (label, key, unit, step) => ({
+      label, unit, step: step || '1', value: String(th[key]),
+      set: e => {
+        const v = parseFloat(e.target.value);
+        if (isNaN(v)) return;
+        this.setState(st => ({ thresholds: Object.assign({}, st.thresholds, { [dev.id]: Object.assign({}, st.thresholds[dev.id], { [key]: v }) }) }));
+      }
+    });
+
+    return {
+      navItems: nav.map(n => ({ label: n.label, style: this.pill(s.view === n.id), go: () => this.go(n.id) })),
+      pollLabel: s.pollLeft + '秒後に更新',
+      hasOpenAlerts: openAlerts.length > 0, openAlertCount: openAlerts.length,
+      goAlerts: () => this.go('alerts'), goDashboard: () => this.go('dashboard'), goClaim: () => this.go('claim'),
+      isDashboard: s.view === 'dashboard', isDevice: s.view === 'device', isAlerts: s.view === 'alerts',
+      isAi: s.view === 'ai', isClaim: s.view === 'claim', isAdmin: s.view === 'admin',
+
+      stats: [
+        { label: '拠点', value: String(sites.length), unit: 'か所', color: '#fff' },
+        { label: '機器', value: String(devices.length), unit: '台', color: '#fff' },
+        { label: 'つながっている機器', value: String(devices.filter(d => d.status === 'online').length), unit: '台', color: '#a8c8ff' },
+        { label: '未対応のお知らせ', value: String(openAlerts.length), unit: '件', color: openAlerts.length ? '#ff8f92' : '#fff' }
+      ],
+
+      siteCards: sites.map(site => {
+        const ds = devices.filter(d => d.siteId === site.id);
+        const l = latest(ds[0] ? ds[0].id : 'd1');
+        const alerts = s.alerts.filter(a => a.status !== 'closed' && ds.some(d => d.id === a.devId));
+        const hot = l.temp > s.thresholds[ds[0].id].tu;
+        return {
+          name: site.name,
+          meta: ds.length + '台 / つながっている ' + ds.filter(d => d.status === 'online').length + '台',
+          badgeStyle: alerts.length ? this.badge('#fdecec', '#a01c20') : this.badge('#e6f4ea', '#1e8e3e'),
+          badgeLabel: alerts.length ? 'お知らせ ' + alerts.length + '件' : '異常なし',
+          temp: l.temp.toFixed(1), hum: l.hum.toFixed(0),
+          tempColor: hot ? '#c62828' : '#1a73e8',
+          devices: ds.map(d => {
+            const st = devStatus(d);
+            return { name: d.name, dot: st.dot, sub: d.status === 'online' ? this.fmtMins(d.lastSeenMin) : 'つながっていません', open: () => this.go('device', { deviceId: d.id }) };
+          })
+        };
+      }),
+
+      dev: {
+        name: dev.name, siteName: (sites.find(x => x.id === dev.siteId) || {}).name,
+        badgeStyle: devStatus(dev).badge, badgeLabel: devStatus(dev).label,
+        lastSeen: this.fmtMins(dev.lastSeenMin), intervalLabel: dev.interval + '秒ごとに送信',
+        isOffline: dev.status === 'offline'
+      },
+      rangeTabs: ['24h', '7d'].map(r => ({
+        label: r === '24h' ? '24時間' : '7日間',
+        style: 'border:none;border-radius:3px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;background:' + (s.range === r ? '#1a73e8' : 'transparent') + ';color:' + (s.range === r ? '#fff' : 'rgba(255,255,255,0.6)'),
+        go: () => this.setState({ range: r })
+      })),
+      chart: this.buildChart(dev.id, s.range),
+
+      actuators: [
+        { key: 'led', name: 'ライト', icon: 'fa-solid fa-lightbulb', on: s.led[dev.id] },
+        { key: 'fan', name: 'ファン', icon: 'fa-solid fa-fan', on: s.fan[dev.id] }
+      ].map(a => ({
+        name: a.name, icon: a.icon, iconColor: a.on ? '#1a73e8' : '#6b82a0',
+        state: a.on ? 'いま つけています' : 'いま 止めています',
+        toggle: () => this.toggleActuator(dev.id, a.key),
+        switchStyle: 'width:52px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:' + (a.on ? '#1a73e8' : '#c8d6e8'),
+        knobStyle: 'position:absolute;top:3px;left:' + (a.on ? '25px' : '3px') + ';width:24px;height:24px;border-radius:50%;background:#fff;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.25)'
+      })),
+
+      rules: [
+        { key: 'fan', label: '暑くなったら自動でファンを回す', desc: '温度が上限をこえてお知らせが出たときにファンON、戻ったらOFFにします。', on: s.rules[dev.id].fan },
+        { key: 'led', label: 'お知らせ中はライトをつける', desc: '現地にいる人が気づけるように、その場のライトを点灯します。', on: s.rules[dev.id].led }
+      ].map(r => ({
+        label: r.label, desc: r.desc, on: r.on,
+        toggle: () => this.setState(st => ({ rules: Object.assign({}, st.rules, { [dev.id]: Object.assign({}, st.rules[dev.id], { [r.key]: !st.rules[dev.id][r.key] }) }) }))
+      })),
+      overrideActive: ovLeft > 0, overrideLabel: ovLeft + '分',
+
+      thresholdFields: [tf('温度の上限', 'tu', '℃', '0.5'), tf('温度の下限', 'tl', '℃', '0.5'), tf('湿度の上限', 'hu', '%', '1'), tf('湿度の下限', 'hl', '%', '1')],
+      hysteresisNote: '解除するのは、温度が ' + (th.tu - th.db).toFixed(1) + '℃ 以下に3回続けて戻ってから。ぎりぎりの値で何度も鳴らないようにしています。',
+
+      commandRows: s.commands.filter(c => c.devId === dev.id).map(c => ({
+        label: c.label, origin: c.origin === 'manual' ? '手動' : 'おまかせ',
+        status: cmdStatus[c.status].label, statusStyle: cmdStatus[c.status].style
+      })),
+      hasCommands: s.commands.filter(c => c.devId === dev.id).length > 0,
+      noCommands: s.commands.filter(c => c.devId === dev.id).length === 0,
+      deviceAlerts: s.alerts.filter(a => a.devId === dev.id).map(a => ({
+        title: a.title, dot: sevMap[a.sev].dot, time: this.fmtMins(a.minsAgo),
+        status: statusMap[a.status].label, statusStyle: this.badge('rgba(255,255,255,0.1)', 'rgba(255,255,255,0.75)')
+      })),
+
+      alertTabs: [['open', '未対応'], ['acknowledged', '確認ずみ'], ['closed', '解決ずみ']].map(t => ({
+        label: t[1] + '（' + s.alerts.filter(a => a.status === t[0]).length + '）',
+        style: this.pill(s.alertFilter === t[0]), go: () => this.setState({ alertFilter: t[0] })
+      })),
+      alertRows: s.alerts.filter(a => a.status === s.alertFilter).map(a => ({
+        title: a.title, detail: a.detail, dot: sevMap[a.sev].dot,
+        severity: sevMap[a.sev].label, sevStyle: this.badge(sevMap[a.sev].bg, sevMap[a.sev].fg),
+        time: this.fmtMins(a.minsAgo), status: statusMap[a.status].label, statusStyle: statusMap[a.status].style,
+        canAck: a.status === 'open',
+        ack: () => this.setState(st => ({ alerts: st.alerts.map(x => (x.id === a.id ? Object.assign({}, x, { status: 'acknowledged' }) : x)) })),
+        open: () => this.go('device', { deviceId: a.devId })
+      })),
+      noAlertRows: s.alerts.filter(a => a.status === s.alertFilter).length === 0,
+
+      aiIdle: s.ai.status === 'idle', aiLoading: s.ai.status === 'loading', aiHasText: s.ai.status === 'done',
+      aiCached: s.ai.cached, aiText: s.ai.text,
+      aiQuotaNote: s.ai.used ? 'きょうのぶんは作成ずみです（あすの朝3時にリセット）' : 'きょうはまだ作っていません（1日1回まで）',
+      aiQuotaShort: s.ai.used ? '1 / 1 回' : '0 / 1 回',
+      aiButtonLabel: s.ai.used ? 'もう一度読む' : 'まとめを作る',
+      aiButtonStyle: 'background:' + (s.ai.used ? 'transparent' : '#1a73e8') + ';color:' + (s.ai.used ? '#1a73e8' : '#fff') + ';border:1px solid #1a73e8;border-radius:4px;padding:12px 20px;font-size:12.5px;font-weight:700;cursor:pointer',
+      generateAi: () => {
+        if (this.state.ai.used) { this.setState(st => ({ ai: Object.assign({}, st.ai, { status: 'done', cached: true }) })); return; }
+        this.setState(st => ({ ai: Object.assign({}, st.ai, { status: 'loading' }) }));
+        setTimeout(() => this.setState({
+          ai: {
+            status: 'done', used: true, cached: false,
+            text: '倉庫Aは夕方から気温が上がり、17時ごろに29.4℃まで達しました。28℃の上限をこえていた時間はおよそ2時間で、この間にファンが自動で回りはじめ、20時には範囲内に戻っています。\n実家のリビングは日中おおむね19〜22℃で安定していましたが、夕方以降データが届いていません。電源かWi-Fiの確認をおすすめします。\n湿度は両拠点とも45〜62%の範囲で、注意が必要な変化はありませんでした。'
+          }
+        }), 1400);
+      },
+      aiStats: [
+        { label: '受信したデータ', value: '312 件' },
+        { label: '出たお知らせ', value: '2 件' },
+        { label: '上限をこえた時間', value: '約2時間' },
+        { label: '自動で動いた回数', value: '2 回' }
+      ],
+
+      claimForm: claim.step === 'form', claimIssued: claim.step === 'issued', claimDone: claim.step === 'done',
+      claimSteps: [['1', '拠点をえらぶ'], ['2', 'コードを発行'], ['3', 'つながる']].map((st, i) => ({
+        n: st[0], label: st[1],
+        style: 'flex:1;min-width:150px;padding:12px 14px;border-radius:6px;font-size:12.5px;font-weight:' + (i === stepIdx ? '700' : '400') +
+          ';background:' + (i === stepIdx ? '#eef4fd' : '#f8fafc') + ';color:' + (i <= stepIdx ? '#0a1628' : '#6b82a0') +
+          ';border:1px solid ' + (i === stepIdx ? '#1a73e8' : 'rgba(10,22,40,0.08)')
+      })),
+      claimSiteOptions: sites.map(site => ({
+        name: site.name,
+        style: 'padding:11px 20px;border-radius:4px;font-size:13px;cursor:pointer;font-weight:' + (claim.site === site.id ? '700' : '400') +
+          ';border:1px solid ' + (claim.site === site.id ? '#1a73e8' : '#c8d6e8') + ';background:' + (claim.site === site.id ? '#eef4fd' : '#fff') + ';color:#0a1628',
+        pick: () => this.setState(st => ({ claim: Object.assign({}, st.claim, { site: site.id }) }))
+      })),
+      claimName: claim.name, claimSiteName: claimSite.name,
+      setClaimName: e => { const v = e.target.value; this.setState(st => ({ claim: Object.assign({}, st.claim, { name: v }) })); },
+      recaptcha: claim.recaptcha,
+      toggleRecaptcha: () => this.setState(st => ({ claim: Object.assign({}, st.claim, { recaptcha: !st.claim.recaptcha }) })),
+      issueDisabled: !claim.recaptcha,
+      issueStyle: 'margin-top:24px;display:inline-flex;align-items:center;border:none;border-radius:4px;padding:14px 26px;font-size:13px;font-weight:700;cursor:' + (claim.recaptcha ? 'pointer' : 'not-allowed') + ';background:' + (claim.recaptcha ? '#1a73e8' : '#c8d6e8') + ';color:' + (claim.recaptcha ? '#fff' : '#6b82a0'),
+      issueCode: () => {
+        if (!this.state.claim.recaptcha) return;
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+        this.setState(st => ({ claim: Object.assign({}, st.claim, { step: 'issued', code, left: 900, name: st.claim.name || '倉庫A 奥の棚' }) }));
+      },
+      claimCode: claim.code, claimCountdown: mm + '分' + ss + '秒',
+
+      adminLocked: !s.admin.authed, adminOpen: s.admin.authed,
+      adminUser: s.admin.user, adminPass: s.admin.pass,
+      setAdminUser: e => { const v = e.target.value; this.setState(st => ({ admin: Object.assign({}, st.admin, { user: v }) })); },
+      setAdminPass: e => { const v = e.target.value; this.setState(st => ({ admin: Object.assign({}, st.admin, { pass: v }) })); },
+      adminLogin: () => this.setState(st => ({ admin: Object.assign({}, st.admin, { authed: true }) })),
+      adminDevices: devices.map(d => ({
+        name: d.name, site: (sites.find(x => x.id === d.siteId) || {}).name,
+        status: devStatus(d).label.replace('つながっています', 'オンライン').replace('つながっていません', 'オフライン'),
+        color: d.status === 'online' ? '#1e8e3e' : '#c62828',
+        lastSeen: this.fmtMins(d.lastSeenMin), interval: d.interval + '秒'
+      })),
+      resetQuota: () => this.setState(st => ({ ai: Object.assign({}, st.ai, { used: false, status: 'idle', cached: false }), admin: Object.assign({}, st.admin, { reset: true }) })),
+      quotaResetDone: s.admin.reset
+    };
+  }
+}
+
+</script>
+</body>
+</html>
