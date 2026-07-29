@@ -21,7 +21,7 @@ module Api
 
     before_action :set_alert, only: [ :ack ]
 
-    # GET /api/alerts
+    # GET /api/v1/alerts
     #
     # 自分の拠点配下の全アラートを一覧取得する(UC7)。statusクエリ(カンマ区切り、
     # 例:open,acknowledged)が指定されない場合はopen/acknowledgedのみを返す
@@ -48,7 +48,7 @@ module Api
       render json: { alerts: alerts.map { |alert| serialize_alert(alert) } }, status: :ok
     end
 
-    # GET /api/alerts/unread_count
+    # GET /api/v1/alerts/unread-count
     #
     # アプリ内通知バッジ用の未対応(open)件数を返す(requirements.md 1.4/1.6 F8-3、メール通知は実装しない)。
     def unread_count
@@ -59,7 +59,7 @@ module Api
       render json: { unreadCount: count }, status: :ok
     end
 
-    # POST /api/alerts/:alertId/ack
+    # POST /api/v1/alerts/:alertId/ack
     #
     # open状態のアラートをacknowledgedにする(UC7)。acknowledged済みへの再ackは冪等な無処理。
     # closed済みのアラートへのackは409(手動close不可であり、既に自動close済みのため)。

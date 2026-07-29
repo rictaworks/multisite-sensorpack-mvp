@@ -8,7 +8,7 @@ module Api
     include Authenticatable
     include TenantScoped
 
-    # GET /api/ai-summaries/today
+    # GET /api/v1/ai-summaries/today
     #
     # 当日(現在のクォータ日)に生成済みのサマリーがあれば返す(クォータ消費なし)。
     # 未生成の場合は204を返す。
@@ -23,7 +23,7 @@ module Api
       end
     end
 
-    # POST /api/ai-summaries
+    # POST /api/v1/ai-summaries
     #
     # AI日次サマリーを生成する(F7 generate_daily_summary)。同一クォータ日に既に
     # 生成済みなら429を返し、既存の保存済みサマリーを併せて返す。

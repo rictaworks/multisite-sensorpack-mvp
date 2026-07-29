@@ -684,6 +684,32 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /alerts/unread-count:
+    get:
+      operationId: getUnreadAlertCount
+      tags: [alerts]
+      summary: アプリ内通知バッジ用の未対応（open）アラート件数を取得する（F8-3）
+      description: >-
+        一覧を取得せずに件数だけを得るための軽量エンドポイント。
+        30秒ポーリングでバッジを更新する想定のため、listAlertsとは別に用意している。
+        メール通知は実装しない（requirements.md 1.4）。
+      security:
+        - googleSessionCookie: []
+      responses:
+        "200":
+          description: 未対応アラート件数
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [unreadCount]
+                properties:
+                  unreadCount:
+                    type: integer
+                    description: 自分の拠点配下でstatusがopenのアラート件数
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /alerts/{alertId}/ack:
     parameters:
       - name: alertId
