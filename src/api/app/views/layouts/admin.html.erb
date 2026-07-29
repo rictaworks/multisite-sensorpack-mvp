@@ -9,10 +9,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= t("admin.title") %></title>
-  <%# 注記: SRI(integrity属性)は配信元CDNの正確なハッシュ値を検証できる環境でのみ設定する。
-      本セッションはネットワーク検証ができないため、誤ったハッシュで正規のCSSを誤ってブロック
-      してしまうことを避けるためintegrity属性は付与していない(WORK報告に残課題として記録)。 %>
+  <%# Issue #53 A-6: SRI(Subresource Integrity)。CDNが侵害され配信内容が差し替えられても、
+      ハッシュが一致しない限りブラウザが読み込みを拒否する(管理画面へのCSS注入対策)。
+      ハッシュ値はcdnjsが公表するSRI(https://api.cdnjs.com/libraries/font-awesome/6.5.2?fields=sri)
+      と、実際に配信されたファイルから算出した値の両方が一致することを確認して記載している。
+      バージョンを上げる際は、必ず同じ手順でハッシュを取り直すこと(値だけ据え置くと
+      正規のCSSがブロックされる)。 %>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
         crossorigin="anonymous" referrerpolicy="no-referrer">
   <style>
     body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; margin: 0; background: #f4f5f7; color: #1f2328; }

@@ -1,5 +1,10 @@
 require "active_support/core_ext/integer/time"
 
+# Issue #53 A-1 / A-3: HTTPS強制・Hostヘッダ保護・信頼プロキシの設定値。
+# 環境依存の値(許可Host・プロキシレンジ)はすべて環境変数から取得する(CLAUDE.md)。
+# production.rbはeager load前に評価されるためautoloadに頼らずrequireする。
+require_relative "../../lib/production_security"
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -21,14 +26,22 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  # デプロイ先(Railway)はTLS終端リバースプロキシ構成であり、アプリにはHTTPで到達する。
+  # assume_sslを有効にしないと、force_sslが「まだHTTPだ」と判断し続けてリダイレクトループになる。
+  # 両者は必ずセットで有効化する(Issue #53 A-1)。
+  config.assume_ssl = true
 
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  # HTTPS強制 + HSTS(Strict-Transport-Security) + secure cookie。
+  config.force_ssl = true
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # ロードバランサ・監視サービスのヘルスチェック(/up・/health)は平文HTTPで到達しうるため、
+  # HTTPSリダイレクトの対象から除外する(301を返すと監視が落ちる)。
+  config.ssl_options = { redirect: { exclude: ProductionSecurity.health_check_exclusion } }
+
+  # Issue #53 A-3: リバースプロキシ配下でX-Forwarded-Forを偽装したIPレート制限の回避を防ぐ。
+  # TRUSTED_PROXY_IPSが未設定の場合はRails既定(ループバック・プライベートIPレンジ)を使う。
+  trusted_proxies = ProductionSecurity.trusted_proxies
+  config.action_dispatch.trusted_proxies = trusted_proxies if trusted_proxies
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -75,12 +88,12 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Issue #53 A-1: DNSリバインディング / Hostヘッダインジェクション対策。
+  # 許可Hostは本番ドメイン(.claude/rules/deploy.md: rictaworks.jpのサブドメイン)に依存するため
+  # RAILS_ALLOWED_HOSTS(カンマ区切り)で与える。未設定なら起動時に失敗させる(fail closed)。
+  config.hosts = ProductionSecurity.allowed_hosts
+
+  # ヘルスチェックはプラットフォーム内部のHost(例: *.railway.internal)で到達するため、
+  # Host検証の対象から除外する。
+  config.host_authorization = { exclude: ProductionSecurity.health_check_exclusion }
 end

@@ -71,6 +71,19 @@ RSpec.describe "Admin devices (F9)", type: :request do
         expect(response.body).to include("本社倉庫")
         expect(response.body).to include("オンライン")
       end
+
+      # Issue #53 A-6: 外部CDNから読み込むリソースはSRIで内容を固定する。
+      # integrityが外れるとCDN侵害時に管理画面へ任意のCSSを注入されるため、
+      # 属性が消えたことを検知できるようにしておく。
+      it "外部CDNのCSSをSRI(integrity + crossorigin)付きで読み込む" do
+        get "/admin/devices", headers: basic_auth_header(admin_user, admin_password)
+
+        cdn_link = response.body[/<link[^>]*cdnjs\.cloudflare\.com[^>]*>/]
+
+        expect(cdn_link).to be_present
+        expect(cdn_link).to match(/integrity="sha(256|384|512)-[^"]+"/)
+        expect(cdn_link).to include('crossorigin="anonymous"')
+      end
     end
 
     context "ADMIN_BASIC_AUTH_USER/PASSWORDが未設定の場合(fail closed)" do
