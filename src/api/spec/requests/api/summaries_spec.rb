@@ -13,7 +13,7 @@ RSpec.describe "Api::Summaries", type: :request do
 
   def login_as(target_user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(target_user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
   end
 
   def create_reading(seq:, recorded_at:)

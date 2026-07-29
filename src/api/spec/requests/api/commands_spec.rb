@@ -14,7 +14,7 @@ RSpec.describe "Api::CommandsController", type: :request do
 
   def login_as(logging_in_user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(logging_in_user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }, as: :json
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }, as: :json
   end
 
   def create_command(device_id:, command_type: "FAN_ON")

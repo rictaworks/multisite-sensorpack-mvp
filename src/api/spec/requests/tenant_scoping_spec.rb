@@ -49,7 +49,7 @@ RSpec.describe "Tenant isolation (concerns/tenant_scoped.rb)", type: :request do
 
   def login_as(user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
   end
 
   context "未認証の場合" do
