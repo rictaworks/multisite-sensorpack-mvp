@@ -65,23 +65,45 @@ module Admin
     # BASIC認証はブラウザがキャッシュした認証情報を同一originの以後のリクエストへ自動付与するため、
     # セッションcookieを使わない構成であってもクロスサイトの状態変更リクエスト(CSRF類似)の
     # リスクが残る。APIモードのためRailsのCSRFトークン基盤(ActionController::RequestForgeryProtection)
-    # は使えないので、状態を変更するリクエストに限りOriginヘッダーの一致を追加の防御層として確認する。
+    # は使えないので、状態を変更するリクエストに限りリクエスト元originの一致を追加の防御層として確認する。
+    #
+    # 判定できない場合(Origin・Refererのいずれも無い)は許可せず拒否する(fail closed:
+    # .claude/rules/environment.md、.claude/rules/coding-style.md のフォールバック禁止)。
+    # ブラウザはPOSTを含むクロスサイトのリクエストにOriginを必ず付与するため、Originを
+    # 省略できる経路を残すとCSRF対策そのものが迂回可能になる。F9管理画面の状態変更は
+    # HTMLフォームからの操作のみを想定しており、この制約で運用上の不足は生じない。
     def verify_same_origin_for_state_changing_requests
       return if request.get? || request.head?
 
-      origin = request.origin
-      # curl等Originを送らないクライアントも正規の運用として想定されるため、
-      # Originが存在する場合のみ検証する(BASIC認証自体が必須の一次防御であることは変わらない)。
-      return if origin.blank?
-
       expected_origin = "#{request.scheme}://#{request.host_with_port}"
-      return if origin == expected_origin
+      actual_origin = request_origin
+
+      return if actual_origin.present? && actual_origin == expected_origin
 
       Rails.logger.warn(
-        "[Admin::BaseController] rejected cross-origin state-changing request " \
-        "path=#{request.path} origin=#{origin} expected=#{expected_origin}"
+        "[Admin::BaseController] rejected state-changing request without verified same origin " \
+        "path=#{request.path} origin=#{actual_origin.inspect} expected=#{expected_origin}"
       )
       render plain: "Forbidden", status: :forbidden
+    end
+
+    # Originヘッダーを優先し、無い場合のみRefererのorigin部分にフォールバックする
+    # (Refererはブラウザ設定やReferrer-Policyで欠落しうるため、あくまで補助)。
+    # いずれも取得できない場合はnilを返し、呼び出し側で拒否させる。
+    def request_origin
+      origin = request.origin
+      return origin if origin.present?
+
+      referer = request.referer
+      return nil if referer.blank?
+
+      parsed = URI.parse(referer)
+      return nil if parsed.scheme.blank? || parsed.host.blank?
+
+      parsed.port == parsed.default_port ? "#{parsed.scheme}://#{parsed.host}" : "#{parsed.scheme}://#{parsed.host}:#{parsed.port}"
+    rescue URI::InvalidURIError => e
+      Rails.logger.warn("[Admin::BaseController] unparsable Referer path=#{request.path} error=#{e.message}")
+      nil
     end
   end
 end

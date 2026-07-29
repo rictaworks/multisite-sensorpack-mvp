@@ -9,6 +9,9 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
   let(:auth_headers) do
     { "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials(admin_user, admin_password) }
   end
+  # 管理画面のフォーム送信を模したヘッダー。ブラウザはPOSTに必ずOriginを付与するため、
+  # 状態変更リクエストの正常系はsame-originのOriginを伴う。
+  let(:same_origin_headers) { auth_headers.merge("HTTP_ORIGIN" => "http://www.example.com") }
   let!(:user) { User.create!(google_sub: "quota-user-sub") }
   let(:quota_date) { Date.current }
 
@@ -61,7 +64,7 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
         expect do
           post "/admin/ai_quota_usages",
                params: { user_id: user.id, quota_date: quota_date.iso8601 },
-               headers: auth_headers
+               headers: same_origin_headers
         end.to change(AiQuotaUsage, :count).by(-1)
 
         expect(response).to have_http_status(:ok)
@@ -72,7 +75,7 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
         expect do
           post "/admin/ai_quota_usages",
                params: { user_id: user.id, quota_date: quota_date.iso8601 },
-               headers: auth_headers
+               headers: same_origin_headers
         end.not_to raise_error
 
         expect(response).to have_http_status(:ok)
@@ -81,7 +84,7 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
       it "存在しないuser_idを指定した場合、例外を発生させずわかりやすいエラーを返す" do
         post "/admin/ai_quota_usages",
              params: { user_id: 999_999, quota_date: quota_date.iso8601 },
-             headers: auth_headers
+             headers: same_origin_headers
 
         expect(response).to have_http_status(:unprocessable_content)
       end
@@ -89,7 +92,7 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
       it "不正なquota_dateを指定した場合、例外を発生させずわかりやすいエラーを返す" do
         post "/admin/ai_quota_usages",
              params: { user_id: user.id, quota_date: "not-a-date" },
-             headers: auth_headers
+             headers: same_origin_headers
 
         expect(response).to have_http_status(:unprocessable_content)
       end
@@ -100,9 +103,55 @@ RSpec.describe "Admin AI quota manual reset (F9)", type: :request do
     it "Originヘッダーがリクエスト先ホストと一致しない場合は拒否する" do
       post "/admin/ai_quota_usages",
            params: { user_id: user.id, quota_date: quota_date.iso8601 },
-           headers: auth_headers.merge("HTTP_ORIGIN" => "https://evil.example.com")
+           headers: same_origin_headers.merge("HTTP_ORIGIN" => "https://evil.example.com")
 
       expect(response).to have_http_status(:forbidden)
+    end
+
+    # BASIC認証はブラウザが同一originへのリクエストへ認証情報を自動で付け直すため、
+    # Originを検証できないリクエストを素通りさせるとCSRFが成立しうる。判定できない場合は
+    # 本番として扱う(fail closed)という .claude/rules/environment.md の方針に合わせ、
+    # Origin/Refererのいずれも無い状態変更リクエストは拒否する。
+    it "OriginヘッダーもRefererヘッダーも無い場合は拒否し、クォータ消費記録を変更しない" do
+      AiQuotaUsage.consume!(user: user, quota_date: quota_date)
+
+      expect do
+        post "/admin/ai_quota_usages",
+             params: { user_id: user.id, quota_date: quota_date.iso8601 },
+             headers: auth_headers
+      end.not_to change(AiQuotaUsage, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "Originが無くてもRefererが同一originであれば許可する" do
+      post "/admin/ai_quota_usages",
+           params: { user_id: user.id, quota_date: quota_date.iso8601 },
+           headers: auth_headers.merge("HTTP_REFERER" => "http://www.example.com/admin/ai_quota_usages")
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "Originが無くRefererが別originの場合は拒否する" do
+      post "/admin/ai_quota_usages",
+           params: { user_id: user.id, quota_date: quota_date.iso8601 },
+           headers: auth_headers.merge("HTTP_REFERER" => "https://evil.example.com/attack.html")
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "Originが一致していればRefererが別originでも許可する(Originを優先して検証する)" do
+      post "/admin/ai_quota_usages",
+           params: { user_id: user.id, quota_date: quota_date.iso8601 },
+           headers: same_origin_headers.merge("HTTP_REFERER" => "https://evil.example.com/attack.html")
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "GETリクエストはOrigin/Refererが無くても許可する(状態を変更しないため)" do
+      get "/admin/ai_quota_usages", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
     end
   end
 end
