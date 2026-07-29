@@ -26,9 +26,22 @@ class ClaimDeviceService
   # (規模拡大時はRedis等の共有ストアに置換する。architecture.md「規模に応じた拡張」参照)。
   # 状態はこのクラス自身のスコープに閉じ込め、外部からは`reset_all!`(テスト専用)以外で触らせない。
   class RateLimiter
+    # 全キーを走査してウィンドウ切れのエントリを回収する最短間隔(Issue #53 A-5)。
+    # リクエストごとに全走査すると、追跡中の識別子数に比例してホットパスが重くなるため、
+    # スイープはこの間隔に1回だけ行う。ウィンドウ判定自体は毎回そのキーに対して行うので、
+    # 回収が遅れてもレート制限がすり抜けることはない(遅れて回収されるだけ)。
+    SWEEP_INTERVAL = 1.minute
+
     MUTEX = Mutex.new
-    ATTEMPTS = Hash.new { |hash, key| hash[key] = [] }
-    private_constant :MUTEX, :ATTEMPTS
+    # full_key => { timestamps: [Time], expires_at: Time }
+    # expires_at はそのエントリを記録したスコープのperiodに基づく期限。scopeごとにperiodが
+    # 異なっても、他スコープのスイープが有効なエントリを巻き込んで消さないようにするため、
+    # 期間そのものではなく「いつ回収してよいか」をエントリ側に持たせる。
+    ATTEMPTS = {}
+    # 最後にスイープした時刻と、スイープの実行回数(スイープ頻度をテストで検証するため)。
+    # クラス外からは触れない状態としてこのクラスのスコープに閉じ込める。
+    SWEEP_STATE = { last_swept_at: nil, count: 0 }
+    private_constant :MUTEX, :ATTEMPTS, :SWEEP_STATE
 
     def initialize(scope:, limit:, period:)
       @scope = scope
@@ -41,17 +54,54 @@ class ClaimDeviceService
 
       MUTEX.synchronize do
         now = Time.current
+        sweep_expired_entries(now)
+
         window_start = now - @period
-        attempts = ATTEMPTS[full_key].select { |recorded_at| recorded_at > window_start }
-        attempts << now
-        ATTEMPTS[full_key] = attempts
-        attempts.size > @limit
+        entry = ATTEMPTS[full_key]
+        timestamps = entry ? entry[:timestamps].select { |recorded_at| recorded_at > window_start } : []
+        timestamps << now
+        ATTEMPTS[full_key] = { timestamps: timestamps, expires_at: now + @period }
+        timestamps.size > @limit
       end
     end
 
     # テスト専用: スペック間で試行回数が漏れ伝わらないようにする。
     def self.reset_all!
-      MUTEX.synchronize { ATTEMPTS.clear }
+      MUTEX.synchronize do
+        ATTEMPTS.clear
+        SWEEP_STATE[:last_swept_at] = nil
+        SWEEP_STATE[:count] = 0
+      end
+    end
+
+    # 追跡中の識別子数。メモリが単調増加していないことを検証するために公開する
+    # (spec/services/rate_limiter_spec.rb)。
+    def self.tracked_entry_count
+      MUTEX.synchronize { ATTEMPTS.size }
+    end
+
+    # スイープの実行回数。スイープ間隔が守られていることを検証するために公開する。
+    def self.sweep_count
+      MUTEX.synchronize { SWEEP_STATE[:count] }
+    end
+
+    private
+
+    # ウィンドウを過ぎたエントリを回収する。これが無いと、識別子(IP)を変えながら
+    # 叩き続けるだけでATTEMPTSが単調増加し、メモリ枯渇を招く(OWASP A05相当のDoS経路)。
+    # 呼び出し元でMUTEXを保持している前提。
+    def sweep_expired_entries(now)
+      last_swept_at = SWEEP_STATE[:last_swept_at]
+      return if last_swept_at && last_swept_at > now - SWEEP_INTERVAL
+
+      SWEEP_STATE[:last_swept_at] = now
+      SWEEP_STATE[:count] += 1
+
+      expired_keys = ATTEMPTS.select { |_key, entry| entry[:expires_at] <= now }.keys
+      return if expired_keys.empty?
+
+      expired_keys.each { |key| ATTEMPTS.delete(key) }
+      Rails.logger.info("[RateLimiter] swept #{expired_keys.size} expired entries, #{ATTEMPTS.size} remaining")
     end
   end
 
