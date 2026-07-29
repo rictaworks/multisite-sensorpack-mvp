@@ -1,0 +1,59 @@
+name: web-e2e
+
+# Issue #25 (.claude/rules/testing.md: Playwright — 実ブラウザでのE2E)。
+#
+# Separated from web-ci.yml (lint + Jest) rather than folded into it:
+# Playwright needs a browser download, a production build (`next build`),
+# and two concurrent `next start` server processes, which is materially
+# slower than the existing lint+Jest job. .claude/rules/ci-cd.md explicitly
+# allows scoping a slower job to pull_request only when runtime warrants it,
+# so unlike web-ci.yml this workflow does not also run on push to main.
+on:
+  pull_request:
+    paths:
+      - "src/web/**"
+      - "src/shared/contracts/**"
+      - ".github/workflows/web-e2e.yml"
+
+defaults:
+  run:
+    working-directory: src/web
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare E2E env file
+        # All values in e2e.env.example are non-secret (a placeholder Google
+        # OAuth client id + Google's own published "always passes" reCAPTCHA
+        # test key + an intentionally unreachable backend URL — see the file
+        # itself and e2e/README.md for the full explanation), so copying it
+        # verbatim in CI is safe; nothing here is a repository secret.
+        run: cp e2e/e2e.env.example .env.e2e
+
+      - name: Run Playwright E2E suite
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: src/web/playwright-report/
+          retention-days: 14

@@ -9,6 +9,12 @@ build/
 # testing
 coverage/
 
+# Playwright E2E (Issue #25) output — never committed
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # env files (secrets must never be committed; use platform env vars in deploy)
 .env
 .env*.local
