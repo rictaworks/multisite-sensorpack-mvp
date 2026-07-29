@@ -3,17 +3,14 @@ name: web-ci
 # .claude/rules/ci-cd.md: Next.js CI (lint + Jest) must run on PRs and on
 # pushes to main. CD (actual deployment) is intentionally out of scope here
 # and is configured separately via Claude Desktop (.claude/rules/deploy.md).
+#
+# パスフィルタは意図的に付けない（api-ci.yml と同じ理由）。必須ステータスチェックに
+# 指定されているため、パスで絞ると対象外のPRで起動せず、結果待ちでマージ不能になる。
 on:
   pull_request:
-    paths:
-      - "src/web/**"
-      - ".github/workflows/web-ci.yml"
   push:
     branches:
       - main
-    paths:
-      - "src/web/**"
-      - ".github/workflows/web-ci.yml"
 
 defaults:
   run:

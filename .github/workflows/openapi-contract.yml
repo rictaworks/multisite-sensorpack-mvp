@@ -4,17 +4,14 @@ name: API契約(OpenAPI)検証
 # OpenAPIスキーマのlint・TypeScript型生成の整合性・受け入れ条件テストを実行する。
 # .claude/rules/ci-cd.md: CIはこのリポジトリのスコープ内（CD/本番デプロイはClaude Desktop側）。
 
+#
+# パスフィルタは意図的に付けない（api-ci.yml と同じ理由）。必須ステータスチェックに
+# 指定されているため、パスで絞ると対象外のPRで起動せず、結果待ちでマージ不能になる。
 on:
   pull_request:
-    paths:
-      - "src/shared/contracts/**"
-      - ".github/workflows/openapi-contract.yml"
   push:
     branches:
       - main
-    paths:
-      - "src/shared/contracts/**"
-      - ".github/workflows/openapi-contract.yml"
 
 jobs:
   validate-contract:

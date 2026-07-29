@@ -8,12 +8,11 @@ name: web-e2e
 # slower than the existing lint+Jest job. .claude/rules/ci-cd.md explicitly
 # allows scoping a slower job to pull_request only when runtime warrants it,
 # so unlike web-ci.yml this workflow does not also run on push to main.
+#
+# パスフィルタは意図的に付けない（api-ci.yml と同じ理由）。必須ステータスチェックに
+# 指定されているため、パスで絞ると対象外のPRで起動せず、結果待ちでマージ不能になる。
 on:
   pull_request:
-    paths:
-      - "src/web/**"
-      - "src/shared/contracts/**"
-      - ".github/workflows/web-e2e.yml"
 
 defaults:
   run:

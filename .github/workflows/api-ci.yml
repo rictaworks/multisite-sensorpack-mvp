@@ -1,16 +1,14 @@
 name: API CI (RSpec)
 
+# パスフィルタは意図的に付けない。このワークフローはmainの必須ステータスチェックに
+# 指定されており、"Require branches to be up to date before merging" と組み合わせている。
+# パスで絞ると、src/api を変更しないPRでは起動せず、GitHubが結果を待ち続けて
+# マージ不能になる(必須チェックの未報告はpending扱いになるため)。
 on:
   pull_request:
-    paths:
-      - "src/api/**"
-      - ".github/workflows/api-ci.yml"
   push:
     branches:
       - main
-    paths:
-      - "src/api/**"
-      - ".github/workflows/api-ci.yml"
 
 defaults:
   run:
