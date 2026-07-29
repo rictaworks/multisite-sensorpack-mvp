@@ -1,0 +1,96 @@
+# F6 ダッシュボード集計API(requirements.md 1.6 F6 render_dashboard 手順1-2)。
+#
+# 拠点一覧を、拠点ごとのデバイス数・オンライン数・openアラート数・最新温湿度つきで返す
+# (30秒ポーリングでのダッシュボード表示を想定、src/shared/contracts/openapi.yaml
+# getDashboardSitesSummary)。current_user.sitesのみを対象にするため、他ユーザーの拠点は
+# クエリの起点から構造的に除外される(全クエリに認証ユーザーIDが必須条件として付与される、
+# requirements.md F6-1 / .claude/OWASP10.md A01対応)。
+#
+# 拠点件数が増えてもクエリ数が線形に増えないよう、拠点ごとに個別クエリを発行せず
+# SiteAggregates内でグループ集計クエリにまとめて発行する(N+1回避)。
+module Api
+  class SitesController < ApplicationController
+    include Authenticatable
+
+    # GET /api/v1/dashboard/sites-summary
+    def dashboard_summary
+      sites = current_user.sites.where(deleted: false).order(:id).to_a
+      aggregates = SiteAggregates.new(sites.map(&:id))
+
+      Rails.logger.info(
+        "[Api::SitesController#dashboard_summary] user_id=#{current_user.id} site_count=#{sites.size}"
+      )
+
+      render json: { sites: sites.map { |site| serialize_site(site, aggregates) } }, status: :ok
+    end
+
+    private
+
+    def serialize_site(site, aggregates)
+      latest_reading = aggregates.latest_reading_for(site.id)
+      {
+        id: site.id,
+        name: site.name,
+        deviceCount: aggregates.device_count_for(site.id),
+        onlineDeviceCount: aggregates.online_device_count_for(site.id),
+        openAlertCount: aggregates.open_alert_count_for(site.id),
+        latestTemperatureC: latest_reading&.temperature_c&.to_f,
+        latestHumidityPct: latest_reading&.humidity_pct&.to_f,
+        createdAt: site.created_at.iso8601
+      }
+    end
+
+    # 対象拠点群のデバイス数・オンライン数・openアラート数・最新テレメトリを、
+    # 拠点件数によらず一定クエリ数で算出するための集計ヘルパー。
+    class SiteAggregates
+      def initialize(site_ids)
+        @device_counts = Device.where(site_id: site_ids, deleted: false).group(:site_id).count
+        @online_counts = Device.where(site_id: site_ids, deleted: false, status_code: Device::STATUS_ONLINE)
+                                .group(:site_id).count
+        @open_alert_counts = Alert.joins(:device)
+                                   .where(status: "open", devices: { site_id: site_ids })
+                                   .group("devices.site_id").count
+        @latest_reading_by_site_id = compute_latest_readings(site_ids)
+      end
+
+      def device_count_for(site_id)
+        @device_counts.fetch(site_id, 0)
+      end
+
+      def online_device_count_for(site_id)
+        @online_counts.fetch(site_id, 0)
+      end
+
+      def open_alert_count_for(site_id)
+        @open_alert_counts.fetch(site_id, 0)
+      end
+
+      def latest_reading_for(site_id)
+        @latest_reading_by_site_id[site_id]
+      end
+
+      private
+
+      # 拠点の「最新温湿度」は、その拠点配下の全デバイスのうち直近のテレメトリ読み取り
+      # (温度・湿度が同一行に記録された1件)を採用する。
+      #
+      # デバイスごとに個別クエリを発行するとN+1になるため、(1)デバイスごとの最新
+      # telemetry_reading idをGROUP BYで一括取得し、(2)そのidの集合をまとめて1回で
+      # 取得してからRuby側で拠点単位に畳み込む、という2クエリ構成にしている。
+      def compute_latest_readings(site_ids)
+        device_id_to_site_id = Device.where(site_id: site_ids, deleted: false).pluck(:id, :site_id).to_h
+        return {} if device_id_to_site_id.empty?
+
+        latest_reading_ids = TelemetryReading.where(device_id: device_id_to_site_id.keys)
+                                              .group(:device_id).maximum(:id).values
+        return {} if latest_reading_ids.empty?
+
+        TelemetryReading.where(id: latest_reading_ids).each_with_object({}) do |reading, acc|
+          site_id = device_id_to_site_id.fetch(reading.device_id)
+          current = acc[site_id]
+          acc[site_id] = reading if current.nil? || reading.recorded_at > current.recorded_at
+        end
+      end
+    end
+  end
+end
