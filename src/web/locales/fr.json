@@ -308,5 +308,48 @@
       "notFound": "Ce site est introuvable. Il a peut-être déjà été supprimé.",
       "network": "La connexion a échoué. Veuillez réessayer dans un instant."
     }
+  },
+  "legal": {
+    "draftNotice": "Ce document est un projet en attente de validation juridique. La version définitive, incluant le nom et les coordonnées de l’exploitant, le remplacera avant l’ouverture du service au public.",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "backToLogin": "← Retour à la connexion",
+    "termsLink": "Conditions d’utilisation",
+    "privacyLink": "Politique de confidentialité",
+    "terms": {
+      "title": "Conditions d’utilisation",
+      "intro": "Les présentes conditions définissent les modalités d’utilisation de Multisite SensorPack (le « Service »). En utilisant le Service, vous êtes réputé les avoir acceptées.",
+      "scopeTitle": "1. Champ d’application",
+      "scopeBody": "Les présentes conditions s’appliquent à toute utilisation du Service. Les avis et consignes publiés par l’exploitant au sein du Service en font également partie.",
+      "serviceTitle": "2. Objet du Service",
+      "serviceBody": "Le Service enregistre la température et l’humidité relevées par des capteurs installés sur plusieurs sites, et permet de les consulter, de recevoir des notifications et de piloter les appareils à distance. Il est proposé à titre d’essai afin de valider la demande ; ses fonctions et caractéristiques peuvent évoluer sans préavis.",
+      "accountTitle": "3. Compte",
+      "accountBody": "L’utilisation du Service nécessite une connexion avec un compte Google. Vous êtes responsable de la gestion de ce compte et ne devez pas le laisser utiliser par un tiers. Les actions effectuées via votre compte sont réputées être les vôtres.",
+      "prohibitedTitle": "4. Comportements interdits",
+      "prohibitedBody": "Il est interdit d’enfreindre la loi ou l’ordre public, de porter atteinte aux droits d’autres utilisateurs ou de tiers, d’accéder au Service sans autorisation ou de lui imposer une charge excessive, et de piloter le compte ou les appareils d’autrui sans permission.",
+      "disclaimerTitle": "5. Limitation de responsabilité",
+      "disclaimerBody": "Le Service est fourni en l’état, sans garantie de disponibilité, d’exactitude ni d’adéquation à un usage particulier. Ne l’utilisez pas comme unique moyen de surveillance ou de commande de ce qui protège la vie, la santé ou les biens. Selon l’état du réseau et des appareils, des relevés peuvent manquer, des notifications être retardées et des commandes à distance ne pas aboutir.",
+      "changesTitle": "6. Modification, interruption et arrêt",
+      "changesBody": "L’exploitant peut modifier le contenu du Service, en interrompre ou en cesser la fourniture. Il n’est pas responsable des préjudices qui en résulteraient pour l’utilisateur.",
+      "lawTitle": "7. Droit applicable et juridiction",
+      "lawBody": "Les présentes conditions sont régies par le droit japonais. Tout litige relatif au Service relève de la compétence exclusive, en première instance, du tribunal du lieu où se situe l’exploitant."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "intro": "Ce document explique quelles informations le Service collecte et comment elles sont utilisées. Le Service est conçu pour limiter au strict minimum la collecte de données identifiantes.",
+      "collectedTitle": "Informations collectées",
+      "collectedBody": "Nous collectons l’identifiant fourni par Google lors de la connexion (un identifiant opaque émis par Google), le nom des sites que vous créez, les relevés de température et d’humidité transmis par vos capteurs, l’état des appareils et l’historique des commandes à distance.",
+      "notCollectedTitle": "Informations non collectées",
+      "notCollectedBody": "Nous ne conservons ni votre adresse e-mail, ni votre nom, ni votre photo de profil. Même lorsque Google les transmet lors de la connexion, nous ne les gardons pas : seul l’identifiant est enregistré. Nous ne collectons pas non plus d’adresse postale : le nom d’un site est un texte libre et aucune adresse ne vous est demandée.",
+      "purposeTitle": "Finalités",
+      "purposeBody": "Ces informations servent à enregistrer et afficher les relevés, à vous alerter en cas de dépassement de seuil ou de perte de connexion, à exécuter les commandes à distance, à générer le résumé quotidien par IA et à prévenir les usages abusifs. Elles ne sont utilisées à aucune autre fin.",
+      "thirdPartyTitle": "Transmission à des tiers",
+      "thirdPartyBody": "Pour générer le résumé quotidien par IA, nous transmettons à un service d’IA externe uniquement les statistiques des relevés (minimum, maximum, moyenne et durée de dépassement des seuils) ainsi que le type, la gravité et l’horodatage des alertes. Nous ne transmettons ni votre identifiant, ni le nom des sites, ni les informations des appareils. En dehors des obligations légales, aucune autre transmission à des tiers n’a lieu.",
+      "cookiesTitle": "Cookies",
+      "cookiesBody": "Le Service utilise un seul cookie, destiné à maintenir votre session. Il est chiffré et sert uniquement à identifier cette session. Il n’est utilisé ni pour la publicité, ni pour l’analyse comportementale. Si vous désactivez les cookies dans votre navigateur, les fonctions nécessitant une connexion ne fonctionneront pas.",
+      "retentionTitle": "Durée de conservation",
+      "retentionBody": "Les relevés bruts transmis par vos capteurs sont supprimés au bout de 14 jours. Pour les périodes antérieures, seules des moyennes horaires sont conservées. Votre compte ainsi que vos sites et appareils sont conservés jusqu’à ce que vous les supprimiez.",
+      "contactTitle": "Contact",
+      "contactBody": "Les coordonnées à utiliser pour toute question relative au traitement des données personnelles figureront ici dans la version définitive."
+    }
   }
 }
