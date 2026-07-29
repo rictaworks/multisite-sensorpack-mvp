@@ -41,8 +41,14 @@ module Api
       Array(telemetry_params[:commandAcks]).filter_map { |ack| ack[:idempotencyKey] }
     end
 
+    # ActionDispatch::Request#content_length は Transfer-Encoding ヘッダがある場合
+    # (chunked等でContent-Lengthが送られない場合)に実ボディのバイト数を返し、どちらも
+    # 無い場合は0を返す(actionpack: action_dispatch/http/request.rb #content_length)ため、
+    # クライアント申告値だけを見て素通りする経路はない。nilになる経路も存在しないため
+    # nilガードは置かない(到達しない分岐を残さない)。chunkedでの回帰は
+    # spec/requests/api/telemetry_spec.rb で検証する。
     def reject_oversized_payload!
-      return if request.content_length.nil? || request.content_length <= MAX_BODY_BYTES
+      return if request.content_length <= MAX_BODY_BYTES
 
       Rails.logger.warn(
         "[Api::TelemetryController#reject_oversized_payload!] payload too large bytes=#{request.content_length} path=#{request.path}"

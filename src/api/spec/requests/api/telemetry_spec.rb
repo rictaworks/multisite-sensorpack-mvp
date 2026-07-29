@@ -113,6 +113,42 @@ RSpec.describe "Api::Telemetry", type: :request do
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body.dig("error", "code")).to eq("validation_error")
     end
+
+    # Transfer-Encoding: chunked ではContent-Lengthが送られないため、宣言値だけを見る
+    # 判定では巨大ペイロードが素通りする。rack-testのpostはボディからContent-Lengthを
+    # 必ず算出してしまうため、chunkedリクエストはRackのenvを直接組み立てて再現する。
+    def post_telemetry_chunked(token:, body:)
+      env = Rack::MockRequest.env_for(
+        "/api/v1/telemetry", method: "POST", input: body.to_json,
+        "CONTENT_TYPE" => "application/json",
+        "HTTP_AUTHORIZATION" => "Bearer #{token}",
+        "HTTP_TRANSFER_ENCODING" => "chunked"
+      )
+      env.delete("CONTENT_LENGTH")
+      status, _headers, rack_body = Rails.application.call(env)
+      [ status, JSON.parse(rack_body.each.to_a.join) ]
+    end
+
+    it "Content-Lengthが送られない(chunked)場合も実ボディサイズで400拒否する" do
+      _device, token = provision_device
+      oversized_note = "x" * (Api::TelemetryController::MAX_BODY_BYTES + 1)
+
+      status, parsed = post_telemetry_chunked(
+        token: token, body: { seq: 1, temperatureC: 25, humidityPct: 50, note: oversized_note }
+      )
+
+      expect(status).to eq(400)
+      expect(parsed.dig("error", "code")).to eq("validation_error")
+    end
+
+    it "Content-Lengthが送られない場合でも上限以内のリクエストは正常に受理する" do
+      _device, token = provision_device
+
+      status, parsed = post_telemetry_chunked(token: token, body: { seq: 1, temperatureC: 25, humidityPct: 50 })
+
+      expect(status).to eq(200)
+      expect(parsed["accepted"]).to be(true)
+    end
   end
 
   # requirements.md 1.6 F5 dispatch_command(ピギーバック配信・ACK処理)。Issue #11。
