@@ -12,6 +12,36 @@ class Alert < ApplicationRecord
   # (requirements.md 1.6 F8、#9・#10で実装)。手動closeを試みた場合に送出する例外。
   class AlreadyClosedError < StandardError; end
 
+  # 契約に無いアラート種別コードをAPIへ流さないための例外。
+  class UnknownAlertTypeCodeError < StandardError; end
+
+  # DBのマスタコード(db/seeds.rb)からOpenAPI契約のAlertTypeCodeへの対応。
+  #
+  # DB側は "threshold_upper_breach" だが、契約(openapi.yaml AlertTypeCode)は
+  # "upper_breach" であり、そのまま出すと契約違反になる。Next.js側は契約の値で
+  # 表示文言を引くため、変換を忘れるとアラート種別が画面に出せない。
+  # DailySummaryService と Api::AlertsController の両方が同じ変換を必要とするため、
+  # モデル側に1つだけ持つ(.claude/development-principles.md: DRY)。
+  ALERT_TYPE_CODE_TO_CONTRACT = {
+    THRESHOLD_UPPER_BREACH_ALERT_TYPE_CODE => "upper_breach",
+    THRESHOLD_LOWER_BREACH_ALERT_TYPE_CODE => "lower_breach",
+    Device::OFFLINE_ALERT_TYPE_CODE => "offline"
+  }.freeze
+
+  # DBのコードを契約のAlertTypeCodeへ変換する。
+  # 未知のコードはフォールバックで素通しせず例外にする(Fail Fast)。素通しすると、
+  # 契約に無い値がクライアントへ届き、画面側で表示できない値として黙って落ちる。
+  def self.contract_alert_type_code(alert_type_code)
+    ALERT_TYPE_CODE_TO_CONTRACT.fetch(alert_type_code) do
+      raise UnknownAlertTypeCodeError,
+            "alert_type_code=#{alert_type_code.inspect} has no mapping to the contract AlertTypeCode"
+    end
+  end
+
+  def contract_alert_type_code
+    self.class.contract_alert_type_code(alert_type_code)
+  end
+
   belongs_to :device
   belongs_to :alert_type, foreign_key: :alert_type_code, primary_key: :code, inverse_of: :alerts
   belongs_to :alert_severity, foreign_key: :severity_code, primary_key: :code, inverse_of: :alerts

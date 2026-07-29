@@ -186,7 +186,10 @@
       "currentHumidity": "Humidité actuelle",
       "noReading": "Aucune donnée",
       "deviceLabel": "Appareil n° {id}",
-      "emptySites": "Aucun site à afficher pour le moment."
+      "emptySites": "Aucun site à afficher pour le moment.",
+      "loading": "Chargement…",
+      "loadError": "Impossible de charger vos sites. Veuillez recharger la page.",
+      "refreshError": "Impossible d’actualiser les données. L’affichage correspond à la dernière mise à jour réussie."
     },
     "device": {
       "statusOnline": "Connecté",
@@ -216,7 +219,10 @@
       "commandsTitle": "Historique des commandes",
       "noCommands": "Aucune commande envoyée pour le moment.",
       "alertsTitle": "Alertes de cet appareil",
-      "noAlerts": "Aucune alerte."
+      "noAlerts": "Aucune alerte.",
+      "loading": "Chargement…",
+      "loadError": "Impossible de charger cet appareil. Veuillez recharger la page.",
+      "refreshError": "Impossible d’actualiser les données. L’affichage correspond à la dernière mise à jour réussie."
     },
     "commandType": {
       "LED_ON": "Allumer la lumière",

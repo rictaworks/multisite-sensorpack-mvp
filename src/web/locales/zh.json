@@ -186,7 +186,10 @@
       "currentHumidity": "当前湿度",
       "noReading": "暂无数据",
       "deviceLabel": "设备 #{id}",
-      "emptySites": "暂时没有可显示的站点。"
+      "emptySites": "暂时没有可显示的站点。",
+      "loading": "加载中…",
+      "loadError": "无法获取站点信息，请重新加载页面。",
+      "refreshError": "无法获取最新数据，当前显示为上次成功获取的内容。"
     },
     "device": {
       "statusOnline": "已连接",
@@ -216,7 +219,10 @@
       "commandsTitle": "操作历史",
       "noCommands": "尚未进行过操作。",
       "alertsTitle": "该设备的告警",
-      "noAlerts": "暂无告警。"
+      "noAlerts": "暂无告警。",
+      "loading": "加载中…",
+      "loadError": "无法获取该设备的信息，请重新加载页面。",
+      "refreshError": "无法获取最新数据，当前显示为上次成功获取的内容。"
     },
     "commandType": {
       "LED_ON": "打开指示灯",

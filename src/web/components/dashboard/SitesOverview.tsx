@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '../../i18n/navigation';
-import { listMockSites, listMockDevices } from '../../lib/dashboard/mockData';
+import { fetchDevices, fetchSitesSummary, type Device, type Site } from '../../lib/dashboard/dashboardApi';
 import { usePolling, DEFAULT_POLLING_INTERVAL_MS } from '../../lib/dashboard/usePolling';
 import { describeElapsed } from '../../lib/dashboard/relativeTime';
 import DeviceStatusDot from './DeviceStatusDot';
@@ -12,35 +12,89 @@ import DeviceStatusDot from './DeviceStatusDot';
  * F6.2 — multi-site overview: per-site device/online/open-alert counts and
  * latest temperature/humidity, refreshed every 30s (Issue #18 acceptance
  * criteria; default matches app-ui/'s dc-script `pollingSeconds` default).
- * Data comes from lib/dashboard/mockData.ts — a stub shaped exactly like the
- * `/dashboard/sites-summary` and `/devices` contract responses (real Rails
- * wiring is a later issue).
+ *
+ * Data comes from the real Rails API (`GET /dashboard/sites-summary` and
+ * `GET /devices`) through the same-origin proxy. The contract-shaped stub this
+ * screen used to read (lib/dashboard/mockData.ts) has been removed.
  */
+
+type OverviewState =
+  | { status: 'loading' }
+  | { status: 'ready'; sites: Site[]; devices: Device[] }
+  // 取得できていないことを「拠点0件」と同じ見た目にしない。同じにすると、
+  // ユーザーは自分の拠点が消えたと誤解する(.claude/rules/coding-style.md フォールバック禁止)。
+  | { status: 'error' };
+
 export default function SitesOverview() {
   const t = useTranslations('dashboard.overview');
   const tDevice = useTranslations('dashboard.device');
   const tRelative = useTranslations('dashboard.relativeTime');
-  // `usePolling` re-renders this component every interval on its own (its
-  // internal setState is enough to trigger that): we don't need to key a
-  // useMemo off `tickCount` for that, we just re-derive `sites` plainly below.
-  // `lastUpdatedAt` is state (not a fresh Date.now() read), so using it as the
-  // "now" anchor for relative-time formatting keeps render pure.
-  const { lastUpdatedAt } = usePolling(DEFAULT_POLLING_INTERVAL_MS);
 
-  const sites = listMockSites();
+  const [state, setState] = useState<OverviewState>({ status: 'loading' });
+  // ポーリングでの再取得に失敗した状態。初回取得失敗(status: 'error')とは区別する:
+  // 前回取得できた内容は表示したまま、「いま見えているのは最新ではない」ことだけを伝える。
+  const [refreshFailed, setRefreshFailed] = useState(false);
 
-  const totals = useMemo(
-    () =>
-      sites.reduce(
-        (acc, site) => ({
-          devices: acc.devices + site.deviceCount,
-          online: acc.online + site.onlineDeviceCount,
-          openAlerts: acc.openAlerts + site.openAlertCount,
-        }),
-        { devices: 0, online: 0, openAlerts: 0 }
-      ),
-    [sites]
-  );
+  // `lastUpdatedAt` はReactのstate(レンダー中のDate.now()読み取りではない)なので、
+  // 相対時刻の基準に使ってもレンダーは純粋なまま保たれる。
+  const { tickCount, lastUpdatedAt } = usePolling(DEFAULT_POLLING_INTERVAL_MS);
+
+  useEffect(() => {
+    // アンマウント後に状態を更新しないための番兵。
+    let cancelled = false;
+
+    // 拠点カードごとに `?siteId=` を付けて引くと拠点数ぶんリクエストが増えるため、
+    // デバイスは一度にまとめて取得し、下で siteId ごとに束ねる。
+    Promise.all([fetchSitesSummary(), fetchDevices()])
+      .then(([sites, devices]) => {
+        if (cancelled) return;
+        setState({ status: 'ready', sites, devices });
+        setRefreshFailed(false);
+      })
+      .catch((error: unknown) => {
+        console.error('[SitesOverview] failed to load dashboard data', error);
+        if (cancelled) return;
+        // 既に表示できている内容があるなら消さない。消すと、通信が一度失敗しただけで
+        // 画面が空になり、拠点が無くなったように見える。
+        setState((current) => (current.status === 'ready' ? current : { status: 'error' }));
+        setRefreshFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tickCount]);
+
+  const sites = state.status === 'ready' ? state.sites : [];
+
+  const devicesBySiteId = useMemo(() => {
+    const grouped = new Map<number, Device[]>();
+    if (state.status !== 'ready') return grouped;
+
+    state.devices.forEach((device) => {
+      const list = grouped.get(device.siteId);
+      if (list) {
+        list.push(device);
+      } else {
+        grouped.set(device.siteId, [device]);
+      }
+    });
+    return grouped;
+  }, [state]);
+
+  const totals = useMemo(() => {
+    const empty = { devices: 0, online: 0, openAlerts: 0 };
+    if (state.status !== 'ready') return empty;
+
+    return state.sites.reduce(
+      (acc, site) => ({
+        devices: acc.devices + site.deviceCount,
+        online: acc.online + site.onlineDeviceCount,
+        openAlerts: acc.openAlerts + site.openAlertCount,
+      }),
+      empty
+    );
+  }, [state]);
 
   function formatElapsed(timestamp: string): string {
     const description = describeElapsed(lastUpdatedAt, Date.parse(timestamp));
@@ -62,9 +116,21 @@ export default function SitesOverview() {
       <h1 style={{ margin: '8px 0 0', fontSize: 26, fontWeight: 900 }}>{t('title')}</h1>
       <div style={{ width: 48, height: 3, background: '#1a73e8', marginTop: 14 }} />
 
-      {sites.length === 0 ? (
-        <p style={{ marginTop: 28 }}>{t('emptySites')}</p>
-      ) : (
+      {state.status === 'loading' && <p style={{ marginTop: 28 }}>{t('loading')}</p>}
+      {state.status === 'error' && (
+        <p role="alert" style={{ marginTop: 28 }}>
+          {t('loadError')}
+        </p>
+      )}
+      {state.status === 'ready' && refreshFailed && (
+        <p role="alert" style={{ marginTop: 20 }}>
+          {t('refreshError')}
+        </p>
+      )}
+
+      {state.status === 'ready' && sites.length === 0 && <p style={{ marginTop: 28 }}>{t('emptySites')}</p>}
+
+      {state.status === 'ready' && sites.length > 0 && (
         <>
           <div
             style={{
@@ -114,7 +180,7 @@ export default function SitesOverview() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
             {sites.map((site) => {
-              const devices = listMockDevices(site.id);
+              const siteDevices = devicesBySiteId.get(site.id) ?? [];
               const allOnline = site.deviceCount > 0 && site.onlineDeviceCount === site.deviceCount;
 
               return (
@@ -145,7 +211,7 @@ export default function SitesOverview() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid rgba(10,22,40,0.1)', paddingTop: 16 }}>
-                    {devices.map((device) => (
+                    {siteDevices.map((device) => (
                       <Link
                         key={device.id}
                         href={`/dashboard/${device.id}`}

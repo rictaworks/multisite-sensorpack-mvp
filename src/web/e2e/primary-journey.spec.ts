@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { t } from './support/messages';
 import { passTestRecaptcha } from './support/recaptcha';
 import { STUB_SITES, stubClaimCodeSuccess, stubSitesList } from './support/claimApiStub';
+import { stubDashboardApi } from './support/dashboardApiStub';
 
 /**
  * Holistic smoke test for the "主要導線" (primary user journey) Issue #25
@@ -30,6 +31,8 @@ test('主要導線: ホーム→ログイン→ダッシュボード→デバイ
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'login.title') })).toBeVisible();
   await expect(page.getByRole('button', { name: t('ja', 'login.devBypass') })).toBeVisible();
 
+  // ダッシュボードは実APIへ結線済みのため、応答をネットワーク層でスタブする。
+  await stubDashboardApi(page);
   await page.goto('/ja/dashboard');
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'dashboard.overview.title') })).toBeVisible();
   await expect(page.getByTestId('stat-sites-value')).toHaveText('2');

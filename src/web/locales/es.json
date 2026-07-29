@@ -186,7 +186,10 @@
       "currentHumidity": "Humedad actual",
       "noReading": "Sin datos",
       "deviceLabel": "Dispositivo n.º {id}",
-      "emptySites": "Todavía no hay sedes que mostrar."
+      "emptySites": "Todavía no hay sedes que mostrar.",
+      "loading": "Cargando…",
+      "loadError": "No se pudieron cargar tus ubicaciones. Vuelve a cargar la página.",
+      "refreshError": "No se pudieron actualizar los datos. Se muestra la última actualización correcta."
     },
     "device": {
       "statusOnline": "Conectado",
@@ -216,7 +219,10 @@
       "commandsTitle": "Historial de comandos",
       "noCommands": "Todavía no se ha enviado ningún comando.",
       "alertsTitle": "Alertas de este dispositivo",
-      "noAlerts": "No hay alertas."
+      "noAlerts": "No hay alertas.",
+      "loading": "Cargando…",
+      "loadError": "No se pudo cargar este dispositivo. Vuelve a cargar la página.",
+      "refreshError": "No se pudieron actualizar los datos. Se muestra la última actualización correcta."
     },
     "commandType": {
       "LED_ON": "Encender la luz",
