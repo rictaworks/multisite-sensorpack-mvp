@@ -29,10 +29,13 @@
 #define API_BASE_URL ""
 
 // PEM-encoded root CA certificate for API_BASE_URL when it is https://.
-// Left empty in this template. The claim flow (issue #23) fails closed
-// (refuses to submit the claim code) rather than falling back to an
-// unverified/insecure TLS connection when the scheme is https and this is
-// empty (OWASP A02 - cryptographic failures). Fill this in once the
+// Left empty in this template. Despite the "CLAIM" name (this macro
+// predates issue #24), it is the root CA for API_BASE_URL as a whole -
+// there is only one backend - so both the claim flow (issue #23) and the
+// telemetry/command flow (issue #24, src/telemetry/telemetry_client.cpp)
+// share it. Both fail closed (refuse to send) rather than falling back to
+// an unverified/insecure TLS connection when the scheme is https and this
+// is empty (OWASP A02 - cryptographic failures). Fill this in once the
 // production backend domain/cert (Railway, per deploy.md) is finalized.
 // http:// (e.g. local bench testing) does not require this.
 #define CLAIM_API_ROOT_CA_PEM ""
@@ -87,3 +90,24 @@
 // requirements.md (ER diagram) / F2.1. This is the device telemetry
 // interval, distinct from the dashboard's 30s UI polling interval (F6.4).
 #define TELEMETRY_INTERVAL_MS 60000UL
+
+// ---------------------------------------------------------------------------
+// Telemetry HTTP transport + retry (issue #24, requirements.md F2/F5)
+// ---------------------------------------------------------------------------
+// How long to wait for the POST /telemetry HTTP response before treating
+// the attempt as a transport failure.
+#define TELEMETRY_HTTP_TIMEOUT_MS 10000UL
+
+// Number of attempts (including the first) made to deliver one telemetry
+// cycle before giving up until the next TELEMETRY_INTERVAL_MS tick.
+// Retries only happen on transport-level failure (timeout/DNS/connection
+// refused/TLS handshake failure) - a definitive HTTP response (any status
+// the server actually answered with, e.g. 401) is never retried, since
+// retrying an unchanged request would just repeat the same rejection. This
+// is also the "basic offline behavior" required by issue #24: when Wi-Fi
+// is down, the cycle is skipped entirely (no fabricated response), and the
+// next attempt happens on the next scheduled tick.
+#define TELEMETRY_HTTP_MAX_ATTEMPTS 3
+
+// Delay between retry attempts within one telemetry cycle.
+#define TELEMETRY_HTTP_RETRY_DELAY_MS 2000UL

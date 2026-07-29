@@ -1,11 +1,13 @@
 // ESP32 sensor pack firmware - scaffold (GitHub issue #4) + device claim
-// (GitHub issue #23).
+// (GitHub issue #23) + telemetry send / command receive / actuator control
+// (GitHub issue #24).
 //
-// Scope: Wi-Fi connect, DHT22 read, a minimal LED/fan control stub (issue
-// #4), and AP-mode Wi-Fi provisioning + device claim (issue #23, see
-// src/claim and src/wifi_provisioning). Telemetry/command networking + ACK
-// (issue #24) is NOT implemented here - see README.md for what is and
-// isn't covered by this scaffold.
+// Scope: Wi-Fi connect, DHT22 read, LED/fan GPIO control (issue #4),
+// AP-mode Wi-Fi provisioning + device claim (issue #23, see src/claim and
+// src/wifi_provisioning), and the recurring telemetry POST + piggybacked
+// command receive/execute/ACK cycle (issue #24, see src/telemetry and
+// src/actuators). See README.md for what is and isn't covered by
+// automated tests (hardware-dependent pieces are not host-testable).
 //
 // Pin numbers, Wi-Fi credentials, and the API endpoint are never
 // hardcoded here; static bench-testing values come from include/config.h
@@ -19,9 +21,14 @@
 #include <WiFi.h>
 
 #include <string>
+#include <vector>
 
-#include "command_mapper.h"
+#include "actuators/actuator_driver.h"
+#include "actuators/actuator_state.h"
 #include "config.h"
+#include "telemetry/ack_queue.h"
+#include "telemetry/telemetry_client.h"
+#include "telemetry/telemetry_protocol.h"
 #include "telemetry_format.h"
 #include "wifi_provisioning/ap_provisioning.h"
 
@@ -31,9 +38,17 @@ static uint32_t g_nextSeq = 0;
 // Not reassigned afterwards; loop() only reads it.
 static std::string g_device_token;
 
-static void setActuator(Actuator actuator, bool energized) {
-    const int pin = (actuator == Actuator::LED) ? LED_PIN : FAN_RELAY_PIN;
-    digitalWrite(pin, energized ? HIGH : LOW);
+// Builds a single-command batch and routes it through the same
+// resolve_commands()/actuators::apply_desired_state() path the real
+// telemetry-response command dispatch (loop(), issue #24) uses, so the
+// boot self-test below exercises the actual wiring rather than a
+// duplicate/parallel code path.
+static CommandDelivery makeSelfTestCommand(const char* command_type) {
+    CommandDelivery command;
+    command.idempotency_key = "boot-self-test";
+    command.command_type = command_type;
+    command.issued_at = "";
+    return command;
 }
 
 static void connectToWiFi(const std::string& ssid, const std::string& password) {
@@ -76,18 +91,17 @@ static void connectToWiFi(const std::string& ssid, const std::string& password) 
 }
 
 // One-shot actuator wiring self-test at boot. This only proves the pin
-// config + command_mapper wiring is correct; it is not the real command
-// dispatch loop (that arrives with HTTP command polling in issue #24).
+// config + resolve_commands()/actuator_driver wiring is correct; it is not
+// the real command dispatch loop (that runs in loop() below, driven by
+// commands piggybacked on the telemetry response - issue #24).
 static void runActuatorSelfTestOnce() {
-    const CommandEffect ledOn = parse_command("LED_ON");
-    if (ledOn.recognized) {
-        setActuator(ledOn.actuator, ledOn.desired_state);
-    }
+    const std::vector<CommandDelivery> ledOnBatch{makeSelfTestCommand("LED_ON")};
+    actuators::apply_desired_state(resolve_commands(ledOnBatch).desired_state);
+
     delay(200);
-    const CommandEffect ledOff = parse_command("LED_OFF");
-    if (ledOff.recognized) {
-        setActuator(ledOff.actuator, ledOff.desired_state);
-    }
+
+    const std::vector<CommandDelivery> ledOffBatch{makeSelfTestCommand("LED_OFF")};
+    actuators::apply_desired_state(resolve_commands(ledOffBatch).desired_state);
 }
 
 void setup() {
@@ -121,15 +135,21 @@ void setup() {
     runActuatorSelfTestOnce();
 
     Serial.println(
-        "[INFO] Firmware ready (claimed). Telemetry/command networking "
-        "(#24) is implemented in a later issue - readings are logged, not "
-        "yet transmitted.");
+        "[INFO] Firmware ready (claimed). Telemetry send / command "
+        "receive / ACK (issue #24) runs every TELEMETRY_INTERVAL_MS in "
+        "loop().");
 }
 
 void loop() {
     static unsigned long lastReadAt = 0;
-    const unsigned long now = millis();
+    // Idempotency keys of commands executed locally but not yet confirmed
+    // -ACKed to the server (requirements.md F5.3). Function-scope static
+    // (like lastReadAt above) rather than a file-scope global, per
+    // coding-style.md - state stays confined to the one function that owns
+    // the telemetry cycle.
+    static std::vector<std::string> pendingCommandAcks;
 
+    const unsigned long now = millis();
     if (now - lastReadAt < TELEMETRY_INTERVAL_MS) {
         return;
     }
@@ -154,14 +174,64 @@ void loop() {
         return;
     }
 
-    const TelemetryReading reading{g_device_token, g_nextSeq++, temperature,
-                                    humidity};
-    const std::string payload = format_telemetry_payload(reading);
+    const TelemetryRequestData requestData{g_nextSeq++, temperature, humidity,
+                                            pendingCommandAcks};
 
-    // Networking (HTTP POST to the backend, issue #24) is intentionally not
-    // implemented yet; we only log what would be sent.
-    Serial.print(
-        "[DEBUG] Telemetry payload (not transmitted - HTTP wiring is "
-        "issue #24): ");
-    Serial.println(payload.c_str());
+    const telemetry::TelemetryCycleResult cycleResult =
+        telemetry::send_telemetry(g_device_token, requestData);
+
+    if (!cycleResult.transport_ok) {
+        // Offline, or every retry attempt failed at the transport layer
+        // (telemetry_client.cpp already logged the specific reason). The
+        // ack queue is left untouched so the same pending ACKs are retried
+        // on the next TELEMETRY_INTERVAL_MS tick - this is the required
+        // "basic offline/retry behavior" (issue #24 acceptance criteria).
+        return;
+    }
+
+    if (!cycleResult.response.parsed_ok) {
+        // Definitive HTTP error (400/401/410) or an unparseable 200 body
+        // (telemetry_protocol.cpp already recorded the reason). Never
+        // execute commands from, or drain the ack queue based on, a
+        // response we could not fully trust.
+        Serial.println(
+            "[ERROR] Telemetry request was rejected or returned an "
+            "unparseable response. Skipping command processing this "
+            "cycle.");
+        return;
+    }
+
+    // The server has now confirmed receipt of this request, including
+    // whichever ACKs were snapshotted into requestData - drain exactly
+    // those from the pending queue (requirements.md F5.3: dedup is
+    // server-side, but we still avoid re-sending confirmed ACKs forever).
+    remove_acked(pendingCommandAcks, requestData.pending_command_acks);
+
+    if (!cycleResult.response.accepted) {
+        Serial.println(
+            "[WARN] Server reported accepted=false for this reading "
+            "(value-range rejection or duplicate seq - requirements.md "
+            "F2.4/F2.5).");
+    }
+
+    const ApplyCommandsResult applyResult =
+        resolve_commands(cycleResult.response.commands);
+    actuators::apply_desired_state(applyResult.desired_state);
+
+    for (const std::string& idempotencyKey : applyResult.applied_idempotency_keys) {
+        enqueue_pending_ack(pendingCommandAcks, idempotencyKey);
+    }
+
+    for (const std::string& idempotencyKey :
+         applyResult.unrecognized_idempotency_keys) {
+        // No fallback execution for a commandType this firmware does not
+        // recognize (coding-style.md "フォールバック処理を書かない") - left
+        // un-ACKed so it expires server-side via TTL (requirements.md
+        // F5.4) rather than being silently dropped or guessed at.
+        Serial.print(
+            "[ERROR] Received command with unrecognized commandType "
+            "(idempotencyKey=");
+        Serial.print(idempotencyKey.c_str());
+        Serial.println("). Not executed, not ACKed.");
+    }
 }
