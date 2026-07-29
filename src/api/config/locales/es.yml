@@ -15,3 +15,4 @@ es:
     claim_code_locked: "Este código de reclamo se bloqueó tras varios intentos fallidos."
     invalid_device_token: "El token del dispositivo no es válido."
     device_deleted: "Este dispositivo ha sido eliminado."
+    alert_already_closed: "Esta alerta ya está cerrada y no se puede confirmar."

@@ -15,3 +15,4 @@ ar:
     claim_code_locked: "تم قفل رمز المطالبة هذا بعد محاولات فاشلة متكررة."
     invalid_device_token: "رمز الجهاز غير صالح."
     device_deleted: "تم حذف هذا الجهاز."
+    alert_already_closed: "تم إغلاق هذا التنبيه بالفعل ولا يمكن الإقرار به."
