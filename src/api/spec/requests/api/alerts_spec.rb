@@ -36,7 +36,7 @@ RSpec.describe "Api::Alerts", type: :request do
   # セッションcookieでリクエストを継続する。
   def login_as(target_user)
     allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return(target_user.google_sub)
-    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+    post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
   end
 
   # src/shared/contracts/openapi.yaml components.schemas.Error: {error: {code, message}}
