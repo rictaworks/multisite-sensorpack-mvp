@@ -33,7 +33,10 @@ RSpec.describe "Auth session (Google login)", type: :request do
 
         user = User.last
         expect(user.google_sub).to eq("google-sub-user-1")
-        expect(user.attributes.keys).to match_array(%w[id google_sub created_at updated_at])
+        # session_token_versionはセッション失効管理用の内部カウンタであり、
+        # 個人を識別しうる情報(メールアドレス・氏名等)ではない(requirements.md 1.4)。
+        expect(user.attributes.keys)
+          .to match_array(%w[id google_sub session_token_version created_at updated_at])
       end
 
       it "既存ユーザーの場合、重複作成せず同一ユーザーでログインする" do
@@ -156,6 +159,87 @@ RSpec.describe "Auth session (Google login)", type: :request do
     it "未ログインの場合401を返す" do
       delete "/auth/session"
 
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  # ログアウトがブラウザ側のcookie削除だけだと、cookieを窃取された場合に
+  # サーバー側から無効化する手段が無く、SESSION_TTL(30日)のあいだ有効なままになる。
+  # user.session_token_versionをcookieに埋め込み、ログアウト時に加算することで
+  # 発行済みcookieを一括で失効させる(.claude/OWASP10.md A07: 認証・認可の欠陥)。
+  describe "セッションのサーバー側失効" do
+    before { allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return("google-sub-user-1") }
+
+    def login_and_capture_cookie
+      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      cookies[:session_id]
+    end
+
+    it "ログアウト後は、ログアウト前に発行されたcookieを再送しても認証されない" do
+      stolen_cookie = login_and_capture_cookie
+      expect(stolen_cookie).to be_present
+
+      delete "/auth/session"
+
+      # cookieを窃取した攻撃者が、ログアウト後に手元のcookieで再アクセスする状況を再現する。
+      cookies[:session_id] = stolen_cookie
+      get "/auth/session"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "ログアウトすると他の端末で発行済みのセッションも同時に失効する" do
+      first_device_cookie = login_and_capture_cookie
+
+      # 別端末からのログインを、独立したintegration sessionとして再現する。
+      second_device = open_session
+      second_device.post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      expect(second_device.response).to have_http_status(:ok)
+
+      # 片方の端末でログアウトする。
+      second_device.delete "/auth/session"
+      expect(second_device.response).to have_http_status(:no_content)
+
+      cookies[:session_id] = first_device_cookie
+      get "/auth/session"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "ログアウトしていなければセッションは有効なまま維持される" do
+      login_and_capture_cookie
+
+      get "/auth/session"
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "再ログインすれば新しいcookieで再びアクセスできる" do
+      login_and_capture_cookie
+      delete "/auth/session"
+
+      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      get "/auth/session"
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "ログアウトのたびにsession_token_versionが加算される" do
+      login_and_capture_cookie
+      user = User.find_by!(google_sub: "google-sub-user-1")
+
+      expect { delete "/auth/session" }.to change { user.reload.session_token_version }.by(1)
+    end
+
+    # cookieの中身が改竄されていなくても、token_versionが一致しなければ通さない
+    # (Rails標準の暗号化cookieによる改竄検知に加えた、サーバー側の失効判定)。
+    it "DBのsession_token_versionが進んでいるcookieは受け付けない" do
+      login_and_capture_cookie
+      user = User.find_by!(google_sub: "google-sub-user-1")
+
+      user.increment!(:session_token_version)
+
+      get "/auth/session"
       expect(response).to have_http_status(:unauthorized)
     end
   end
