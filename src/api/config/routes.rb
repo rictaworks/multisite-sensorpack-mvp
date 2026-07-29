@@ -46,6 +46,16 @@ Rails.application.routes.draw do
     # F5 遠隔手動制御(LED/ファンコマンド発行)。src/shared/contracts/openapi.yamlのcreateCommandに
     # 対応する(Issue #11)。ユーザー側APIのためGoogleセッションcookie認証(Authenticatable/TenantScoped)。
     post "devices/:deviceId/commands" => "commands#create"
+
+    # F6 ダッシュボード集計API(拠点一覧・デバイス詳細の参照エンドポイント)。
+    # src/shared/contracts/openapi.yamlのgetDashboardSitesSummary/listDevices/getDevice/
+    # getDeviceTelemetrySeries/listCommandsに対応する(Issue #12)。ユーザー側APIのため
+    # Googleセッションcookie認証(Authenticatable/TenantScoped)。
+    get "dashboard/sites-summary" => "sites#dashboard_summary"
+    get "devices" => "devices#index"
+    get "devices/:deviceId" => "devices#show"
+    get "devices/:deviceId/telemetry-series" => "devices#telemetry_series"
+    get "devices/:deviceId/commands" => "devices#commands"
   end
 
   # Defines the root path route ("/")
