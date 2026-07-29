@@ -1,16 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { interpolate, t } from './support/messages';
+import { stubAlertsApi } from './support/alertsApiStub';
 
 /**
  * F8 お知らせ(アラート)一覧・ack UI — Issue #20.
  *
- * components/alerts/alertsRepository.ts is a pure in-memory mock (no
- * network) — see WORK/2026-07-28-issue-20-notifications.md's residual-gap
- * note that real Rails wiring (`GET /alerts` / `POST /alerts/{id}/ack`) is
- * still pending. The acknowledge button, tab counts and badge below are all
- * exercising the real component logic, just against fixture data.
+ * この画面は実API(`GET /alerts` / `POST /alerts/{id}/ack`)へ結線しており、かつて
+ * 抱えていたインメモリのモック(alertsRepository.ts)は撤去した。
+ * このスイートはRailsの起動に依存しない方針のため、応答は support/alertsApiStub.ts が
+ * ブラウザのネットワーク層で差し替える(アプリ側のフォールバックではない)。
+ * ackボタン・タブ件数・バッジ更新はすべて実物のコンポーネントロジックが動く。
  */
 test.describe('お知らせ(アラート)一覧・ack', () => {
+  test.beforeEach(async ({ page }) => {
+    await stubAlertsApi(page);
+  });
+
   test('未対応アラートをackすると、確認ずみタブに移動しバッジ件数が減る', async ({ page }) => {
     await page.goto('/ja/alerts');
 

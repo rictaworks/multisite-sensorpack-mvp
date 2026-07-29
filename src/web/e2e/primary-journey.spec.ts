@@ -3,6 +3,7 @@ import { t } from './support/messages';
 import { passTestRecaptcha } from './support/recaptcha';
 import { STUB_SITES, stubClaimCodeSuccess, stubSitesList } from './support/claimApiStub';
 import { stubDashboardApi } from './support/dashboardApiStub';
+import { stubAlertsApi } from './support/alertsApiStub';
 
 /**
  * Holistic smoke test for the "主要導線" (primary user journey) Issue #25
@@ -49,6 +50,7 @@ test('主要導線: ホーム→ログイン→ダッシュボード→デバイ
   await page.getByRole('button', { name: t('ja', 'deviceClaim.form.submit') }).click();
   await expect(page.getByTestId('claim-code')).toHaveText('JRNY0001', { timeout: 10_000 });
 
+  await stubAlertsApi(page);
   await page.goto('/ja/alerts');
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'alerts.title') })).toBeVisible();
   await expect(page.getByRole('button', { name: t('ja', 'alerts.ackButton') }).first()).toBeVisible();

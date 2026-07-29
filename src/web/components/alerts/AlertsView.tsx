@@ -1,13 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import AlertBadge from './AlertBadge';
-import {
-  createMockAlertsRepository,
-  type Alert,
-  type AlertStatus,
-} from './alertsRepository';
+import { acknowledgeAlert, listAlerts, type Alert, type AlertStatus } from './alertsApi';
 import {
   getAlertMessageKey,
   getDeviceLabelKey,
@@ -27,12 +23,12 @@ function formatOpenedAt(isoTimestamp: string): string {
 
 /**
  * お知らせ（アラート）一覧・ack画面（Issue #20, requirements.md F8）。
- * API is mocked/stubbed per this issue's edit scope — see alertsRepository.ts
- * for the swap-in point once Issue #1's Rails API is reachable.
+ *
+ * データは実API（`GET /alerts` / `POST /alerts/{id}/ack`）から取得する。
+ * かつてのインメモリのモック（alertsRepository.ts）は撤去した。
  */
 export default function AlertsView() {
   const t = useTranslations('alerts');
-  const repositoryRef = useRef(createMockAlertsRepository());
 
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -44,8 +40,7 @@ export default function AlertsView() {
     let cancelled = false;
     console.debug('[AlertsView] loading alerts');
 
-    repositoryRef.current
-      .list()
+    listAlerts()
       .then((loaded) => {
         if (cancelled) return;
         setAlerts(loaded);
@@ -79,7 +74,7 @@ export default function AlertsView() {
     setAckingId(alertId);
     setAckErrorId(null);
     try {
-      const updated = await repositoryRef.current.acknowledge(alertId);
+      const updated = await acknowledgeAlert(alertId);
       setAlerts((previous) =>
         (previous ?? []).map((alert) => (alert.id === updated.id ? updated : alert))
       );
