@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import styles from './control.module.css';
+import styles from './ConfirmDialog.module.css';
 
 type ConfirmDialogProps = {
   titleId: string;
@@ -11,13 +11,20 @@ type ConfirmDialogProps = {
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** 取り消せない操作(拠点の削除など)では確認ボタンを警告色にする。 */
+  destructive?: boolean;
+  /** テストから特定するための識別子。画面ごとに指定する。 */
+  testId?: string;
 };
 
 /**
  * Custom in-app confirmation UI used in place of the native `confirm()`.
- * `.claude/CLAUDE.md` and Issue #21 both prohibit `alert()`/`confirm()`/`prompt()`;
- * every "are you sure?" interaction in this screen must go through this
- * component (or an equivalent app-level modal) instead.
+ * CLAUDE.md and Issue #21 both prohibit `alert()`/`confirm()`/`prompt()`;
+ * every "are you sure?" interaction must go through this component.
+ *
+ * Originally written for the manual-control screen (Issue #21); moved to
+ * components/common/ when the site-management screen needed the same
+ * confirmation for deletion (Issue #61) rather than growing a second modal.
  */
 export default function ConfirmDialog({
   titleId,
@@ -27,6 +34,8 @@ export default function ConfirmDialog({
   cancelLabel,
   onConfirm,
   onCancel,
+  destructive = false,
+  testId = 'confirm-overlay',
 }: ConfirmDialogProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -39,7 +48,7 @@ export default function ConfirmDialog({
       className={styles.confirmOverlay}
       role="presentation"
       onClick={onCancel}
-      data-testid="control-confirm-overlay"
+      data-testid={testId}
     >
       <div
         className={styles.confirmDialog}
@@ -59,7 +68,7 @@ export default function ConfirmDialog({
           <button
             type="button"
             ref={confirmButtonRef}
-            className={styles.confirmConfirmButton}
+            className={destructive ? styles.confirmDestructiveButton : styles.confirmConfirmButton}
             onClick={onConfirm}
           >
             {confirmLabel}

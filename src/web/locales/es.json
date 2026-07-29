@@ -7,7 +7,8 @@
     "ariaLabel": "Navegación principal",
     "home": "Inicio",
     "dashboard": "Panel",
-    "alerts": "Alertas"
+    "alerts": "Alertas",
+    "sites": "Ubicaciones"
   },
   "deviceClaim": {
     "eyebrow": "Añadir dispositivo",
@@ -28,7 +29,8 @@
       "recaptchaHint": "reCAPTCHA · Privacidad · Términos del servicio",
       "recaptchaUnconfigured": "reCAPTCHA no está configurado, por lo que no se puede generar un código. Ponte en contacto con un administrador.",
       "submit": "Generar código de conexión",
-      "submitting": "Generando…"
+      "submitting": "Generando…",
+      "createSiteLink": "Crear una ubicación"
     },
     "errors": {
       "siteRequired": "Por favor, elige una sede.",
@@ -256,6 +258,46 @@
     "polling": {
       "label": "Actualización automática cada {seconds} s",
       "lastUpdated": "Última actualización {time}"
+    }
+  },
+  "sites": {
+    "eyebrow": "Ubicaciones",
+    "title": "Gestionar tus ubicaciones",
+    "backToHome": "← Volver al inicio",
+    "list": {
+      "heading": "Ubicaciones registradas",
+      "loading": "Cargando…",
+      "loadError": "No se pudo cargar la lista de ubicaciones. Vuelve a cargar la página.",
+      "empty": "Todavía no tienes ubicaciones. Crea la primera aquí abajo.",
+      "deviceCount": "{count} dispositivos"
+    },
+    "create": {
+      "heading": "Añadir una ubicación",
+      "nameLabel": "Nombre de la ubicación",
+      "namePlaceholder": "p. ej. Almacén A",
+      "nameHint": "No escribas una dirección. Basta con un nombre que reconozcas.",
+      "submit": "Crear esta ubicación",
+      "submitting": "Creando…",
+      "success": "Se creó la ubicación «{name}»."
+    },
+    "delete": {
+      "button": "Eliminar",
+      "buttonLabel": "Eliminar la ubicación «{name}»",
+      "confirmTitle": "¿Eliminar la ubicación «{name}»?",
+      "confirmBody": "Los dispositivos registrados en esta ubicación también dejarán de funcionar. Los registros anteriores se conservan, pero la ubicación ya no aparecerá en la lista.",
+      "confirmButton": "Eliminar",
+      "cancelButton": "Cancelar",
+      "deleting": "Eliminando…",
+      "success": "Se eliminó la ubicación «{name}»."
+    },
+    "errors": {
+      "nameRequired": "Escribe un nombre para la ubicación.",
+      "nameTooLong": "El nombre de la ubicación debe tener 100 caracteres o menos.",
+      "validation": "Revisa los datos introducidos.",
+      "unauthorized": "Necesitas iniciar sesión. Inicia sesión e inténtalo de nuevo.",
+      "forbidden": "No tienes permiso para realizar esta acción.",
+      "notFound": "No se encontró esa ubicación. Es posible que ya se haya eliminado.",
+      "network": "Falló la conexión. Inténtalo de nuevo en unos momentos."
     }
   }
 }

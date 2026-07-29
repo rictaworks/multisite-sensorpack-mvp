@@ -3,12 +3,14 @@ import type { Page } from '@playwright/test';
 /**
  * components/claim/DeviceClaimView.tsx (Issue #19) calls the *real* relative
  * endpoints `GET /api/v1/sites` and `POST /api/v1/claim-codes`
- * (components/claim/api.ts) — unlike the dashboard/alerts/control/summary
- * screens, this one was NOT built against an in-memory mock. Every prior
- * WORK/ report for issues #17–#22 records the same residual gap: the Rails
- * backend (Issue #1) is not wired up behind a same-origin proxy yet, so in
- * this repository today those requests simply 404 against the Next.js
- * server itself.
+ * (components/sites/api.ts and components/claim/api.ts) — unlike the
+ * dashboard/alerts/control/summary screens, this one was NOT built against an
+ * in-memory mock.
+ *
+ * Those paths are now forwarded to Rails server-side by
+ * app/api/v1/[...path]/route.ts (Issue #53 A-4), so they no longer 404 as every
+ * WORK/ report for issues #17–#22 recorded. They do, however, require a running
+ * Rails backend, which this suite deliberately does not depend on.
  *
  * Per the Issue #25 work instructions ("バックエンドとの実結線が未完了の画
  * 面については、モックAPIのままで良いのでUI遷移・表示のE2E検証に留め、そ

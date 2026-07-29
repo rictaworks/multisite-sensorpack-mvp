@@ -7,7 +7,8 @@
     "ariaLabel": "Navigation principale",
     "home": "Accueil",
     "dashboard": "Tableau de bord",
-    "alerts": "Alertes"
+    "alerts": "Alertes",
+    "sites": "Sites"
   },
   "deviceClaim": {
     "eyebrow": "Ajouter un appareil",
@@ -28,7 +29,8 @@
       "recaptchaHint": "reCAPTCHA · Confidentialité · Conditions d'utilisation",
       "recaptchaUnconfigured": "reCAPTCHA n'est pas configuré, un code ne peut donc pas être généré. Merci de contacter un administrateur.",
       "submit": "Générer le code de connexion",
-      "submitting": "Génération en cours…"
+      "submitting": "Génération en cours…",
+      "createSiteLink": "Créer un site"
     },
     "errors": {
       "siteRequired": "Veuillez choisir un site.",
@@ -256,6 +258,46 @@
     "polling": {
       "label": "Actualisation automatique toutes les {seconds}s",
       "lastUpdated": "Dernière mise à jour {time}"
+    }
+  },
+  "sites": {
+    "eyebrow": "Sites",
+    "title": "Gérer vos sites",
+    "backToHome": "← Retour à l’accueil",
+    "list": {
+      "heading": "Sites enregistrés",
+      "loading": "Chargement…",
+      "loadError": "Impossible de charger vos sites. Veuillez recharger la page.",
+      "empty": "Vous n’avez encore aucun site. Créez le premier ci-dessous.",
+      "deviceCount": "{count} appareils"
+    },
+    "create": {
+      "heading": "Ajouter un site",
+      "nameLabel": "Nom du site",
+      "namePlaceholder": "ex. Entrepôt A",
+      "nameHint": "N’indiquez pas d’adresse. Un nom qui vous parle suffit.",
+      "submit": "Créer ce site",
+      "submitting": "Création…",
+      "success": "Le site « {name} » a été créé."
+    },
+    "delete": {
+      "button": "Supprimer",
+      "buttonLabel": "Supprimer le site « {name} »",
+      "confirmTitle": "Supprimer le site « {name} » ?",
+      "confirmBody": "Les appareils enregistrés sur ce site cesseront également d’être utilisables. Les relevés passés sont conservés, mais le site n’apparaîtra plus dans la liste.",
+      "confirmButton": "Supprimer",
+      "cancelButton": "Annuler",
+      "deleting": "Suppression…",
+      "success": "Le site « {name} » a été supprimé."
+    },
+    "errors": {
+      "nameRequired": "Veuillez saisir un nom de site.",
+      "nameTooLong": "Le nom du site ne doit pas dépasser 100 caractères.",
+      "validation": "Veuillez vérifier votre saisie.",
+      "unauthorized": "Vous devez vous connecter. Connectez-vous puis réessayez.",
+      "forbidden": "Vous n’avez pas l’autorisation d’effectuer cette action.",
+      "notFound": "Ce site est introuvable. Il a peut-être déjà été supprimé.",
+      "network": "La connexion a échoué. Veuillez réessayer dans un instant."
     }
   }
 }

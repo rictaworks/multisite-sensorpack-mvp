@@ -7,7 +7,8 @@
     "ariaLabel": "メインナビゲーション",
     "home": "ホーム",
     "dashboard": "ダッシュボード",
-    "alerts": "アラート"
+    "alerts": "アラート",
+    "sites": "拠点"
   },
   "deviceClaim": {
     "eyebrow": "デバイス追加",
@@ -28,7 +29,8 @@
       "recaptchaHint": "reCAPTCHA・プライバシー・利用規約",
       "recaptchaUnconfigured": "reCAPTCHAが設定されていないため、コードを発行できません。管理者にお問い合わせください。",
       "submit": "接続コードを発行する",
-      "submitting": "発行しています…"
+      "submitting": "発行しています…",
+      "createSiteLink": "拠点を作成する"
     },
     "errors": {
       "siteRequired": "拠点を選択してください。",
@@ -256,6 +258,46 @@
     "polling": {
       "label": "{seconds}秒ごとに自動更新",
       "lastUpdated": "最終更新 {time}"
+    }
+  },
+  "sites": {
+    "eyebrow": "拠点管理",
+    "title": "拠点を管理する",
+    "backToHome": "← ホームにもどる",
+    "list": {
+      "heading": "登録ずみの拠点",
+      "loading": "読み込んでいます…",
+      "loadError": "拠点一覧の取得に失敗しました。ページを再読み込みしてください。",
+      "empty": "まだ拠点がありません。最初の拠点を作成してください。",
+      "deviceCount": "機器 {count} 台"
+    },
+    "create": {
+      "heading": "拠点を追加する",
+      "nameLabel": "拠点の呼び名",
+      "namePlaceholder": "例：倉庫A",
+      "nameHint": "住所は入力しないでください。自分がわかる呼び名で大丈夫です。",
+      "submit": "この拠点を作成する",
+      "submitting": "作成しています…",
+      "success": "拠点「{name}」を作成しました。"
+    },
+    "delete": {
+      "button": "削除",
+      "buttonLabel": "拠点「{name}」を削除",
+      "confirmTitle": "拠点「{name}」を削除しますか？",
+      "confirmBody": "この拠点に登録されている機器もあわせて使えなくなります。これまでの記録は残りますが、拠点は一覧に表示されなくなります。",
+      "confirmButton": "削除する",
+      "cancelButton": "やめる",
+      "deleting": "削除しています…",
+      "success": "拠点「{name}」を削除しました。"
+    },
+    "errors": {
+      "nameRequired": "拠点の呼び名を入力してください。",
+      "nameTooLong": "拠点の呼び名は100文字以内で入力してください。",
+      "validation": "入力内容をご確認ください。",
+      "unauthorized": "ログインが必要です。サインインしてからもう一度お試しください。",
+      "forbidden": "この操作を行う権限がありません。",
+      "notFound": "この拠点は見つかりませんでした。すでに削除されている可能性があります。",
+      "network": "通信に失敗しました。しばらくしてからもう一度お試しください。"
     }
   }
 }

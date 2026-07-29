@@ -7,7 +7,8 @@
     "ariaLabel": "主导航",
     "home": "首页",
     "dashboard": "仪表盘",
-    "alerts": "告警"
+    "alerts": "告警",
+    "sites": "站点"
   },
   "deviceClaim": {
     "eyebrow": "添加设备",
@@ -28,7 +29,8 @@
       "recaptchaHint": "reCAPTCHA · 隐私政策 · 服务条款",
       "recaptchaUnconfigured": "尚未配置reCAPTCHA，无法生成配对码，请联系管理员。",
       "submit": "生成配对码",
-      "submitting": "正在生成…"
+      "submitting": "正在生成…",
+      "createSiteLink": "创建站点"
     },
     "errors": {
       "siteRequired": "请选择一个站点。",
@@ -256,6 +258,46 @@
     "polling": {
       "label": "每{seconds}秒自动刷新",
       "lastUpdated": "最近更新 {time}"
+    }
+  },
+  "sites": {
+    "eyebrow": "站点管理",
+    "title": "管理站点",
+    "backToHome": "← 返回首页",
+    "list": {
+      "heading": "已注册的站点",
+      "loading": "加载中…",
+      "loadError": "无法获取站点列表，请重新加载页面。",
+      "empty": "还没有站点。请先创建第一个站点。",
+      "deviceCount": "{count} 台设备"
+    },
+    "create": {
+      "heading": "添加站点",
+      "nameLabel": "站点名称",
+      "namePlaceholder": "例：A仓库",
+      "nameHint": "请不要填写地址，使用自己能识别的名称即可。",
+      "submit": "创建此站点",
+      "submitting": "正在创建…",
+      "success": "已创建站点“{name}”。"
+    },
+    "delete": {
+      "button": "删除",
+      "buttonLabel": "删除站点“{name}”",
+      "confirmTitle": "要删除站点“{name}”吗？",
+      "confirmBody": "该站点下已注册的设备也将无法继续使用。历史记录会保留，但该站点不再显示在列表中。",
+      "confirmButton": "删除",
+      "cancelButton": "取消",
+      "deleting": "正在删除…",
+      "success": "已删除站点“{name}”。"
+    },
+    "errors": {
+      "nameRequired": "请输入站点名称。",
+      "nameTooLong": "站点名称请控制在100个字符以内。",
+      "validation": "请检查填写的内容。",
+      "unauthorized": "需要登录。请登录后重试。",
+      "forbidden": "您没有执行此操作的权限。",
+      "notFound": "未找到该站点，可能已被删除。",
+      "network": "通信失败，请稍后重试。"
     }
   }
 }

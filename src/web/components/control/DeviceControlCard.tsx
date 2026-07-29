@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import ConfirmDialog from './ConfirmDialog';
+import ConfirmDialog from '../common/ConfirmDialog';
 import styles from './control.module.css';
 import type { ActuatorKind, ControlDevice } from './types';
 
@@ -208,6 +208,7 @@ export default function DeviceControlCard({
           cancelLabel={t('confirm.cancelButton')}
           onConfirm={confirmToggle}
           onCancel={cancelToggle}
+          testId="control-confirm-overlay"
         />
       ) : null}
     </section>
