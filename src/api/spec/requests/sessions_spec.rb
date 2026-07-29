@@ -171,7 +171,7 @@ RSpec.describe "Auth session (Google login)", type: :request do
     before { allow(GoogleIdTokenVerifier).to receive(:verify_sub).and_return("google-sub-user-1") }
 
     def login_and_capture_cookie
-      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
       cookies[:session_id]
     end
 
@@ -193,7 +193,7 @@ RSpec.describe "Auth session (Google login)", type: :request do
 
       # 別端末からのログインを、独立したintegration sessionとして再現する。
       second_device = open_session
-      second_device.post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      second_device.post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
       expect(second_device.response).to have_http_status(:ok)
 
       # 片方の端末でログアウトする。
@@ -218,7 +218,7 @@ RSpec.describe "Auth session (Google login)", type: :request do
       login_and_capture_cookie
       delete "/auth/session"
 
-      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: "recaptcha-token" }
+      post "/auth/session", params: { idToken: "valid.jwt", recaptchaToken: RecaptchaVerifier::TEST_SUCCESS_TOKEN }
       get "/auth/session"
 
       expect(response).to have_http_status(:ok)
