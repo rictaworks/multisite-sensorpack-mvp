@@ -94,6 +94,13 @@
       "title": "Historial de órdenes",
       "empty": "Todavía no se ha enviado ninguna orden.",
       "commandLabel": "{actuator} — {state}"
+    },
+    "loading": "Cargando…",
+    "errors": {
+      "loadFailed": "No se pudieron cargar tus dispositivos. Vuelve a cargar la página.",
+      "refreshFailed": "No se pudo actualizar el estado. Puede que lo que ves no esté al día.",
+      "dispatchFailed": "No se pudo enviar la orden. Inténtalo de nuevo en unos momentos.",
+      "automationFailed": "No se pudo cambiar el ajuste automático. Inténtalo de nuevo en unos momentos."
     }
   },
   "alerts": {

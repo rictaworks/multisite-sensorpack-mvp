@@ -1,14 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { interpolate, t } from './support/messages';
+import { CONTROL_DEVICE_IDS, stubControlApi } from './support/controlApiStub';
 
 /**
  * F5 運用ツール(遠隔手動制御・自動ルール) — Issue #21.
  *
- * components/control/mockControlApi.ts is a pure in-memory mock (setTimeout
- * state machine, no network) — see WORK/2026-07-28-issue-21-operation-tools.md's
- * residual-gap note that the real `POST /devices/{deviceId}/commands`
- * endpoint is still pending. Every assertion below exercises the real
- * ConfirmDialog/DeviceControlCard component logic against that mock.
+ * この画面は実API(`GET /devices`・`POST /devices/{id}/commands`・
+ * `PUT /devices/{id}/automation-rule` ほか)へ結線しており、かつての
+ * mockControlApi.ts(setTimeoutで状態遷移を擬似再現するモック)は撤去した。
+ * このスイートはRailsの起動に依存しない方針のため、応答は support/controlApiStub.ts が
+ * ブラウザのネットワーク層で差し替える(アプリ側のフォールバックではない)。
  *
  * Root CLAUDE.md and .claude/rules/coding-style.md prohibit native
  * `alert()`/`confirm()`/`prompt()`; this suite asserts that directly by
@@ -17,7 +18,8 @@ import { interpolate, t } from './support/messages';
  * suite already spies on via `window.confirm`).
  */
 test.describe('運用ツール(遠隔制御)', () => {
-  test.beforeEach(({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    await stubControlApi(page);
     page.on('dialog', (dialog) => {
       throw new Error(
         `Native ${dialog.type()}() dialog fired ("${dialog.message()}") — CLAUDE.md forbids alert()/confirm()/prompt(); ` +
@@ -26,12 +28,14 @@ test.describe('運用ツール(遠隔制御)', () => {
     });
   });
 
-  test('オンライン機器のLEDをオンにする確認ダイアログ→送信で送信待ち・届いた・実行ずみと遷移する', async ({
+  test('オンライン機器のLEDをオンにする確認ダイアログ→送信でコマンドが発行され状態に反映される', async ({
     page,
   }) => {
     await page.goto('/ja/control');
 
-    const onlineCard = page.getByRole('region', { name: 'Warehouse A - Entrance' });
+    const onlineCard = page.getByRole('region', {
+      name: interpolate(t('ja', 'dashboard.overview.deviceLabel'), { id: CONTROL_DEVICE_IDS.online }),
+    });
     const ledLabel = t('ja', 'control.actuator.led');
     const toggleAriaLabel = interpolate(t('ja', 'control.actuatorToggleAriaLabel'), { actuator: ledLabel });
     const ledSwitch = onlineCard.getByRole('switch', { name: toggleAriaLabel });
@@ -44,27 +48,17 @@ test.describe('運用ツール(遠隔制御)', () => {
     await expect(dialog).toContainText(interpolate(t('ja', 'control.confirm.turnOnTitle'), { actuator: ledLabel }));
     await dialog.getByRole('button', { name: t('ja', 'control.confirm.confirmButton') }).click();
 
-    await expect(ledSwitch).toHaveAttribute('aria-checked', 'true');
-    await expect(onlineCard.getByText(t('ja', 'control.commandStatus.pending'))).toBeVisible();
-    // mockControlApi.ts's online lifecycle is pending -> delivered (400ms) ->
-    // done (+400ms later). Verified (via console.debug tracing already
-    // built into mockControlApi.ts) that both transitions really do fire in
-    // a real browser, but the intermediate "delivered" state is not
-    // reliably observable by polling: the two setTimeout callbacks land
-    // close enough together that React can (correctly, and often) skip
-    // straight from "pending" to "done" without ever painting the
-    // in-between frame — asserting on it would make this test flaky against
-    // real rendering, not against a real bug. Only the pending → done
-    // endpoints are asserted; the full three-state sequence already has
-    // deterministic coverage via Jest fake timers in
-    // src/web/__tests__/control/control-view.test.tsx.
-    await expect(onlineCard.getByText(t('ja', 'control.commandStatus.done'))).toBeVisible({ timeout: 8_000 });
+    // 発行後は取得し直した結果が反映される(画面側で先回りして状態を作らない)。
+    await expect(ledSwitch).toHaveAttribute('aria-checked', 'true', { timeout: 10_000 });
+    await expect(onlineCard.getByText(t('ja', 'control.commandStatus.done'))).toBeVisible({ timeout: 10_000 });
   });
 
   test('確認ダイアログをキャンセルすると状態は変化しない', async ({ page }) => {
     await page.goto('/ja/control');
 
-    const onlineCard = page.getByRole('region', { name: 'Warehouse A - Entrance' });
+    const onlineCard = page.getByRole('region', {
+      name: interpolate(t('ja', 'dashboard.overview.deviceLabel'), { id: CONTROL_DEVICE_IDS.online }),
+    });
     const fanLabel = t('ja', 'control.actuator.fan');
     const toggleAriaLabel = interpolate(t('ja', 'control.actuatorToggleAriaLabel'), { actuator: fanLabel });
     const fanSwitch = onlineCard.getByRole('switch', { name: toggleAriaLabel });
@@ -80,7 +74,9 @@ test.describe('運用ツール(遠隔制御)', () => {
   test('オフライン機器を操作すると確認ダイアログにオフライン警告が表示される', async ({ page }) => {
     await page.goto('/ja/control');
 
-    const offlineCard = page.getByRole('region', { name: 'Home - Living Room' });
+    const offlineCard = page.getByRole('region', {
+      name: interpolate(t('ja', 'dashboard.overview.deviceLabel'), { id: CONTROL_DEVICE_IDS.offline }),
+    });
     await expect(offlineCard.getByText(t('ja', 'control.offlineWarning'))).toBeVisible();
 
     const ledLabel = t('ja', 'control.actuator.led');
@@ -91,12 +87,8 @@ test.describe('運用ツール(遠隔制御)', () => {
     await expect(dialog).toContainText(t('ja', 'control.offlineWarning'));
     await dialog.getByRole('button', { name: t('ja', 'control.confirm.confirmButton') }).click();
 
-    // The command is accepted (pending) even though the device is offline —
-    // it only becomes "届きませんでした" after the real 10 minute TTL
-    // (mockControlApi.ts's COMMAND_TTL_MS), which this suite intentionally
-    // does not wait out in real time; that transition already has dedicated
-    // coverage in src/web/__tests__/control/control-view.test.tsx via Jest
-    // fake timers.
-    await expect(offlineCard.getByText(t('ja', 'control.commandStatus.pending'))).toBeVisible();
+    // オフラインでもコマンドの発行自体は受け付けられる(復帰後TTL内なら実行される)。
+    // 実際に「届きませんでした」になるのは10分のTTL経過後で、このスイートでは待たない。
+    await expect(offlineCard.getByText(t('ja', 'control.history.empty'))).toHaveCount(0, { timeout: 10_000 });
   });
 });

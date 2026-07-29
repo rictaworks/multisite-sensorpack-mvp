@@ -5,6 +5,7 @@ import { STUB_SITES, stubClaimCodeSuccess, stubSitesList } from './support/claim
 import { stubDashboardApi } from './support/dashboardApiStub';
 import { stubAlertsApi } from './support/alertsApiStub';
 import { stubSummaryApi } from './support/summaryApiStub';
+import { stubControlApi } from './support/controlApiStub';
 
 /**
  * Holistic smoke test for the "主要導線" (primary user journey) Issue #25
@@ -56,6 +57,7 @@ test('主要導線: ホーム→ログイン→ダッシュボード→デバイ
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'alerts.title') })).toBeVisible();
   await expect(page.getByRole('button', { name: t('ja', 'alerts.ackButton') }).first()).toBeVisible();
 
+  await stubControlApi(page);
   await page.goto('/ja/control');
   await expect(page.getByRole('heading', { level: 1, name: t('ja', 'control.title') })).toBeVisible();
   await expect(page.getByRole('switch').first()).toBeVisible();

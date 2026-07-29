@@ -94,6 +94,13 @@
       "title": "Historique des commandes",
       "empty": "Aucune commande envoyée pour l'instant.",
       "commandLabel": "{actuator} — {state}"
+    },
+    "loading": "Chargement…",
+    "errors": {
+      "loadFailed": "Impossible de charger vos appareils. Veuillez recharger la page.",
+      "refreshFailed": "Impossible d’actualiser l’état. L’affichage n’est peut-être pas à jour.",
+      "dispatchFailed": "Impossible d’envoyer la commande. Veuillez réessayer dans un instant.",
+      "automationFailed": "Impossible de modifier le réglage automatique. Veuillez réessayer dans un instant."
     }
   },
   "alerts": {
