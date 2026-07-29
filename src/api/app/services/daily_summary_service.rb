@@ -24,12 +24,6 @@ class DailySummaryService
   QUOTA_RESET_LOOKBACK = 3.hours
   STATS_LOOKBACK = 24.hours
 
-  ALERT_TYPE_CODE_TO_CONTRACT = {
-    "threshold_upper_breach" => "upper_breach",
-    "threshold_lower_breach" => "lower_breach",
-    "offline" => "offline"
-  }.freeze
-
   # requirements.md F7.4: データ不足時の定型文。Issue #13 FastAPI側(langchain_summary.rb
   # LLM_UNAVAILABLE_SUMMARY_TEXT)と同様、AIサマリー本文は仕様上常に日本語で生成されるコンテンツ
   # であり、UI表示文言(config/locales、i18n.md対象)とは性質が異なるため、既存の前例に倣い
@@ -173,10 +167,10 @@ class DailySummaryService
          end
   end
 
+  # DBのコードから契約のAlertTypeCodeへの変換はAlertモデルに集約している
+  # (Api::AlertsControllerも同じ変換を必要とするため)。
   def map_alert_type_code(code)
-    ALERT_TYPE_CODE_TO_CONTRACT.fetch(code) do
-      raise "unexpected alert_type_code encountered while building AI summary payload: #{code.inspect}"
-    end
+    Alert.contract_alert_type_code(code)
   end
 
   # Issue #13のFastAPI(internal-ai)を呼び出す薄いHTTPクライアント。

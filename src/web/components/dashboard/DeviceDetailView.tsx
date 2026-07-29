@@ -1,15 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '../../i18n/navigation';
+import { ApiError } from '../../lib/api/apiClient';
 import {
-  getMockDeviceDetail,
-  listMockCommands,
-  listMockAlerts,
-  listMockSites,
-  getMockTelemetrySeries,
-} from '../../lib/dashboard/mockData';
+  fetchAlerts,
+  fetchCommands,
+  fetchDeviceDetail,
+  fetchSitesSummary,
+  fetchTelemetrySeries,
+  type Alert,
+  type Command,
+  type DeviceDetail,
+  type TelemetryRange,
+  type Threshold,
+} from '../../lib/dashboard/dashboardApi';
 import { usePolling, DEFAULT_POLLING_INTERVAL_MS } from '../../lib/dashboard/usePolling';
 import { describeElapsed } from '../../lib/dashboard/relativeTime';
 import { computeSeriesSummary, type ChartPoint } from '../../lib/dashboard/chart';
@@ -17,7 +23,6 @@ import TimeSeriesChart from './TimeSeriesChart';
 import DeviceStatusDot from './DeviceStatusDot';
 import type { components } from '@contracts/api';
 
-type TelemetryRange = '24h' | '7d';
 type DeviceStatus = components['schemas']['DeviceStatus'];
 
 const STEP_MINUTES: Record<TelemetryRange, number> = { '24h': 10, '7d': 60 };
@@ -26,11 +31,23 @@ export interface DeviceDetailViewProps {
   deviceId: number;
 }
 
+type DetailState =
+  | { status: 'loading' }
+  | { status: 'ready'; detail: DeviceDetail; siteName?: string; commands: Command[]; alerts: Alert[] }
+  // 存在しない/他ユーザーのデバイスと、通信できなかったことを混同しない。
+  // 前者は案内、後者は再試行を促すべき別の状況(.claude/rules/coding-style.md)。
+  | { status: 'notFound' }
+  | { status: 'error' };
+
+type SeriesState = { points: ChartPoint[]; thresholds: Threshold[] };
+
 /**
  * F6.3 — device detail: 24h/7d time-series with threshold lines, command
- * history and alert history for a single device (Issue #18 acceptance
- * criteria). Backed by the same contract-shaped stub as SitesOverview; real
- * Rails wiring is a later issue.
+ * history and alert history for a single device (Issue #18 acceptance criteria).
+ *
+ * Data comes from the real Rails API (`GET /devices/{id}`, `/telemetry-series`,
+ * `/commands`, `/alerts`) through the same-origin proxy. The contract-shaped stub
+ * this screen used to read (lib/dashboard/mockData.ts) has been removed.
  */
 export default function DeviceDetailView({ deviceId }: DeviceDetailViewProps) {
   const t = useTranslations('dashboard.device');
@@ -40,44 +57,96 @@ export default function DeviceDetailView({ deviceId }: DeviceDetailViewProps) {
   const tAlertType = useTranslations('dashboard.alertType');
   const tAlertStatus = useTranslations('dashboard.alertStatus');
   const tRelative = useTranslations('dashboard.relativeTime');
+
   const [range, setRange] = useState<TelemetryRange>('24h');
-  // `usePolling` re-renders this component every interval on its own; the
-  // lookups below are plain (cheap, deterministic fixture reads) so they
-  // don't need a useMemo keyed on a tick counter to "refresh". `lastUpdatedAt`
-  // is React state (not a fresh Date.now() read), so using it as the "now"
-  // anchor for relative-time formatting keeps render pure.
-  const { lastUpdatedAt } = usePolling(DEFAULT_POLLING_INTERVAL_MS);
+  const [state, setState] = useState<DetailState>({ status: 'loading' });
+  const [series, setSeries] = useState<SeriesState>({ points: [], thresholds: [] });
+  // 再取得の失敗。初回取得失敗と区別し、前回取得できた内容は表示したまま伝える。
+  const [refreshFailed, setRefreshFailed] = useState(false);
 
-  const detail = getMockDeviceDetail(deviceId);
-  const siteName = detail ? listMockSites().find((site) => site.id === detail.siteId)?.name : undefined;
-  const commands = listMockCommands(deviceId);
-  const alerts = listMockAlerts(deviceId);
+  // `lastUpdatedAt` はReactのstateなので、相対時刻の基準に使ってもレンダーは純粋なまま。
+  const { tickCount, lastUpdatedAt } = usePolling(DEFAULT_POLLING_INTERVAL_MS);
 
-  const { points, thresholds } = useMemo(() => {
-    if (!detail) return { points: [] as ChartPoint[], thresholds: [] as components['schemas']['Threshold'][] };
-    const temperature = getMockTelemetrySeries(deviceId, range, 'temperature');
-    const humidity = getMockTelemetrySeries(deviceId, range, 'humidity');
-    const merged: ChartPoint[] = temperature.points.map((point, index) => ({
-      timestamp: point.timestamp,
-      temperatureC: point.temperatureC ?? null,
-      humidityPct: humidity.points[index]?.humidityPct ?? null,
-    }));
-    return { points: merged, thresholds: temperature.thresholds };
-  }, [detail, deviceId, range]);
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      fetchDeviceDetail(deviceId),
+      fetchCommands(deviceId),
+      fetchAlerts(deviceId),
+      // 契約上 Device に拠点名は含まれないため、拠点一覧から siteId で引く。
+      fetchSitesSummary(),
+    ])
+      .then(([detail, commands, alerts, sites]) => {
+        if (cancelled) return;
+        setState({
+          status: 'ready',
+          detail,
+          siteName: sites.find((site) => site.id === detail.siteId)?.name,
+          commands,
+          alerts,
+        });
+        setRefreshFailed(false);
+      })
+      .catch((error: unknown) => {
+        console.error('[DeviceDetailView] failed to load device detail', error);
+        if (cancelled) return;
+
+        // 404(存在しない)・403(他ユーザーのデバイス)は通信障害ではなく、
+        // 「このデバイスは見られない」という確定した結果なので専用の表示にする。
+        // 403を「権限がありません」と出すと、そのIDのデバイスが存在することを
+        // 他人に教えてしまうため、404と同じ表示に丸める。
+        if (error instanceof ApiError && (error.code === 'not_found' || error.code === 'forbidden')) {
+          setState({ status: 'notFound' });
+          return;
+        }
+        setState((current) => (current.status === 'ready' ? current : { status: 'error' }));
+        setRefreshFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceId, tickCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // 温度と湿度は契約上それぞれ別リクエスト(sensorTypeが必須クエリ)。
+    Promise.all([
+      fetchTelemetrySeries(deviceId, range, 'temperature'),
+      fetchTelemetrySeries(deviceId, range, 'humidity'),
+    ])
+      .then(([temperature, humidity]) => {
+        if (cancelled) return;
+
+        // 温度側の時刻を基準に湿度を突き合わせる。同じrangeなら粒度は揃うが、
+        // 時刻が一致しない点は欠測として null のままにする(値をでっち上げない)。
+        const humidityByTimestamp = new Map(
+          humidity.points.map((point) => [point.timestamp, point.humidityPct ?? null])
+        );
+        const merged: ChartPoint[] = temperature.points.map((point) => ({
+          timestamp: point.timestamp,
+          temperatureC: point.temperatureC ?? null,
+          humidityPct: humidityByTimestamp.get(point.timestamp) ?? null,
+        }));
+        setSeries({ points: merged, thresholds: temperature.thresholds });
+      })
+      .catch((error: unknown) => {
+        console.error('[DeviceDetailView] failed to load telemetry series', error);
+        if (cancelled) return;
+        setRefreshFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceId, range, tickCount]);
 
   const summary = useMemo(
-    () => computeSeriesSummary(points, thresholds, STEP_MINUTES[range]),
-    [points, thresholds, range]
+    () => computeSeriesSummary(series.points, series.thresholds, STEP_MINUTES[range]),
+    [series, range]
   );
-
-  if (!detail) {
-    return (
-      <div>
-        <Link href="/dashboard">{t('backToOverview')}</Link>
-        <p style={{ marginTop: 16 }}>{t('notFound')}</p>
-      </div>
-    );
-  }
 
   function statusLabel(status: DeviceStatus): string {
     if (status === 'online') return t('statusOnline');
@@ -96,9 +165,46 @@ export default function DeviceDetailView({ deviceId }: DeviceDetailViewProps) {
     return t('minutesUnit', { minutes });
   }
 
+  if (state.status === 'loading') {
+    return (
+      <div>
+        <Link href="/dashboard">{t('backToOverview')}</Link>
+        <p style={{ marginTop: 16 }}>{t('loading')}</p>
+      </div>
+    );
+  }
+
+  if (state.status === 'notFound') {
+    return (
+      <div>
+        <Link href="/dashboard">{t('backToOverview')}</Link>
+        <p style={{ marginTop: 16 }}>{t('notFound')}</p>
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div>
+        <Link href="/dashboard">{t('backToOverview')}</Link>
+        <p role="alert" style={{ marginTop: 16 }}>
+          {t('loadError')}
+        </p>
+      </div>
+    );
+  }
+
+  const { detail, siteName, commands, alerts } = state;
+
   return (
     <div>
       <Link href="/dashboard">{t('backToOverview')}</Link>
+
+      {refreshFailed && (
+        <p role="alert" style={{ marginTop: 14 }}>
+          {t('refreshError')}
+        </p>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginTop: 14 }}>
         <div>
@@ -134,7 +240,7 @@ export default function DeviceDetailView({ deviceId }: DeviceDetailViewProps) {
       )}
 
       <div style={{ background: '#fff', borderRadius: 8, padding: 24, marginTop: 22, color: '#0a1628' }}>
-        <TimeSeriesChart points={points} thresholds={thresholds} />
+        <TimeSeriesChart points={series.points} thresholds={series.thresholds} />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginTop: 16, borderTop: '1px solid rgba(10,22,40,0.1)', paddingTop: 16 }}>
           <div>

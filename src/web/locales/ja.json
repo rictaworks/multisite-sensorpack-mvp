@@ -186,7 +186,10 @@
       "currentHumidity": "いまの湿度",
       "noReading": "データなし",
       "deviceLabel": "デバイス #{id}",
-      "emptySites": "表示できる拠点がありません。"
+      "emptySites": "表示できる拠点がありません。",
+      "loading": "読み込んでいます…",
+      "loadError": "拠点の情報を取得できませんでした。ページを再読み込みしてください。",
+      "refreshError": "最新の情報を取得できませんでした。表示は前回取得した内容です。"
     },
     "device": {
       "statusOnline": "つながっています",
@@ -216,7 +219,10 @@
       "commandsTitle": "操作の履歴",
       "noCommands": "まだ操作していません。",
       "alertsTitle": "この機器のお知らせ",
-      "noAlerts": "お知らせはありません。"
+      "noAlerts": "お知らせはありません。",
+      "loading": "読み込んでいます…",
+      "loadError": "デバイスの情報を取得できませんでした。ページを再読み込みしてください。",
+      "refreshError": "最新の情報を取得できませんでした。表示は前回取得した内容です。"
     },
     "commandType": {
       "LED_ON": "ライトをつける",

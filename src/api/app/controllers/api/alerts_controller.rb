@@ -94,7 +94,9 @@ module Api
       {
         id: alert.id,
         deviceId: alert.device_id,
-        alertType: alert.alert_type_code,
+        # DBのマスタコード("threshold_upper_breach")をそのまま返すと契約
+        # (openapi.yaml AlertTypeCode: "upper_breach")違反になる。変換はAlertモデルに集約。
+        alertType: alert.contract_alert_type_code,
         severity: alert.severity_code,
         status: alert.status,
         openedAt: alert.opened_at&.iso8601,

@@ -186,7 +186,10 @@
       "currentHumidity": "Current humidity",
       "noReading": "No data",
       "deviceLabel": "Device #{id}",
-      "emptySites": "No sites to show yet."
+      "emptySites": "No sites to show yet.",
+      "loading": "Loading…",
+      "loadError": "We could not load your sites. Please reload the page.",
+      "refreshError": "We could not refresh the data. What you see is the last successful update."
     },
     "device": {
       "statusOnline": "Connected",
@@ -216,7 +219,10 @@
       "commandsTitle": "Command history",
       "noCommands": "No commands sent yet.",
       "alertsTitle": "Alerts for this device",
-      "noAlerts": "No alerts."
+      "noAlerts": "No alerts.",
+      "loading": "Loading…",
+      "loadError": "We could not load this device. Please reload the page.",
+      "refreshError": "We could not refresh the data. What you see is the last successful update."
     },
     "commandType": {
       "LED_ON": "Turn light on",

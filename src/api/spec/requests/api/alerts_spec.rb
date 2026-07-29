@@ -112,13 +112,30 @@ RSpec.describe "Api::Alerts", type: :request do
       expect(body).to include(
         "id" => alert.id,
         "deviceId" => owner_device.id,
-        "alertType" => "threshold_upper_breach",
+        # DBのマスタコードは "threshold_upper_breach" だが、契約(openapi.yaml AlertTypeCode)は
+        # "upper_breach"。そのまま返すと契約違反になり、契約の値で表示文言を引くNext.js側で
+        # アラート種別を表示できない。
+        "alertType" => "upper_breach",
         "severity" => "warning",
         "status" => "open"
       )
       expect(body["openedAt"]).not_to be_nil
       expect(body["acknowledgedAt"]).to be_nil
       expect(body["closedAt"]).to be_nil
+    end
+
+    # 種別ごとに変換されることを保証する(1件だけ通っても他の種別が漏れていれば同じ不具合が起きる)。
+    it "アラート種別コードを契約のAlertTypeCodeへ変換して返す(下限逸脱・オフラインを含む)" do
+      lower_breach = AlertType.find_by!(code: Alert::THRESHOLD_LOWER_BREACH_ALERT_TYPE_CODE)
+      offline = AlertType.find_by!(code: Device::OFFLINE_ALERT_TYPE_CODE)
+      create_alert(device: owner_device, alert_type: lower_breach, severity: warning, status: "open")
+      create_alert(device: owner_device, alert_type: offline, severity: warning, status: "open")
+      login_as(owner)
+
+      get "/api/v1/alerts"
+
+      returned_types = JSON.parse(response.body)["alerts"].map { |alert| alert["alertType"] }
+      expect(returned_types).to contain_exactly("lower_breach", "offline")
     end
 
     it "不正なstatus値を指定すると契約形状の400を返す" do
